@@ -1,8 +1,8 @@
 # Техническое задание: Модуль коррекционного нейропсихологического маршрута
 
-**Версия:** 2.1
-**Дата:** 28 октября 2025
-**Статус:** синхронизировано с `DATA_MODEL_AND_EVENTS.md` v0.2, включая обновленную схему данных, именование таблиц (множественное число), Constitution Check правила и расширенные доменные события с correlation_id/causation_id.
+**Версия:** 2.2
+**Дата:** 30 октября 2025
+**Статус:** синхронизировано с `DATA_MODEL_AND_EVENTS.md` v0.4, включая обновленную схему данных, именование таблиц (множественное число), Constitution Check правила и расширенные доменные события с correlation_id/causation_id.
 
 ---
 
@@ -99,6 +99,7 @@
 | `media_assets` | Медиа-ресурсы | `owner_type`, `owner_id`, `media_type`, `path`, `checksum`, `created_at`, `expires_at` |
 | `notifications` | Уведомления | `channel`, `payload` (JSONB), `status`, `attempts`, `scheduled_at`, `sent_at`, `created_at` |
 | `event_outbox` | Outbox Pattern для событий | `event_name`, `aggregate_type`, `aggregate_id`, `payload` (JSONB), `created_at`, `published_at`, `status` |
+| `event_outbox_failures` | DLQ для неуспешных публикаций | `original_outbox_id`, `payload` (JSONB), `error_summary`, `retry_count`, `failed_at`, `reprocessed_at` |
 
 Полная ERD приводится в `DATA_MODEL_AND_EVENTS.md`.
 
@@ -272,6 +273,6 @@ API-эндпоинты описаны в `API_CONTRACTS_MVP.md`:
 - `DATA_GOVERNANCE.md` — политика обработки данных и регламенты.
 - `ТЕХНИЧЕСКОЕ_ЗАДАНИЕ_NEIRO_PLATFORM.md` — общеплатформенное ТЗ.
 
-**Примечание:** Документ синхронизирован с `DATA_MODEL_AND_EVENTS.md` v0.2, включая обновленную схему данных, именование таблиц (единственное число), Constitution Check правила и расширенные доменные события с correlation_id/causation_id.
+**Примечание:** Документ синхронизирован с `DATA_MODEL_AND_EVENTS.md` v0.4, включая обновленную схему данных, именование таблиц (единственное число), Constitution Check правила и расширенные доменные события с correlation_id/causation_id и outbox-инфраструктуру с DLQ.
 
 Документ является живым: обновления фиксируются при изменении схемы данных, событий либо пользовательских сценариев.

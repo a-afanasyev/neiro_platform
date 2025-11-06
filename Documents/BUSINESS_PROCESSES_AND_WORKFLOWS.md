@@ -1,13 +1,17 @@
 # Neiro Platform — Business Processes & Workflows
 
-**Версия:** 0.2  
-**Дата:** 29 октября 2025  
-**Назначение:** детализация бизнес-процессов платформы Neiro, описанных в `neiro.md` (версия 2.0), `ТЕХНИЧЕСКОЕ_ЗАДАНИЕ_NEIRO_PLATFORM.md` (версия 3.1) и вспомогательных документах (CJM, Data Model, API Contracts). Документ фиксирует stakeholders, триггеры, шаги, интеграции и артефакты для ключевых сценариев сопровождения ребенка с РАС.
+**Версия:** 0.3  
+**Дата:** 30 октября 2025  
+**Назначение:** детализация бизнес-процессов платформы Neiro, описанных в `neiro.md` (версия 2.0), `ТЕХНИЧЕСКОЕ_ЗАДАНИЕ_NEIRO_PLATFORM.md` (версия 3.3) и вспомогательных документах (CJM, Data Model, API Contracts). Документ фиксирует stakeholders, триггеры, шаги, интеграции и артефакты для ключевых сценариев сопровождения ребенка с РАС.
+
+**Изменения в версии 0.3:**
+- ✅ Синхронизированы ссылки на SoT `ТЕХНИЧЕСКОЕ_ЗАДАНИЕ_NEIRO_PLATFORM.md` v3.3 и `DATA_MODEL_AND_EVENTS.md` v0.4.
+- ✅ Уточнено описание инфраструктуры событий: в процессах используется Postgres Outbox + воркеры вместо Kafka на MVP.
 
 **Изменения в версии 0.2:**
 - Добавлены все доменные события из DATA_MODEL_AND_EVENTS.md
 - Интегрированы Constitution Check правила валидации
-- Обновлены API вызовы согласно API_CONTRACTS_MVP.md v0.6
+- Обновлены API вызовы согласно API_CONTRACTS_MVP.md v0.7
 - Исправлена терминология диагностических данных
 - Добавлены новые сервисы (Specialists, Route Templates)
 
@@ -404,7 +408,7 @@ flowchart TD
 | --- | --- | --- |
 | **Constitution Check** | Любые изменения процессов отмечаются в планах с соответствием Gate'ам | `constitution.md` §14 |
 | **Constitution Check Rules** | Валидация бизнес-правил целостности данных в каждом процессе | `DATA_MODEL_AND_EVENTS.md` §4 |
-| **Event-Driven Architecture** | Все процессы основаны на доменных событиях с полным покрытием | `DATA_MODEL_AND_EVENTS.md` §2 |
+| **Event-Driven Architecture** | Все процессы основаны на доменных событиях с Postgres Outbox + воркеры и полным покрытием | `DATA_MODEL_AND_EVENTS.md` §2 |
 | **API Contract Compliance** | Все API вызовы соответствуют контрактам с версионированием | `API_CONTRACTS_MVP.md` |
 | **Continuous Discovery** | Периодические интервью родителей и специалистов для актуализации CJM | `Neiro_CJM_Extended.md` |
 | **Data Feedback Loop** | Метрики из `analytics` используются для авто-рекомендаций целей и упражнений | `DATA_MODEL_AND_EVENTS.md` §2 |
@@ -417,7 +421,7 @@ flowchart TD
 ### Завершено в версии 0.2
 - ✅ Добавлены все доменные события из DATA_MODEL_AND_EVENTS.md
 - ✅ Интегрированы Constitution Check правила валидации
-- ✅ Обновлены API вызовы согласно API_CONTRACTS_MVP.md v0.3
+- ✅ Обновлены API вызовы согласно API_CONTRACTS_MVP.md v0.7
 - ✅ Исправлена терминология диагностических данных
 - ✅ Добавлены новые сервисы (Specialists, Route Templates)
 
@@ -470,7 +474,7 @@ flowchart TD
 
 ### 7.3 API Contract Compliance
 
-Все API вызовы соответствуют контрактам из `API_CONTRACTS_MVP.md` v0.3:
+Все API вызовы соответствуют контрактам из `API_CONTRACTS_MVP.md` v0.7:
 
 - **REST эндпоинты** с версионированием `/v1`
 - **tRPC процедуры** для Next.js BFF

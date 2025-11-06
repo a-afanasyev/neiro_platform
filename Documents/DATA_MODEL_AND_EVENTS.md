@@ -1,8 +1,15 @@
 # Neiro Platform — Data Model & Domain Events
 
-**Версия:** 0.2
-**Дата:** 28 октября 2025
+**Версия:** 0.4
+**Дата:** 30 октября 2025
 **Назначение:** нормативное описание ключевых сущностей MVP и каталога доменных событий, удовлетворяющего требованиям `constitution.md` (Stack Compliance, Service Boundaries, API Contract, Events, Data Policy).
+
+**Изменения в версии 0.4:**
+- ✅ Раздел 2: транспорт доменных событий переведён на Postgres Outbox + фоновые воркеры, Kafka отложена до пост-MVP.
+- ✅ Обновлены задачи инфраструктуры событий: акцент на ретраи/мониторинг outbox и подготовку к возможному брокеру.
+
+**Изменения в версии 0.3:**
+- ✅ Раздел 2: зафиксирована Apache Kafka 3.x как транспорт событий (вместо Redis Streams/Kafka опционально) с обязательными DLQ топиками.
 
 **Изменения в версии 0.2:**
 - Добавлена Section 3: SQL DDL Migrations с полными CREATE TABLE для всех 27 таблиц
@@ -217,6 +224,7 @@
 - **`media_assets`** — хранит presigned-данные для MinIO (`id`, `owner_type`, `owner_id`, `media_type`, `path`, `checksum`, `created_at`, `expires_at`).
 - **`notifications`** — очередь уведомлений для comms (`id`, `channel`, `payload`, `status`, `attempts`, `scheduled_at`).
 - **`event_outbox`** — outbox-шаблон на каждый сервис с transactional-подъемом событий (см. раздел 2).
+- **`event_outbox_failures`** — DLQ-таблица для событий, не доставленных после максимального числа попыток (`id`, `original_outbox_id`, `error_summary`, `payload JSONB`, `failed_at`, `retry_count`).
 
 ---
 
@@ -225,7 +233,7 @@
 ### Нотация и общие правила
 - **Именование:** `<module>.<aggregate>.<event>` в `snake_case`, например `diagnostics.session.completed`.
 - **Версионирование:** поле `schema_version` (integer). При несовместимых изменениях создаём новую версию события.
-- **Transport:** публикация в Redis Streams/Kafka (конкретный брокер уточняется DevOps), формат JSON.
+- **Transport:** публикация из `event_outbox` через фоновые воркеры (PostgreSQL, гарантированная доставка, ретраи и аудит неуспешных попыток), формат JSON. Переход на выделенный брокер (Kafka) рассматривается после выхода за пределы MVP.
 - **Соответствие constitution:** каждый сервис имеет outbox и отвечает за публикацию собственных событий. Подписчики не пишут обратно в источник напрямую.
 
 ### Обязательные поля в каждом событии
@@ -799,6 +807,20 @@ CREATE TABLE event_outbox (
 );
 
 CREATE INDEX idx_outbox_pending ON event_outbox(status, created_at) WHERE status = 'pending';
+
+-- Таблица: event_outbox_failures (Dead Letter Queue для Outbox)
+CREATE TABLE event_outbox_failures (
+    id UUID PRIMARY KEY,
+    original_outbox_id UUID NOT NULL,
+    payload JSONB NOT NULL,
+    error_summary TEXT,
+    retry_count INT DEFAULT 0,
+    failed_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    reprocessed_at TIMESTAMPTZ,
+    CONSTRAINT fk_outbox_failure FOREIGN KEY(original_outbox_id) REFERENCES event_outbox(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_outbox_failures_failed_at ON event_outbox_failures(failed_at);
 ```
 
 ### 3.8 JSON Schema для JSONB полей
@@ -957,11 +979,11 @@ ON route(child_id) WHERE status = 'active';
    - Assignment operations (с валидацией через phase_exercises)
    - Template operations (apply to route)
 
-2. **Event Streaming Infrastructure:**
-   - Настроить подписчиков для доменных событий (DLQ, retry policies)
-   - Реализовать Outbox Pattern worker для каждого сервиса
-   - Добавить event replayer для тестирования
-   - Настроить схема-регистр (Schema Registry) для версионирования событий
+2. **Event Delivery Infrastructure:**
+   - Реализовать outbox-воркеры для каждого сервиса (batch-processing, идемпотентность обработчиков)
+   - Настроить ретраи, backoff и DLQ-таблицы для неуспешных публикаций
+   - Добавить event replayer/реплей-скрипты для тестирования и регресса
+   - Подготовить мониторинг outbox-метрик и критерии эволюции к выделенному брокеру после MVP
 
 3. **Data Governance:**
    - Согласовать с юристами регламенты хранения PII данных (GDPR, 152-ФЗ, HIPAA)
