@@ -1,0 +1,32 @@
+# Development Dockerfile
+# Используется для контейнера app в docker-compose.yml
+# ВСЁ ИСПОЛНЕНИЕ КОДА ПРОИСХОДИТ ЗДЕСЬ, НЕ НА ХОСТЕ!
+
+FROM node:20-alpine
+
+# Устанавливаем необходимые системные зависимости
+RUN apk add --no-cache \
+    git \
+    openssh \
+    python3 \
+    make \
+    g++ \
+    curl
+
+# Создаём рабочую директорию
+WORKDIR /app
+
+# Копируем package.json и package-lock.json для установки зависимостей
+# (будет перезаписано через volume mount, но нужно для первичной сборки)
+COPY package*.json ./
+
+# Устанавливаем глобальные инструменты
+RUN npm install -g pnpm turbo prisma
+
+# Expose порты
+EXPOSE 3000 4000
+
+# По умолчанию запускаем bash для интерактивной работы
+# Реальная команда будет переопределена в docker-compose.yml
+CMD ["sh"]
+

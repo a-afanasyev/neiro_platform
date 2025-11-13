@@ -1,0 +1,36 @@
+/**
+ * Validation Middleware
+ * 
+ * Валидация входящих данных с помощью Zod
+ */
+
+import { Request, Response, NextFunction } from 'express';
+import { ZodSchema, ZodError } from 'zod';
+import { AppError } from '../utils/AppError';
+
+/**
+ * Middleware для валидации тела запроса
+ */
+export function validateRequest(schema: ZodSchema) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // Валидация body
+      const validated = await schema.parseAsync(req.body);
+      req.body = validated;
+      next();
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const errors = error.errors.map((err) => ({
+          field: err.path.join('.'),
+          message: err.message,
+        }));
+
+        return next(
+          new AppError('Ошибка валидации данных', 422, 'VALIDATION_ERROR', { errors })
+        );
+      }
+      next(error);
+    }
+  };
+}
+

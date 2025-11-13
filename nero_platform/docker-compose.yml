@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database - порт 5437 (не стандартный 5432)
+  postgres:
+    image: postgres:15-alpine
+    container_name: neiro_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: neiro_platform
+      POSTGRES_USER: neiro_user
+      POSTGRES_PASSWORD: neiro_password_dev
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neiro_user -d neiro_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: neiro_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO S3-compatible storage
+  minio:
+    image: minio/minio:latest
+    container_name: neiro_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Adminer - Database Management UI
+  adminer:
+    image: adminer:latest
+    container_name: neiro_adminer
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+
+  # Node.js Application Container
+  # КРИТИЧНО: Весь код исполняется здесь, не на хосте!
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: neiro_app
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://neiro_user:neiro_password_dev@postgres:5432/neiro_platform
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_USE_SSL: false
+    ports:
+      - "3001:3000"  # Next.js frontend
+      - "4001:4000"  # API Gateway
+    volumes:
+      # Mount source code for hot reload (редактируем на хосте, исполняем в контейнере)
+      - ./package.json:/app/package.json:ro
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
+      - ./turbo.json:/app/turbo.json:ro
+      - ./apps:/app/apps
+      - ./services:/app/services
+      - ./packages:/app/packages
+      - ./infrastructure:/app/infrastructure
+      # Persist node_modules in volume (не на хосте!)
+      - node_modules:/app/node_modules
+      - app_node_modules:/app/apps/web/node_modules
+      - packages_node_modules:/app/packages
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    # Команда по умолчанию - просто держать контейнер запущенным
+    # Разработчики запускают команды вручную через: docker-compose exec app <command>
+    command: tail -f /dev/null
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+  node_modules:
+    driver: local
+  app_node_modules:
+    driver: local
+  packages_node_modules:
+    driver: local
+
+networks:
+  default:
+    name: neiro_network
+
