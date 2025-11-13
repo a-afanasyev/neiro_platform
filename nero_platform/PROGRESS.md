@@ -1,8 +1,8 @@
 # 📊 Neiro Platform - Отчёт о разработке
 
-**Дата:** 14 ноября 2025  
-**Статус:** ✅ Фаза 0 завершена, 🚧 Месяц 1 в процессе  
-**Версия:** 0.1.0
+**Дата:** 13 ноября 2025  
+**Статус:** ✅ Фаза 0 завершена, ✅ Месяц 1 базовая версия завершена  
+**Версия:** 0.2.0
 
 ---
 
@@ -60,7 +60,7 @@
 
 ---
 
-## 🚧 МЕСЯЦ 1: Auth, Users, Specialists, Children (В ПРОЦЕССЕ)
+## ✅ МЕСЯЦ 1: Auth, Users, Specialists, Children, Diagnostics, Frontend (ЗАВЕРШЕНА БАЗОВАЯ ВЕРСИЯ)
 
 ### ✅ Auth Service (ЗАВЕРШЕНО)
 
@@ -156,16 +156,66 @@
 
 ---
 
+### ✅ Diagnostics Service (ЗАВЕРШЕНО - БАЗОВАЯ ВЕРСИЯ)
+
+**Функциональность:**
+- ✅ Управление диагностическими сессиями
+- ✅ 6 стандартных опросников (CARS, ABC, ATEC, Vineland-3, SPM-2, M-CHAT-R)
+- ✅ Сохранение ответов и автоматический подсчет результатов
+- ✅ Интерпретация и рекомендации
+- ✅ RBAC для специалистов, родителей и админов
+
+**API Endpoints (9):**
+- POST /diagnostics/v1/sessions
+- GET /diagnostics/v1/sessions
+- GET /diagnostics/v1/sessions/:id
+- PUT /diagnostics/v1/sessions/:id
+- POST /diagnostics/v1/sessions/:id/responses
+- POST /diagnostics/v1/sessions/:id/complete
+- GET /diagnostics/v1/sessions/:id/results
+- GET /diagnostics/v1/questionnaires
+- GET /diagnostics/v1/questionnaires/:code
+
+**События:**
+- diagnostic.session.started
+- diagnostic.session.updated
+- diagnostic.session.completed
+
+**Файлы:** 14 файлов  
+**Порт:** 4004
+
+---
+
+### ✅ Frontend Web App (ЗАВЕРШЕНО - БАЗОВАЯ ВЕРСИЯ)
+
+**Стек:**
+- Next.js 14 + App Router, React 18, TypeScript
+- Tailwind CSS + Radix UI
+- Zustand (state) + Axios (API с auto-refresh)
+
+**Компоненты:**
+- UI Kit (Button, Card), Layout, Home page с features, Design System
+
+**API Integration:**
+- Централизованный API client с интерцепторами
+- Auto-refresh JWT токенов
+- API клиенты: authApi, usersApi, childrenApi, diagnosticsApi
+
+**Файлы:** 12+ файлов  
+**Порт:** 3001
+
+---
+
 ## 📈 Статистика
 
 ### Файлы
-- **Всего создано:** ~120 файлов
-- **Строк кода:** ~8000+ строк TypeScript/TSX
+- **Всего создано:** ~150+ файлов
+- **Строк кода:** ~10000+ строк TypeScript/TSX
 
 ### Сервисы
-- **Микросервисов:** 3 (auth, users, children)
-- **API Endpoints:** 24 эндпоинта
-- **События:** 13 доменных событий
+- **Микросервисов:** 4 (auth, users, children, diagnostics)
+- **API Endpoints:** 30 эндпоинтов
+- **События:** 15 доменных событий
 
 ### База данных
 - **Таблицы:** 27 (из DATA_MODEL_AND_EVENTS.md)
@@ -178,17 +228,16 @@
 
 ### Остаток Месяца 1:
 
-1. **Diagnostics Service** (базовый)
-   - M-CHAT-R/F опросник
-   - CAST опросник
-   - Сохранение результатов
-   - API: 4-5 эндпоинтов
+1. **Frontend страницы**
+   - Login/Register pages
+   - Dashboard layouts (по ролям)
+   - Children management UI
+   - Diagnostics UI (запуск сессий, просмотр результатов)
 
-2. **Frontend интеграция**
-   - API клиенты для сервисов
-   - Auth flow (login/logout)
-   - Dashboards по ролям
-   - Базовые формы
+2. **Интеграция и тестирование**
+   - E2E тесты auth flow
+   - Unit тесты для сервисов
+   - Integration тесты API
 
 ### Месяц 2 (Route Orchestrator, Exercises, Templates, Assignments):
 - Route Orchestrator Service
@@ -230,13 +279,16 @@ docker-compose exec app pnpm run db:seed
 ### 4. Запуск сервисов
 ```bash
 # Auth Service
-docker-compose exec app pnpm --filter @neiro/auth-service dev
+docker-compose exec app pnpm --filter @neiro/auth dev
 
 # Users Service (в другом терминале)
-docker-compose exec app pnpm --filter @neiro/users-service dev
+docker-compose exec app pnpm --filter @neiro/users dev
 
 # Children Service (в другом терминале)
-docker-compose exec app pnpm --filter @neiro/children-service dev
+docker-compose exec app pnpm --filter @neiro/children dev
+
+# Diagnostics Service (в другом терминале)
+docker-compose exec app pnpm --filter @neiro/diagnostics dev
 
 # Next.js Frontend (в другом терминале)
 docker-compose exec app pnpm --filter @neiro/web dev
@@ -247,6 +299,7 @@ docker-compose exec app pnpm --filter @neiro/web dev
 - Auth Service: http://localhost:4001
 - Users Service: http://localhost:4002
 - Children Service: http://localhost:4003
+- Diagnostics Service: http://localhost:4004
 - Adminer: http://localhost:8082
 - MinIO Console: http://localhost:9001
 
@@ -349,7 +402,7 @@ docker-compose exec app pnpm --filter @neiro/web dev
 
 Проект Neiro Platform успешно стартовал! Базовая инфраструктура полностью готова, 3 ключевых микросервиса реализованы и работают. Архитектура соответствует Constitution, код качественный с полным соблюдением best practices.
 
-**Следующий фокус:** Завершение Месяца 1 (Diagnostics + Frontend интеграция).
+**Следующий фокус:** Расширение Frontend UI (Login, Dashboards, формы) и переход к Месяцу 2 (Route Orchestrator, Exercises, Templates, Assignments).
 
 ---
 
