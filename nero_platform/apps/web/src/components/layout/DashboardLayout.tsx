@@ -39,8 +39,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         ...baseItems,
         { href: '/dashboard/users', label: 'Пользователи', icon: '👥' },
         { href: '/dashboard/children', label: 'Дети', icon: '👶' },
-        { href: '/dashboard/specialists', label: 'Специалисты', icon: '👨‍⚕️' },
+        { href: '/dashboard/routes', label: 'Маршруты', icon: '🗺️' },
         { href: '/dashboard/diagnostics', label: 'Диагностика', icon: '📋' },
+        { href: '/dashboard/exercises', label: 'Упражнения', icon: '🎯' },
+        { href: '/dashboard/templates', label: 'Шаблоны', icon: '📝' },
+        { href: '/dashboard/assignments', label: 'Назначения', icon: '📅' },
         { href: '/dashboard/settings', label: 'Настройки', icon: '⚙️' },
       ]
     }
@@ -49,9 +52,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       return [
         ...baseItems,
         { href: '/dashboard/children', label: 'Мои дети', icon: '👶' },
-        { href: '/dashboard/diagnostics', label: 'Диагностика', icon: '📋' },
         { href: '/dashboard/routes', label: 'Маршруты', icon: '🗺️' },
+        { href: '/dashboard/diagnostics', label: 'Диагностика', icon: '📋' },
         { href: '/dashboard/exercises', label: 'Упражнения', icon: '🎯' },
+        { href: '/dashboard/templates', label: 'Шаблоны', icon: '📝' },
+        { href: '/dashboard/assignments', label: 'Назначения', icon: '📅' },
         { href: '/dashboard/reports', label: 'Отчеты', icon: '📊' },
       ]
     }
@@ -60,7 +65,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       return [
         ...baseItems,
         { href: '/dashboard/children', label: 'Мои дети', icon: '👶' },
-        { href: '/dashboard/assignments', label: 'Задания', icon: '📝' },
+        { href: '/dashboard/routes', label: 'Мой маршрут', icon: '🗺️' },
+        { href: '/dashboard/assignments', label: 'Задания', icon: '📅' },
         { href: '/dashboard/progress', label: 'Прогресс', icon: '📈' },
         { href: '/dashboard/chat', label: 'Чат', icon: '💬' },
       ]

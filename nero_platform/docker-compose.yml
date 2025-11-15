@@ -95,6 +95,10 @@ services:
     ports:
       - "3001:3001"  # Next.js frontend (порт 3001 внутри контейнера для соответствия CORS)
       - "4001:4000"  # API Gateway
+      - "4005:4005"  # Route Orchestrator Service
+      - "4006:4006"  # Assignments Service
+      - "4007:4007"  # Exercises Service
+      - "4008:4008"  # Templates Service
     volumes:
       # Mount source code for hot reload (редактируем на хосте, исполняем в контейнере)
       - ./package.json:/app/package.json:ro
@@ -111,6 +115,11 @@ services:
       - packages_database_nm:/app/packages/database/node_modules
       - packages_types_nm:/app/packages/types/node_modules
       - packages_utils_nm:/app/packages/utils/node_modules
+      # Volumes для node_modules новых сервисов (Месяц 2)
+      - services_routes_nm:/app/services/routes/node_modules
+      - services_assignments_nm:/app/services/assignments/node_modules
+      - services_exercises_nm:/app/services/exercises/node_modules
+      - services_templates_nm:/app/services/templates/node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -139,6 +148,15 @@ volumes:
   packages_types_nm:
     driver: local
   packages_utils_nm:
+    driver: local
+  # Volumes для новых сервисов (Месяц 2)
+  services_routes_nm:
+    driver: local
+  services_assignments_nm:
+    driver: local
+  services_exercises_nm:
+    driver: local
+  services_templates_nm:
     driver: local
 
 networks:

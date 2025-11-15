@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
+import { ErrorBoundary } from '@/components/error/ErrorBoundary'
+import { ToastProvider } from '@/components/providers/ToastProvider'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
@@ -23,7 +25,10 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+          <ToastProvider />
         </Providers>
       </body>
     </html>
