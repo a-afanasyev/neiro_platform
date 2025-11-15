@@ -1,45 +1,21 @@
 /**
- * Типы для аутентификации и авторизации
+ * Типы аутентификации
  */
 
-export type UserRole = 'parent' | 'specialist' | 'supervisor' | 'admin';
-export type UserStatus = 'active' | 'suspended' | 'invited';
-
 export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
-
-export interface UserSession {
-  id: string;
-  email: string;
-  role: UserRole;
-  status: UserStatus;
-  firstName: string;
-  lastName: string;
+  accessToken: string
+  refreshToken: string
 }
 
 export interface LoginRequest {
-  email: string;
-  password: string;
+  email: string
+  password: string
 }
 
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  user: UserSession;
+export interface RegisterRequest {
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  phone?: string
 }
-
-export interface RefreshTokenRequest {
-  refreshToken: string;
-}
-
-export interface InviteUserRequest {
-  email: string;
-  role: UserRole;
-  firstName: string;
-  lastName: string;
-}
-

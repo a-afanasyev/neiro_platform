@@ -67,6 +67,10 @@ docker-compose exec app pnpm --filter @neiro/web dev
 | Сервис | URL | Логин | Пароль |
 |--------|-----|-------|--------|
 | **Next.js Frontend** | http://localhost:3001 | - | - |
+| **Auth Service API** | http://localhost:4001 | - | - |
+| **Users Service API** | http://localhost:4002 | - | - |
+| **Children Service API** | http://localhost:4003 | - | - |
+| **Diagnostics Service API** | http://localhost:4004 | - | - |
 | **Adminer (DB UI)** | http://localhost:8082 | Server: `postgres`<br>User: `neiro_user`<br>DB: `neiro_platform` | `neiro_password_dev` |
 | **MinIO Console** | http://localhost:9001 | `minioadmin` | `minioadmin123` |
 | **PostgreSQL** | localhost:5437 | `neiro_user` | `neiro_password_dev` |
@@ -117,7 +121,14 @@ docker-compose restart app
 
 После выполнения `pnpm run db:seed` будут созданы:
 
-### Пользователи
+### Пользователи (с паролями)
+
+| Email | Пароль | Роль | Описание |
+|-------|--------|------|----------|
+| `admin@neiro.dev` | `admin123` | `admin` | Администратор системы |
+| `supervisor@neiro.dev` | `supervisor123` | `supervisor` | Супервизор |
+| `specialist1@neiro.dev` | `specialist123` | `specialist` | Специалист |
+| `parent1@neiro.dev` | `parent123` | `parent` | Родитель |
 
 - **Admin**: admin@neiro.dev
 - **Супервизор**: supervisor@neiro.dev

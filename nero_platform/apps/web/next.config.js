@@ -16,10 +16,7 @@ const nextConfig = {
     domains: ['localhost'],
   },
   
-  // Experimental features
-  experimental: {
-    serverActions: true,
-  },
+  // Server Actions enabled by default in Next.js 14+
 }
 
 module.exports = nextConfig

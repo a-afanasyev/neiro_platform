@@ -1,14 +1,13 @@
 {
   "name": "@neiro/types",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "private": true,
   "main": "./index.ts",
   "types": "./index.ts",
-  "private": true,
   "dependencies": {
-    "@neiro/database": "workspace:*"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "typescript": "^5.3.3"
   }
 }
-

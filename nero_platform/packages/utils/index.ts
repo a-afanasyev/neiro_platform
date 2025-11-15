@@ -2,6 +2,9 @@
  * Утилиты для платформы Neiro
  */
 
+// Экспортируем константы
+export * from './constants'
+
 /**
  * Форматирование даты в удобочитаемый вид
  */
@@ -55,15 +58,3 @@ export function debounce<T extends (...args: any[]) => any>(
   }
 }
 
-/**
- * Константы для rate limiting
- */
-export const RATE_LIMITS = {
-  // Аутентификация: 5 попыток в 15 минут
-  AUTH_WINDOW_MS: 15 * 60 * 1000,
-  AUTH_MAX_REQUESTS: 5,
-
-  // Общие API запросы: 100 запросов в минуту
-  API_WINDOW_MS: 60 * 1000,
-  API_MAX_REQUESTS: 100,
-}

@@ -49,10 +49,11 @@ api.interceptors.response.use(
             refreshToken,
           })
 
-          const { accessToken, refreshToken: newRefreshToken } = response.data.data
+          // Backend возвращает в формате ApiResponse<T>: { success, data: { accessToken } }
+          const { accessToken } = response.data.data
           
+          // Сохраняем новый access token (refresh token остается прежним)
           localStorage.setItem('accessToken', accessToken)
-          localStorage.setItem('refreshToken', newRefreshToken)
 
           // Повторяем оригинальный запрос с новым токеном
           originalRequest.headers.Authorization = `Bearer ${accessToken}`

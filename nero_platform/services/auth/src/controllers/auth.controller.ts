@@ -39,11 +39,11 @@ export const authController = {
         throw new AppError('Аккаунт заблокирован', 403, 'ACCOUNT_SUSPENDED');
       }
 
-      // TODO: Проверка пароля (после добавления поля password в БД)
-      // const isPasswordValid = await bcrypt.compare(password, user.password);
-      // if (!isPasswordValid) {
-      //   throw new AppError('Неверный email или пароль', 401, 'INVALID_CREDENTIALS');
-      // }
+      // Проверка пароля
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new AppError('Неверный email или пароль', 401, 'INVALID_CREDENTIALS');
+      }
 
       // Генерация токенов
       const accessToken = generateAccessToken(user);
@@ -63,17 +63,21 @@ export const authController = {
         timestamp: new Date().toISOString(),
       });
 
+      // Формат ответа согласно ApiResponse<T>
       res.status(200).json({
-        accessToken,
-        refreshToken,
-        expiresIn: 15 * 60, // 15 минут в секундах
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          status: user.status,
+        success: true,
+        data: {
+          accessToken,
+          refreshToken,
+          expiresIn: 15 * 60, // 15 минут в секундах
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            status: user.status,
+          },
         },
       });
     } catch (error) {
@@ -110,9 +114,13 @@ export const authController = {
       // Генерация нового access token
       const accessToken = generateAccessToken(user);
 
+      // Формат ответа согласно ApiResponse<T>
       res.status(200).json({
-        accessToken,
-        expiresIn: 15 * 60,
+        success: true,
+        data: {
+          accessToken,
+          expiresIn: 15 * 60,
+        },
       });
     } catch (error) {
       next(error);

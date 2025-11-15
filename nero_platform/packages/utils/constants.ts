@@ -13,13 +13,14 @@ export const JWT_CONFIG = {
 
 /**
  * Rate limiting
+ * Ограничение количества запросов для защиты от брутфорса
  */
 export const RATE_LIMITS = {
-  AUTH_WINDOW_MS: 60000, // 1 минута
-  AUTH_MAX_REQUESTS: 5,
-  API_WINDOW_MS: 60000,
-  API_MAX_REQUESTS: 100,
-  UPLOAD_MAX_FILES_PER_HOUR: 10,
+  AUTH_WINDOW_MS: 60000, // 1 минута (60000 мс)
+  AUTH_MAX_REQUESTS: 100, // 100 попыток входа в минуту на IP
+  API_WINDOW_MS: 60000, // 1 минута
+  API_MAX_REQUESTS: 100, // 100 запросов в минуту на IP
+  UPLOAD_MAX_FILES_PER_HOUR: 10, // 10 файлов в час
 } as const;
 
 /**

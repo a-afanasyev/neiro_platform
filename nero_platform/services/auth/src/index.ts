@@ -17,15 +17,17 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { PrismaClient } from '@neiro/database';
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 import authRouter from './routes/auth.routes';
 import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/logger';
 
-// Загрузка переменных окружения
-dotenv.config();
+// Загрузка переменных окружения из корня монорепозитория
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const app: Express = express();
-const port = process.env.AUTH_SERVICE_PORT || 4001;
+// Внутри Docker контейнера слушаем 4000, снаружи доступен на 4001
+const port = process.env.AUTH_SERVICE_PORT || 4000;
 
 // Database client
 export const prisma = new PrismaClient({
@@ -33,11 +35,20 @@ export const prisma = new PrismaClient({
 });
 
 // Middleware
-app.use(helmet()); // Безопасность HTTP заголовков
+// CORS должен быть установлен до других middleware
+// Разрешаем запросы с фронтенда на порту 3001
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+  origin: process.env.CORS_ORIGIN || ['http://localhost:3001', 'http://localhost:3000'],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+app.use(helmet({
+  // Настраиваем helmet для работы с CORS
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+})); // Безопасность HTTP заголовков
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);

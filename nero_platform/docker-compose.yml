@@ -87,8 +87,13 @@ services:
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin123
       MINIO_USE_SSL: false
+      # JWT Secrets для Auth Service
+      JWT_ACCESS_SECRET: dev_access_secret_change_in_production_2024
+      JWT_REFRESH_SECRET: dev_refresh_secret_change_in_production_2024
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
     ports:
-      - "3001:3000"  # Next.js frontend
+      - "3001:3001"  # Next.js frontend (порт 3001 внутри контейнера для соответствия CORS)
       - "4001:4000"  # API Gateway
     volumes:
       # Mount source code for hot reload (редактируем на хосте, исполняем в контейнере)

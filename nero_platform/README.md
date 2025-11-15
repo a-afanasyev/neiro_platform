@@ -61,17 +61,22 @@
 
 ### Доступ к сервисам
 
-- **Next.js Frontend**: http://localhost:3001
-- **API Gateway**: http://localhost:4001
-- **Adminer (DB UI)**: http://localhost:8082
-  - Server: `postgres`
-  - Username: `neiro_user`
-  - Password: `neiro_password_dev`
-  - Database: `neiro_platform`
-- **MinIO Console**: http://localhost:9001
-  - Username: `minioadmin`
-  - Password: `minioadmin123`
-- **Redis**: localhost:6380 (не для прямого доступа, только для приложения)
+| Сервис | URL | Описание |
+|--------|-----|----------|
+| **Next.js Frontend** | http://localhost:3001 | Веб-приложение |
+| **Auth Service API** | http://localhost:4001 | API аутентификации |
+| **Users Service API** | http://localhost:4002 | API управления пользователями |
+| **Children Service API** | http://localhost:4003 | API управления детьми |
+| **Diagnostics Service API** | http://localhost:4004 | API диагностики |
+| **Adminer (DB UI)** | http://localhost:8082 | UI управления БД |
+| **MinIO Console** | http://localhost:9001 | UI управления MinIO |
+| **PostgreSQL** | localhost:5437 | База данных |
+| **Redis** | localhost:6380 | Кэш и очереди |
+
+**Учетные данные:**
+- **Adminer**: Server: `postgres`, User: `neiro_user`, Password: `neiro_password_dev`, Database: `neiro_platform`
+- **MinIO**: Username: `minioadmin`, Password: `minioadmin123`
+- **PostgreSQL**: User: `neiro_user`, Password: `neiro_password_dev`, Database: `neiro_platform`
 
 ## 📁 Структура проекта
 
@@ -81,18 +86,11 @@ nero_platform/
 │   ├── web/                # Next.js frontend
 │   └── api/                # API Gateway/BFF
 ├── services/               # Микросервисы
-│   ├── auth/               # Аутентификация
-│   ├── diagnostics/        # Диагностика
-│   ├── route-orchestrator/ # Коррекционные маршруты
-│   ├── exercises/          # Библиотека упражнений
-│   ├── assignments/        # Назначения
-│   ├── reports/            # Отчеты
-│   ├── analytics/          # Аналитика
-│   ├── comms/              # Коммуникации
-│   ├── templates/          # Шаблоны
-│   ├── specialists/        # Специалисты
-│   ├── media/              # Медиа-хранилище
-│   └── webhooks/           # Webhook-система
+│   ├── auth/               # Аутентификация (порт 4000/4001)
+│   ├── users/              # Управление пользователями (порт 4002)
+│   ├── children/           # Управление детьми (порт 4003)
+│   ├── diagnostics/        # Диагностика (порт 4004)
+│   └── [планируется]      # route-orchestrator, exercises, assignments, reports, analytics, comms, templates, media, webhooks
 ├── packages/               # Shared libraries
 │   ├── database/           # Prisma схемы и клиент
 │   ├── types/              # TypeScript типы
