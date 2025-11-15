@@ -69,19 +69,26 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// Запуск сервера с инициализацией MinIO
-app.listen(PORT, async () => {
-  console.log(`🚀 Exercises Service запущен на порту ${PORT}`);
-  console.log(`📝 API доступен по адресу: http://localhost:${PORT}/exercises/v1`);
-  console.log(`❤️  Health check: http://localhost:${PORT}/health`);
-  
-  // Инициализация MinIO buckets
+// Инициализация и запуск сервера
+// ВАЖНО: Асинхронная инициализация вынесена за пределы app.listen() callback
+// для соблюдения Express API контракта и корректной обработки ошибок
+(async () => {
+  // Инициализация MinIO buckets перед запуском сервера
   try {
     await initializeBuckets();
+    console.log('✅ MinIO buckets успешно инициализированы');
   } catch (error) {
     console.error('⚠️  Предупреждение: MinIO не инициализирован, загрузка медиа будет недоступна');
+    console.error('Ошибка:', error);
   }
-});
+  
+  // Запуск сервера (синхронный callback)
+  app.listen(PORT, () => {
+    console.log(`🚀 Exercises Service запущен на порту ${PORT}`);
+    console.log(`📝 API доступен по адресу: http://localhost:${PORT}/exercises/v1`);
+    console.log(`❤️  Health check: http://localhost:${PORT}/health`);
+  });
+})();
 
 export default app;
 

@@ -94,7 +94,10 @@ services:
       JWT_REFRESH_EXPIRES_IN: 7d
     ports:
       - "3001:3001"  # Next.js frontend (порт 3001 внутри контейнера для соответствия CORS)
-      - "4001:4000"  # API Gateway
+      - "4001:4000"  # API Gateway (Auth Service)
+      - "4002:4002"  # Users Service
+      - "4003:4003"  # Children Service
+      - "4004:4004"  # Profiles Service
       - "4005:4005"  # Route Orchestrator Service
       - "4006:4006"  # Assignments Service
       - "4007:4007"  # Exercises Service
