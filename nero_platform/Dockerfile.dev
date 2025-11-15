@@ -2,7 +2,8 @@
 # Используется для контейнера app в docker-compose.yml
 # ВСЁ ИСПОЛНЕНИЕ КОДА ПРОИСХОДИТ ЗДЕСЬ, НЕ НА ХОСТЕ!
 
-FROM node:20-alpine
+# Используем Alpine 3.17 для совместимости с Prisma Engine (OpenSSL 1.1)
+FROM node:20-alpine3.17
 
 # Устанавливаем необходимые системные зависимости
 RUN apk add --no-cache \
@@ -11,7 +12,8 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    curl
+    curl \
+    openssl-dev
 
 # Создаём рабочую директорию
 WORKDIR /app

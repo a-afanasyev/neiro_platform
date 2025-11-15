@@ -21,12 +21,13 @@ async function main() {
 
   console.log('📝 Создание пользователей...');
 
-  // Admin
+  // Admin (password: admin123)
   const admin = await prisma.user.upsert({
     where: { email: 'admin@neiro.dev' },
     update: {},
     create: {
       email: 'admin@neiro.dev',
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Admin',
       lastName: 'Adminov',
       role: 'admin',
@@ -35,12 +36,13 @@ async function main() {
     },
   });
 
-  // Супервизор
+  // Супервизор (password: supervisor123)
   const supervisor = await prisma.user.upsert({
     where: { email: 'supervisor@neiro.dev' },
     update: {},
     create: {
       email: 'supervisor@neiro.dev',
+      password: await bcrypt.hash('supervisor123', 12),
       firstName: 'Ольга',
       lastName: 'Супервизорова',
       role: 'supervisor',
@@ -49,12 +51,13 @@ async function main() {
     },
   });
 
-  // Ведущий нейропсихолог
+  // Ведущий нейропсихолог (password: neuro123)
   const neuropsychologist = await prisma.user.upsert({
     where: { email: 'neuro@neiro.dev' },
     update: {},
     create: {
       email: 'neuro@neiro.dev',
+      password: await bcrypt.hash('neuro123', 12),
       firstName: 'Мария',
       lastName: 'Нейропсихологова',
       role: 'specialist',
@@ -64,12 +67,13 @@ async function main() {
     },
   });
 
-  // Логопед
+  // Логопед (password: speech123)
   const speechTherapist = await prisma.user.upsert({
     where: { email: 'speech@neiro.dev' },
     update: {},
     create: {
       email: 'speech@neiro.dev',
+      password: await bcrypt.hash('speech123', 12),
       firstName: 'Анна',
       lastName: 'Логопедова',
       role: 'specialist',
@@ -79,12 +83,13 @@ async function main() {
     },
   });
 
-  // ABA-терапевт
+  // ABA-терапевт (password: aba123)
   const abaTherapist = await prisma.user.upsert({
     where: { email: 'aba@neiro.dev' },
     update: {},
     create: {
       email: 'aba@neiro.dev',
+      password: await bcrypt.hash('aba123', 12),
       firstName: 'Елена',
       lastName: 'ABA-терапевтова',
       role: 'specialist',
@@ -95,11 +100,13 @@ async function main() {
   });
 
   // Родители
+  // Родитель 1 (password: parent123)
   const parent1 = await prisma.user.upsert({
     where: { email: 'parent1@example.com' },
     update: {},
     create: {
       email: 'parent1@example.com',
+      password: await bcrypt.hash('parent123', 12),
       firstName: 'Анвар',
       lastName: 'Иванов',
       role: 'parent',
@@ -109,11 +116,13 @@ async function main() {
     },
   });
 
+  // Родитель 2 (password: parent123)
   const parent2 = await prisma.user.upsert({
     where: { email: 'parent2@example.com' },
     update: {},
     create: {
       email: 'parent2@example.com',
+      password: await bcrypt.hash('parent123', 12),
       firstName: 'Наталья',
       lastName: 'Петрова',
       role: 'parent',

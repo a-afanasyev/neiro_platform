@@ -102,7 +102,10 @@ services:
       # Persist node_modules in volume (не на хосте!)
       - node_modules:/app/node_modules
       - app_node_modules:/app/apps/web/node_modules
-      - packages_node_modules:/app/packages
+      # Отдельные volumes для node_modules каждого пакета
+      - packages_database_nm:/app/packages/database/node_modules
+      - packages_types_nm:/app/packages/types/node_modules
+      - packages_utils_nm:/app/packages/utils/node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -125,7 +128,12 @@ volumes:
     driver: local
   app_node_modules:
     driver: local
-  packages_node_modules:
+  # Отдельные volumes для node_modules пакетов
+  packages_database_nm:
+    driver: local
+  packages_types_nm:
+    driver: local
+  packages_utils_nm:
     driver: local
 
 networks:
