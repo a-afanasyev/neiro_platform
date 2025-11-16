@@ -69,4 +69,22 @@ export async function completeRoute(req: Request, res: Response, next: NextFunct
   }
 }
 
+/**
+ * Получение истории изменений маршрута
+ * GET /routes/v1/:id/history
+ */
+export async function getRouteHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { id } = req.params;
+    const history = await routesService.getRouteHistory(id);
+    res.status(200).json({ 
+      success: true, 
+      data: history,
+      meta: { total: history.length }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 

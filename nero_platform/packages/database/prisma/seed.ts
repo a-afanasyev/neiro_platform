@@ -5,7 +5,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -296,9 +296,10 @@ async function main() {
   // Ребенок 1: команда из нейропсихолога, логопеда, ABA
   await prisma.childSpecialist.upsert({
     where: {
-      childId_specialistId: {
+      childId_specialistId_specialization: {
         childId: child1.id,
         specialistId: neuroSpecialist.id,
+        specialization: 'lead',
       },
     },
     update: {},
@@ -313,9 +314,10 @@ async function main() {
 
   await prisma.childSpecialist.upsert({
     where: {
-      childId_specialistId: {
+      childId_specialistId_specialization: {
         childId: child1.id,
         specialistId: speechSpecialist.id,
+        specialization: 'speech',
       },
     },
     update: {},
@@ -330,9 +332,10 @@ async function main() {
 
   await prisma.childSpecialist.upsert({
     where: {
-      childId_specialistId: {
+      childId_specialistId_specialization: {
         childId: child1.id,
         specialistId: abaSpecialist.id,
+        specialization: 'aba',
       },
     },
     update: {},
@@ -348,9 +351,10 @@ async function main() {
   // Ребенок 2: нейропсихолог + логопед
   await prisma.childSpecialist.upsert({
     where: {
-      childId_specialistId: {
+      childId_specialistId_specialization: {
         childId: child2.id,
         specialistId: neuroSpecialist.id,
+        specialization: 'lead',
       },
     },
     update: {},
@@ -365,9 +369,10 @@ async function main() {
 
   await prisma.childSpecialist.upsert({
     where: {
-      childId_specialistId: {
+      childId_specialistId_specialization: {
         childId: child2.id,
         specialistId: speechSpecialist.id,
+        specialization: 'speech',
       },
     },
     update: {},

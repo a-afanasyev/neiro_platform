@@ -91,8 +91,12 @@ export function CreateAssignmentDialog({
       ])
 
       if (childrenRes.success) {
+        // Children Service: массив детей лежит в поле data
+        const childrenRaw = childrenRes.data as any
+        const childrenList = Array.isArray(childrenRaw) ? childrenRaw : childrenRaw?.items ?? []
+
         setChildren(
-          childrenRes.data.items.map((child: any) => ({
+          childrenList.map((child: any) => ({
             id: child.id,
             name: `${child.firstName} ${child.lastName}`,
           }))
@@ -100,7 +104,11 @@ export function CreateAssignmentDialog({
       }
 
       if (usersRes.success) {
-        const specialistUsers = usersRes.data.items.filter(
+        // Users Service: массив пользователей в поле data
+        const usersRaw = usersRes.data as any
+        const users = Array.isArray(usersRaw) ? usersRaw : usersRaw?.items ?? []
+
+        const specialistUsers = users.filter(
           (u: any) => u.role === 'specialist'
         )
         setSpecialists(
@@ -112,8 +120,12 @@ export function CreateAssignmentDialog({
       }
 
       if (exercisesRes.success) {
+        // Exercises Service: список упражнений в поле data
+        const exercisesRaw = exercisesRes.data as any
+        const exercisesList = Array.isArray(exercisesRaw) ? exercisesRaw : exercisesRaw?.items ?? []
+
         setExercises(
-          exercisesRes.data.items.map((ex: any) => ({
+          exercisesList.map((ex: any) => ({
             id: ex.id,
             title: ex.title,
           }))
@@ -121,8 +133,12 @@ export function CreateAssignmentDialog({
       }
 
       if (routesRes.success) {
+        // Routes Service: список маршрутов в поле data
+        const routesRaw = routesRes.data as any
+        const routesList = Array.isArray(routesRaw) ? routesRaw : routesRaw?.items ?? []
+
         setRoutes(
-          routesRes.data.items
+          routesList
             .filter((r: any) => r.status === 'active')
             .map((r: any) => ({
               id: r.id,
@@ -153,8 +169,12 @@ export function CreateAssignmentDialog({
     try {
       const response = await routesApi.getGoals(routeId)
       if (response.success) {
+        // Для целей маршрута также придерживаемся формата: data = массив целей
+        const raw = response.data as any
+        const goals = Array.isArray(raw) ? raw : raw?.items ?? []
+
         setRouteGoals(
-          response.data.items.map((goal: any) => ({
+          goals.map((goal: any) => ({
             id: goal.id,
             title: goal.title,
           }))

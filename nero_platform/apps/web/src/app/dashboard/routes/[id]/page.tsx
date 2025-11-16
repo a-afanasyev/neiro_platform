@@ -112,18 +112,23 @@ export default function RouteDetailPage() {
     try {
       const [routeRes, goalsRes, phasesRes] = await Promise.all([
         routesApi.getRoute(routeId),
-        routesApi.getGoals(routeId).catch(() => ({ success: true, data: { items: [] } })),
-        routesApi.getPhases(routeId).catch(() => ({ success: true, data: { items: [] } })),
+        // В случае ошибки по целям/фазам возвращаем пустые массивы в data
+        routesApi.getGoals(routeId).catch(() => ({ success: true, data: [] })),
+        routesApi.getPhases(routeId).catch(() => ({ success: true, data: [] })),
       ])
 
       if (routeRes.success) {
         setRoute(routeRes.data)
       }
       if (goalsRes.success) {
-        setGoals(goalsRes.data.items || [])
+        const goalsRaw = goalsRes.data as any
+        const goalsList = Array.isArray(goalsRaw) ? goalsRaw : goalsRaw?.items ?? []
+        setGoals(goalsList)
       }
       if (phasesRes.success) {
-        setPhases(phasesRes.data.items || [])
+        const phasesRaw = phasesRes.data as any
+        const phasesList = Array.isArray(phasesRaw) ? phasesRaw : phasesRaw?.items ?? []
+        setPhases(phasesList)
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Не удалось загрузить маршрут')

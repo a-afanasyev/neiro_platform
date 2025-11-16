@@ -81,7 +81,11 @@ export default function AssignmentsPage() {
       })
 
       if (response.success) {
-        setAssignments(response.data.items || [])
+        // Calendar endpoint возвращает массив назначений в поле data,
+        // но для совместимости поддерживаем data.items.
+        const raw = response.data as any
+        const list = Array.isArray(raw) ? raw : raw?.items ?? []
+        setAssignments(list)
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Не удалось загрузить назначения')

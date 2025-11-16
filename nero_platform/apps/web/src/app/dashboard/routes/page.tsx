@@ -66,7 +66,11 @@ export default function RoutesPage() {
     try {
       const response = await routesApi.getRoutes()
       if (response.success) {
-        setRoutes(response.data.items)
+        // Backend Routes Service возвращает список маршрутов в поле data.
+        // На всякий случай поддерживаем старый формат { data: { items: [...] } }.
+        const raw = response.data as any
+        const list = Array.isArray(raw) ? raw : raw?.items ?? []
+        setRoutes(list)
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Не удалось загрузить маршруты')

@@ -89,9 +89,13 @@ export default function ExercisesPage() {
       }
 
       const response = await exercisesApi.getExercises(params)
-      
+
       if (response.success) {
-        setExercises(response.data.items)
+        // Exercises Service возвращает массив упражнений в поле data,
+        // но на случай старого формата поддерживаем data.items.
+        const raw = response.data as any
+        const list = Array.isArray(raw) ? raw : raw?.items ?? []
+        setExercises(list)
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Не удалось загрузить упражнения')

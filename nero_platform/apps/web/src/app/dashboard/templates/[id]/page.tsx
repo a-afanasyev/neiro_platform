@@ -130,7 +130,8 @@ export default function TemplateDetailPage() {
     try {
       const [templateRes, versionsRes] = await Promise.all([
         templatesApi.getTemplate(templateId),
-        templatesApi.getVersions(templateId).catch(() => ({ success: true, data: { items: [] } })),
+        // В случае ошибки по версиям возвращаем пустой список версий в data
+        templatesApi.getVersions(templateId).catch(() => ({ success: true, data: [] })),
       ])
 
       if (templateRes.success) {
@@ -146,7 +147,10 @@ export default function TemplateDetailPage() {
       }
 
       if (versionsRes.success) {
-        setVersions(versionsRes.data.items || [])
+        // Список версий может прийти как массив или как объект с items
+        const raw = versionsRes.data as any
+        const list = Array.isArray(raw) ? raw : raw?.items ?? []
+        setVersions(list)
       }
     } catch (err: any) {
       console.error('Ошибка загрузки шаблона:', err)

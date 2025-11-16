@@ -86,8 +86,9 @@ export default function EditRoutePage() {
       // Загружаем маршрут с фазами и целями
       const [routeRes, goalsRes, phasesRes, childrenRes, templatesRes] = await Promise.all([
         routesApi.getRoute(routeId),
-        routesApi.getGoals(routeId).catch(() => ({ success: true, data: { items: [] } })),
-        routesApi.getPhases(routeId).catch(() => ({ success: true, data: { items: [] } })),
+        // В случае ошибки по целям/фазам возвращаем пустые массивы в data
+        routesApi.getGoals(routeId).catch(() => ({ success: true, data: [] })),
+        routesApi.getPhases(routeId).catch(() => ({ success: true, data: [] })),
         childrenApi.getChildren(),
         templatesApi.getTemplates({ status: 'published' }),
       ])
@@ -100,15 +101,20 @@ export default function EditRoutePage() {
 
       // Формируем список детей
       const childrenList = childrenRes.success
-        ? childrenRes.data.items.map((child: any) => ({
-            id: child.id,
-            name: `${child.firstName} ${child.lastName}`,
-          }))
+        ? (Array.isArray(childrenRes.data) ? childrenRes.data : childrenRes.data?.items ?? []).map(
+            (child: any) => ({
+              id: child.id,
+              name: `${child.firstName} ${child.lastName}`,
+            })
+          )
         : []
 
       // Формируем список шаблонов
       const templatesList = templatesRes.success
-        ? templatesRes.data.items.map((template: any) => ({
+        ? (Array.isArray(templatesRes.data)
+            ? templatesRes.data
+            : templatesRes.data?.items ?? []
+          ).map((template: any) => ({
             id: template.id,
             title: template.title,
             durationWeeks: template.durationWeeks || 12,
@@ -116,14 +122,22 @@ export default function EditRoutePage() {
         : []
 
       // Объединяем фазы с их целями
-      const phases = phasesRes.success && phasesRes.data.items
-        ? phasesRes.data.items.map((phase: any) => ({
-            ...phase,
-            goals: goalsRes.success
-              ? goalsRes.data.items.filter((goal: any) => goal.phaseId === phase.id)
-              : [],
-          }))
+      const phasesArray = phasesRes.success
+        ? Array.isArray(phasesRes.data)
+          ? phasesRes.data
+          : phasesRes.data?.items ?? []
         : []
+
+      const goalsArray = goalsRes.success
+        ? Array.isArray(goalsRes.data)
+          ? goalsRes.data
+          : goalsRes.data?.items ?? []
+        : []
+
+      const phases = phasesArray.map((phase: any) => ({
+        ...phase,
+        goals: goalsArray.filter((goal: any) => goal.phaseId === phase.id),
+      }))
 
       setRoute({
         id: routeData.id,
@@ -164,7 +178,11 @@ export default function EditRoutePage() {
       if (routeData.phases) {
         // Получаем текущие фазы для сравнения
         const currentPhasesRes = await routesApi.getPhases(routeId)
-        const currentPhases = currentPhasesRes.success ? currentPhasesRes.data.items : []
+        const currentPhases = currentPhasesRes.success
+          ? Array.isArray(currentPhasesRes.data)
+            ? currentPhasesRes.data
+            : currentPhasesRes.data?.items ?? []
+          : []
         const currentPhaseIds = new Set(currentPhases.map((p: any) => p.id))
 
         // Обрабатываем каждую фазу
@@ -182,9 +200,15 @@ export default function EditRoutePage() {
             // Обновляем цели фазы
             if (phase.goals) {
               const currentGoalsRes = await routesApi.getGoals(routeId)
-              const currentPhaseGoals = currentGoalsRes.success
-                ? currentGoalsRes.data.items.filter((g: any) => g.phaseId === phase.id)
+              const currentGoalsArray = currentGoalsRes.success
+                ? Array.isArray(currentGoalsRes.data)
+                  ? currentGoalsRes.data
+                  : currentGoalsRes.data?.items ?? []
                 : []
+
+              const currentPhaseGoals = currentGoalsArray.filter(
+                (g: any) => g.phaseId === phase.id
+              )
               const currentGoalIds = new Set(currentPhaseGoals.map((g: any) => g.id))
 
               for (const goal of phase.goals) {

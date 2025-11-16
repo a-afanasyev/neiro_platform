@@ -42,15 +42,18 @@ export const childrenController = {
       });
 
       res.status(201).json({
-        id: child.id,
-        firstName: child.firstName,
-        lastName: child.lastName,
-        birthDate: child.birthDate,
-        gender: child.gender,
-        age: calculateAge(child.birthDate),
-        diagnosisSummary: child.diagnosisSummary,
-        notes: child.notes,
-        createdAt: child.createdAt,
+        success: true,
+        data: {
+          id: child.id,
+          firstName: child.firstName,
+          lastName: child.lastName,
+          birthDate: child.birthDate,
+          gender: child.gender,
+          age: calculateAge(child.birthDate),
+          diagnosisSummary: child.diagnosisSummary,
+          notes: child.notes,
+          createdAt: child.createdAt,
+        },
       });
     } catch (error) {
       next(error);
@@ -120,6 +123,7 @@ export const childrenController = {
       }));
 
       res.status(200).json({
+        success: true,
         data: enrichedData,
         meta: {
           total: data.length,
@@ -194,30 +198,33 @@ export const childrenController = {
       }
 
       res.status(200).json({
-        id: child.id,
-        firstName: child.firstName,
-        lastName: child.lastName,
-        birthDate: child.birthDate,
-        age: calculateAge(child.birthDate),
-        gender: child.gender,
-        diagnosisSummary: child.diagnosisSummary,
-        notes: child.notes,
-        createdAt: child.createdAt,
-        updatedAt: child.updatedAt,
-        parents: child.parents.map((p) => ({
-          ...p.parent,
-          relationship: p.relationship,
-          legalGuardian: p.legalGuardian,
-          linkedAt: p.linkedAt,
-        })),
-        specialists: child.specialists.map((s) => ({
-          id: s.specialist.id,
-          user: s.specialist.user,
-          specialty: s.specialist.specialty,
-          specialization: s.specialization,
-          isPrimary: s.isPrimary,
-          assignedAt: s.assignedAt,
-        })),
+        success: true,
+        data: {
+          id: child.id,
+          firstName: child.firstName,
+          lastName: child.lastName,
+          birthDate: child.birthDate,
+          age: calculateAge(child.birthDate),
+          gender: child.gender,
+          diagnosisSummary: child.diagnosisSummary,
+          notes: child.notes,
+          createdAt: child.createdAt,
+          updatedAt: child.updatedAt,
+          parents: child.parents.map((p) => ({
+            ...p.parent,
+            relationship: p.relationship,
+            legalGuardian: p.legalGuardian,
+            linkedAt: p.linkedAt,
+          })),
+          specialists: child.specialists.map((s) => ({
+            id: s.specialist.id,
+            user: s.specialist.user,
+            specialty: s.specialist.specialty,
+            specialization: s.specialization,
+            isPrimary: s.isPrimary,
+            assignedAt: s.assignedAt,
+          })),
+        },
       });
     } catch (error) {
       next(error);
@@ -257,8 +264,11 @@ export const childrenController = {
       });
 
       res.status(200).json({
-        ...child,
-        age: calculateAge(child.birthDate),
+        success: true,
+        data: {
+          ...child,
+          age: calculateAge(child.birthDate),
+        },
       });
     } catch (error) {
       next(error);
@@ -332,7 +342,10 @@ export const childrenController = {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(201).json(childParent);
+      res.status(201).json({
+        success: true,
+        data: childParent,
+      });
     } catch (error) {
       next(error);
     }
@@ -408,7 +421,10 @@ export const childrenController = {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(201).json(childSpecialist);
+      res.status(201).json({
+        success: true,
+        data: childSpecialist,
+      });
     } catch (error) {
       next(error);
     }

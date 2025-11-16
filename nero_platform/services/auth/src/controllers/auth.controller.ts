@@ -5,7 +5,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import * as bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 import { PrismaClient } from '@neiro/database';
 import { JWT_CONFIG } from '@neiro/utils';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../services/jwt.service';
@@ -169,7 +169,8 @@ export const authController = {
       }
 
       // Генерация временного пароля для приглашенного пользователя
-      const temporaryPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+      const temporaryPassword =
+        Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
       const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
 
       // Создание пользователя со статусом 'invited'
@@ -195,11 +196,16 @@ export const authController = {
         timestamp: new Date().toISOString(),
       });
 
+      // Формат ответа согласно ApiResponse<T>
       res.status(201).json({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        status: user.status,
+        success: true,
+        data: {
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+          status: user.status,
+          invitationSent: true,
+        },
       });
     } catch (error) {
       next(error);
@@ -226,19 +232,24 @@ export const authController = {
       }
 
       res.status(200).json({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        status: user.status,
-        phone: user.phone,
-        timezone: user.timezone,
-        specialist: user.specialist ? {
-          id: user.specialist.id,
-          specialty: user.specialist.specialty,
-          experienceYears: user.specialist.experienceYears,
-        } : null,
+        success: true,
+        data: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          status: user.status,
+          phone: user.phone,
+          timezone: user.timezone,
+          specialist: user.specialist
+            ? {
+                id: user.specialist.id,
+                specialty: user.specialist.specialty,
+                experienceYears: user.specialist.experienceYears,
+              }
+            : null,
+        },
       });
     } catch (error) {
       next(error);

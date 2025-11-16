@@ -51,6 +51,7 @@ export const specialistsController = {
       const nextCursor = hasMore ? specialists[parsedLimit].id : undefined;
 
       res.status(200).json({
+        success: true,
         data: data.map((s) => ({
           id: s.id,
           userId: s.userId,
@@ -102,16 +103,19 @@ export const specialistsController = {
       }
 
       res.status(200).json({
-        id: specialist.id,
-        userId: specialist.userId,
-        specialty: specialist.specialty,
-        licenseNumber: specialist.licenseNumber,
-        licenseValidUntil: specialist.licenseValidUntil,
-        experienceYears: specialist.experienceYears,
-        bio: specialist.bio,
-        user: specialist.user,
-        createdAt: specialist.createdAt,
-        updatedAt: specialist.updatedAt,
+        success: true,
+        data: {
+          id: specialist.id,
+          userId: specialist.userId,
+          specialty: specialist.specialty,
+          licenseNumber: specialist.licenseNumber,
+          licenseValidUntil: specialist.licenseValidUntil,
+          experienceYears: specialist.experienceYears,
+          bio: specialist.bio,
+          user: specialist.user,
+          createdAt: specialist.createdAt,
+          updatedAt: specialist.updatedAt,
+        },
       });
     } catch (error) {
       next(error);
@@ -162,7 +166,10 @@ export const specialistsController = {
         timestamp: new Date().toISOString(),
       });
 
-      res.status(200).json(updated);
+      res.status(200).json({
+        success: true,
+        data: updated,
+      });
     } catch (error) {
       next(error);
     }
@@ -223,7 +230,10 @@ export const specialistsController = {
         roleDescription: cs.roleDescription,
       }));
 
-      res.status(200).json({ data: children });
+      res.status(200).json({
+        success: true,
+        data: children,
+      });
     } catch (error) {
       next(error);
     }

@@ -73,11 +73,16 @@ export default function NewRoutePage() {
       ])
 
       if (childrenRes.success) {
-        setChildren(childrenRes.data.items)
+        // Backend возвращает массив детей напрямую в поле data
+        const raw = childrenRes.data as any
+        const list = Array.isArray(raw) ? raw : raw?.items ?? []
+        setChildren(list)
       }
 
       if (usersRes.success) {
-        const specialistUsers = usersRes.data.items.filter(
+        // Users Service также возвращает массив пользователей в поле data
+        const users = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.items ?? []
+        const specialistUsers = users.filter(
           (u: any) => u.role === 'specialist'
         )
         setSpecialists(specialistUsers)
@@ -89,7 +94,11 @@ export default function NewRoutePage() {
       }
 
       if (templatesRes.success) {
-        setTemplates(templatesRes.data.items)
+        // Templates Service: список шаблонов лежит в поле data как массив
+        const templates = Array.isArray(templatesRes.data)
+          ? templatesRes.data
+          : templatesRes.data?.items ?? []
+        setTemplates(templates)
       }
     } catch (err: any) {
       setError('Не удалось загрузить данные для формы')

@@ -68,15 +68,35 @@ export default function DiagnosticsPage() {
       ])
 
       if (sessionsRes.success) {
-        setSessions(sessionsRes.data.items)
+        // В разных версиях API данные могли приходить либо как массив в data,
+        // либо как объект с полем items. Делаем обработку более устойчивой.
+        const rawSessions = sessionsRes.data as any
+        const sessionsList = Array.isArray(rawSessions) ? rawSessions : rawSessions?.items ?? []
+        setSessions(sessionsList)
       }
 
       if (questionnairesRes.success) {
-        setQuestionnaires(questionnairesRes.data)
+        // В разных версиях API данные могли приходить либо как массив в data,
+        // либо как объект с полем items. Делаем обработку более устойчивой.
+        const rawQuestionnaires = questionnairesRes.data as any
+        const questionnairesList = Array.isArray(rawQuestionnaires)
+          ? rawQuestionnaires
+          : rawQuestionnaires?.items ?? []
+
+        // Лог для отладки возможных расхождений формата
+        if (process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.debug('Loaded questionnaires:', questionnairesList)
+        }
+
+        setQuestionnaires(questionnairesList)
       }
 
       if (childrenRes.success) {
-        setChildren(childrenRes.data.items)
+        // Аналогичная защитная обработка формата для списка детей
+        const rawChildren = childrenRes.data as any
+        const childrenList = Array.isArray(rawChildren) ? rawChildren : rawChildren?.items ?? []
+        setChildren(childrenList)
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Не удалось загрузить данные')
@@ -227,7 +247,9 @@ export default function DiagnosticsPage() {
               {questionnaires.map((q) => (
                 <Card key={q.code}>
                   <CardHeader>
-                    <CardTitle className="text-lg">{q.name}</CardTitle>
+                    <CardTitle className="text-lg">
+                      {q.code} — {q.name}
+                    </CardTitle>
                     <CardDescription>{q.description}</CardDescription>
                   </CardHeader>
                   <CardContent>

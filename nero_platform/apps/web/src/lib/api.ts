@@ -173,6 +173,9 @@ export const diagnosticsApi = {
 
   getQuestionnaires: async () => {
     const response = await api.get('/diagnostics/v1/questionnaires')
+    // Backend возвращает ApiResponse<{ ... } | Array<...>>
+    // Здесь возвращаем весь объект ApiResponse, чтобы на уровне страницы
+    // можно было использовать success/data и единый формат ошибок.
     return response.data
   },
 

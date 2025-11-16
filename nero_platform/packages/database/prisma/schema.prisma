@@ -258,11 +258,12 @@ model Route {
   updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
-  child          Child        @relation(fields: [childId], references: [id], onDelete: Cascade)
-  leadSpecialist Specialist   @relation("LeadSpecialist", fields: [leadSpecialistId], references: [id], onDelete: Restrict)
+  child          Child                  @relation(fields: [childId], references: [id], onDelete: Cascade)
+  leadSpecialist Specialist             @relation("LeadSpecialist", fields: [leadSpecialistId], references: [id], onDelete: Restrict)
   goals          RouteGoal[]
   phases         RoutePhase[]
   assignments    Assignment[]
+  revisions      RouteRevisionHistory[]
 
   // TODO: Partial unique constraint требует PostgreSQL 15+ и Prisma 5.10+
   // @@unique([childId], map: "uniq_active_route_per_child", where: { status: "active" })
@@ -277,15 +278,15 @@ model RouteGoal {
   category          String   @db.VarChar(100)
   /// Тип цели: skill, behaviour, academic, other
   goalType          String   @map("goal_type") @db.VarChar(50)
-  description       String   @db.VarChar(512)
-  targetMetric      String   @map("target_metric") @db.VarChar(128)
+  description       String   @db.Text
+  targetMetric      String   @map("target_metric") @db.VarChar(100)
   measurementUnit   String   @map("measurement_unit") @db.VarChar(50)
-  baselineValue     String?  @map("baseline_value") @db.VarChar(64)
-  targetValue       String?  @map("target_value") @db.VarChar(64)
+  baselineValue     Decimal? @map("baseline_value") @db.Decimal(10, 2)
+  targetValue       Decimal? @map("target_value") @db.Decimal(10, 2)
   reviewPeriodWeeks Int      @map("review_period_weeks")
   /// Приоритет: high, medium, low
   priority          String   @db.VarChar(20)
-  status            String   @db.VarChar(50)
+  status            String   @default("active") @db.VarChar(20)
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -302,8 +303,8 @@ model RoutePhase {
   id                      String    @id @default(uuid()) @db.Uuid
   routeId                 String    @map("route_id") @db.Uuid
   responsibleSpecialistId String    @map("responsible_specialist_id") @db.Uuid
-  name                    String    @db.VarChar(64)
-  description             String    @db.VarChar(512)
+  name                    String    @db.VarChar(255)
+  description             String    @db.Text
   orderIndex              Int       @map("order_index")
   parallelGroup           Int?      @map("parallel_group")
   /// Статус: planned, active, on_hold, completed
@@ -311,8 +312,8 @@ model RoutePhase {
   startDate               DateTime? @map("start_date") @db.Date
   endDate                 DateTime? @map("end_date") @db.Date
   durationWeeks           Int       @map("duration_weeks")
-  expectedOutcomes        String    @map("expected_outcomes") @db.VarChar(1024)
-  notes                   String?   @db.VarChar(512)
+  expectedOutcomes        String    @map("expected_outcomes") @db.Text
+  notes                   String?   @db.Text
   createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -460,4 +461,27 @@ model EventOutboxFailure {
   reprocessedAt    DateTime? @map("reprocessed_at") @db.Timestamptz(6)
 
   @@map("event_outbox_failures")
+}
+
+// ============================================================
+// ROUTE VERSIONING (ВЕРСИОНИРОВАНИЕ МАРШРУТОВ)
+// ============================================================
+
+/// История изменений маршрутов
+model RouteRevisionHistory {
+  id        String   @id @default(uuid()) @db.Uuid
+  routeId   String   @map("route_id") @db.Uuid
+  version   Int
+  /// JSON с изменениями: {field: {old, new}, ...}
+  changes   Json     @db.JsonB
+  changedBy String   @map("changed_by") @db.Uuid
+  changedAt DateTime @default(now()) @map("changed_at") @db.Timestamptz(6)
+
+  // Relations
+  route Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@unique([routeId, version])
+  @@index([routeId])
+  @@index([changedAt])
+  @@map("route_revision_history")
 }

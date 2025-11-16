@@ -54,8 +54,15 @@ export default function ChildrenPage() {
     
     try {
       const response = await childrenApi.getChildren()
+
       if (response.success) {
-        setChildren(response.data.items)
+        // Backend Children Service возвращает массив детей напрямую в поле data
+        // В более старых версиях здесь мог быть объект { items: [...] }, поэтому
+        // на всякий случай поддерживаем оба варианта.
+        const raw = response.data as any
+        const list = Array.isArray(raw) ? raw : raw?.items ?? []
+
+        setChildren(list)
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Не удалось загрузить список детей')

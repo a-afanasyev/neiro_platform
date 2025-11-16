@@ -55,7 +55,11 @@ export default function TemplatesPage() {
     try {
       const response = await templatesApi.getTemplates()
       if (response.success) {
-        setTemplates(response.data.items)
+        // Templates Service возвращает массив шаблонов в поле data,
+        // но для совместимости поддерживаем вариант с data.items.
+        const raw = response.data as any
+        const list = Array.isArray(raw) ? raw : raw?.items ?? []
+        setTemplates(list)
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Не удалось загрузить шаблоны')
