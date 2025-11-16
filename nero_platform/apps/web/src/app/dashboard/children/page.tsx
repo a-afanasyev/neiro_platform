@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -30,6 +31,7 @@ interface Child {
 }
 
 export default function ChildrenPage() {
+  const router = useRouter()
   const { user } = useAuth()
   const [children, setChildren] = useState<Child[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -264,11 +266,20 @@ export default function ChildrenPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="flex space-x-2">
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => router.push(`/dashboard/children/${child.id}`)}
+                          >
                             Подробнее
                           </Button>
                           {(user?.role === 'admin' || user?.role === 'specialist') && (
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => router.push(`/dashboard/children/${child.id}/edit`)}
+                            >
                               Редактировать
                             </Button>
                           )}

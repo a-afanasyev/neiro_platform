@@ -19,12 +19,14 @@ interface AuthState {
   refreshToken: string | null
   isAuthenticated: boolean
   isLoading: boolean
+  hasHydrated: boolean
   
   // Actions
   setAuth: (user: User, accessToken: string, refreshToken: string) => void
   clearAuth: () => void
   updateUser: (user: Partial<User>) => void
   setLoading: (isLoading: boolean) => void
+  setHydrated: (hydrated: boolean) => void
   
   // Helpers
   hasRole: (roles: string | string[]) => boolean
@@ -41,6 +43,7 @@ export const useAuth = create<AuthState>()(
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
+      hasHydrated: false,
       
       setAuth: (user, accessToken, refreshToken) => {
         // Сохраняем в localStorage для интерцептора axios
@@ -85,6 +88,10 @@ export const useAuth = create<AuthState>()(
       
       setLoading: (isLoading) => {
         set({ isLoading })
+      },
+      
+      setHydrated: (hydrated) => {
+        set({ hasHydrated: hydrated })
       },
       
       // Helper methods
@@ -132,6 +139,8 @@ export const useAuth = create<AuthState>()(
           if (state.refreshToken) {
             localStorage.setItem('refreshToken', state.refreshToken)
           }
+          // Устанавливаем флаг гидратации
+          state.setHydrated(true)
         }
       },
     }

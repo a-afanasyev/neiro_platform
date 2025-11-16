@@ -12,6 +12,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { usersApi } from '@/lib/api'
@@ -32,6 +33,7 @@ interface User {
 }
 
 export default function UsersPage() {
+  const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
   const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -296,10 +298,18 @@ export default function UsersPage() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => router.push(`/dashboard/users/${user.id}`)}
+                    >
                       Подробнее
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}
+                    >
                       Редактировать
                     </Button>
                   </div>

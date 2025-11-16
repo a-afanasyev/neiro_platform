@@ -11,9 +11,14 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const router = useRouter()
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, user, hasHydrated } = useAuth()
 
   useEffect(() => {
+    // Не выполняем проверки до завершения гидратации
+    if (!hasHydrated) {
+      return
+    }
+
     // Если не авторизован, редирект на логин
     if (!isAuthenticated) {
       router.push('/login')
@@ -25,7 +30,19 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
       // Редирект на dashboard по умолчанию
       router.push('/dashboard')
     }
-  }, [isAuthenticated, user, allowedRoles, router])
+  }, [isAuthenticated, user, allowedRoles, router, hasHydrated])
+
+  // Показываем загрузку во время гидратации
+  if (!hasHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-neutral-600">Загрузка...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Показываем контент только если авторизован и имеет нужную роль
   if (!isAuthenticated) {
