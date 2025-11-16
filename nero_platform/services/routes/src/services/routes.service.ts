@@ -85,6 +85,47 @@ export async function activateRoute(id: string, userId: string): Promise<Route> 
     throw new AppError('Маршрут уже активен', 400, 'ALREADY_ACTIVE');
   }
 
+  // Constitution Check #1: Только один активный маршрут на ребенка
+  const existingActiveRoute = await prisma.route.findFirst({
+    where: {
+      childId: route.childId,
+      status: 'active',
+      id: { not: id }
+    }
+  });
+
+  if (existingActiveRoute) {
+    throw new AppError(
+      'У ребенка уже есть активный маршрут. Завершите или приостановите его перед активацией нового.',
+      409,
+      'ACTIVE_ROUTE_EXISTS'
+    );
+  }
+
+  // Constitution Check #2: Нельзя активировать пустой маршрут
+  const routeWithGoals = await prisma.route.findUnique({
+    where: { id },
+    include: {
+      goals: true,
+      phases: true
+    }
+  });
+
+  if (!routeWithGoals) {
+    throw new AppError('Маршрут не найден', 404, 'ROUTE_NOT_FOUND');
+  }
+
+  const hasGoals = routeWithGoals.goals && routeWithGoals.goals.length > 0;
+  const hasPhases = routeWithGoals.phases && routeWithGoals.phases.length > 0;
+
+  if (!hasGoals && !hasPhases) {
+    throw new AppError(
+      'Невозможно активировать пустой маршрут. Добавьте хотя бы одну цель или фазу.',
+      400,
+      'EMPTY_ROUTE'
+    );
+  }
+
   const updatedRoute = await prisma.route.update({
     where: { id },
     data: { status: 'active', startDate: new Date() }
@@ -97,7 +138,23 @@ export async function activateRoute(id: string, userId: string): Promise<Route> 
 }
 
 export async function completeRoute(id: string, userId: string): Promise<Route> {
-  await getRouteById(id);
+  const route = await getRouteById(id);
+
+  // Constitution Check #3: Нельзя завершить маршрут с открытыми назначениями
+  const openAssignments = await prisma.assignment.count({
+    where: {
+      routeId: id,
+      status: { in: ['scheduled', 'in_progress'] }
+    }
+  });
+
+  if (openAssignments > 0) {
+    throw new AppError(
+      `Невозможно завершить маршрут. Есть ${openAssignments} незавершенных назначений.`,
+      400,
+      'OPEN_ASSIGNMENTS_EXIST'
+    );
+  }
 
   const updatedRoute = await prisma.route.update({
     where: { id },

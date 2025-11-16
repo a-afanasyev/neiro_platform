@@ -209,6 +209,33 @@ model Exercise {
 }
 
 // ============================================================
+// ROUTE TEMPLATES (ШАБЛОНЫ МАРШРУТОВ)
+// ============================================================
+
+/// Шаблоны коррекционных маршрутов
+model RouteTemplate {
+  id              String    @id @default(uuid()) @db.Uuid
+  name            String    @db.VarChar(255)
+  slug            String    @unique @db.VarChar(255)
+  description     String?   @db.Text
+  ageMin          Int?      @map("age_min")
+  ageMax          Int?      @map("age_max")
+  durationWeeks   Int?      @map("duration_weeks")
+  phases          Json?     @db.JsonB
+  goals           Json?     @db.JsonB
+  /// Статус: draft, published, archived
+  status          String    @default("draft") @db.VarChar(20)
+  publishedAt     DateTime? @map("published_at") @db.Timestamptz(6)
+  archivedAt      DateTime? @map("archived_at") @db.Timestamptz(6)
+  createdById     String    @map("created_by_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status])
+  @@map("route_templates")
+}
+
+// ============================================================
 // ROUTES (КОРРЕКЦИОННЫЕ МАРШРУТЫ)
 // ============================================================
 

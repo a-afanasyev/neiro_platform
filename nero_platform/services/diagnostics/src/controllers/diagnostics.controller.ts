@@ -139,25 +139,21 @@ export async function listSessions(
     const sessions = await prisma.diagnosticSession.findMany({
       where,
       take: parseInt(limit as string) + 1,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { startedAt: 'desc' },
       include: {
         child: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
-            dateOfBirth: true
+            birthDate: true
           }
         },
         specialist: {
           select: {
             id: true,
-            user: {
-              select: {
-                firstName: true,
-                lastName: true
-              }
-            }
+            firstName: true,
+            lastName: true
           }
         }
       }

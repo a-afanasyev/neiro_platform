@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { CreateAssignmentDialog } from '@/components/assignments/CreateAssignmentDialog'
 import { assignmentsApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -56,6 +57,9 @@ export default function AssignmentsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState(new Date())
+  const [isActionLoading, setIsActionLoading] = useState(false)
+  const [actionAssignmentId, setActionAssignmentId] = useState<string | null>(null)
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   useEffect(() => {
     loadAssignments()
@@ -83,6 +87,65 @@ export default function AssignmentsPage() {
       setError(err.response?.data?.error?.message || 'Не удалось загрузить назначения')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  /**
+   * Начать выполнение назначения (изменить статус на in_progress)
+   */
+  const handleStart = async (assignmentId: string) => {
+    setIsActionLoading(true)
+    setActionAssignmentId(assignmentId)
+    try {
+      await assignmentsApi.updateAssignment(assignmentId, { status: 'in_progress' })
+      await loadAssignments()
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Не удалось начать назначение')
+    } finally {
+      setIsActionLoading(false)
+      setActionAssignmentId(null)
+    }
+  }
+
+  /**
+   * Завершить назначение
+   */
+  const handleComplete = async (assignmentId: string) => {
+    const notes = prompt('Добавить комментарий о выполнении (необязательно):')
+    
+    setIsActionLoading(true)
+    setActionAssignmentId(assignmentId)
+    try {
+      await assignmentsApi.completeAssignment(assignmentId, { notes: notes || undefined })
+      await loadAssignments()
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Не удалось завершить назначение')
+    } finally {
+      setIsActionLoading(false)
+      setActionAssignmentId(null)
+    }
+  }
+
+  /**
+   * Отменить назначение
+   */
+  const handleCancel = async (assignmentId: string) => {
+    const reason = prompt('Укажите причину отмены:')
+    
+    if (!reason) {
+      return
+    }
+    
+    setIsActionLoading(true)
+    setActionAssignmentId(assignmentId)
+    try {
+      await assignmentsApi.cancelAssignment(assignmentId, reason)
+      await loadAssignments()
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Не удалось отменить назначение')
+    } finally {
+      setIsActionLoading(false)
+      setActionAssignmentId(null)
     }
   }
 
@@ -118,7 +181,9 @@ export default function AssignmentsPage() {
                 Расписание занятий и домашних заданий
               </p>
             </div>
-            <Button>+ Создать назначение</Button>
+            <Button onClick={() => setShowCreateDialog(true)}>
+              + Создать назначение
+            </Button>
           </div>
 
           {/* Loading State */}
@@ -149,7 +214,9 @@ export default function AssignmentsPage() {
                     <p className="text-neutral-600 mb-4">
                       На выбранный период нет запланированных занятий
                     </p>
-                    <Button>Создать назначение</Button>
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                      Создать назначение
+                    </Button>
                   </CardContent>
                 </Card>
               ) : (
@@ -206,16 +273,32 @@ export default function AssignmentsPage() {
                                     <div className="flex gap-2 ml-4">
                                       {assignment.status === 'scheduled' && (
                                         <>
-                                          <Button size="sm" variant="outline">
-                                            Начать
+                                          <Button 
+                                            size="sm" 
+                                            variant="outline"
+                                            onClick={() => handleStart(assignment.id)}
+                                            disabled={isActionLoading && actionAssignmentId === assignment.id}
+                                          >
+                                            {isActionLoading && actionAssignmentId === assignment.id ? 'Начинаем...' : 'Начать'}
                                           </Button>
-                                          <Button size="sm" variant="outline">
+                                          <Button 
+                                            size="sm" 
+                                            variant="outline"
+                                            onClick={() => handleCancel(assignment.id)}
+                                            disabled={isActionLoading && actionAssignmentId === assignment.id}
+                                          >
                                             Отменить
                                           </Button>
                                         </>
                                       )}
                                       {assignment.status === 'in_progress' && (
-                                        <Button size="sm">Завершить</Button>
+                                        <Button 
+                                          size="sm"
+                                          onClick={() => handleComplete(assignment.id)}
+                                          disabled={isActionLoading && actionAssignmentId === assignment.id}
+                                        >
+                                          {isActionLoading && actionAssignmentId === assignment.id ? 'Завершаем...' : 'Завершить'}
+                                        </Button>
                                       )}
                                     </div>
                                   </div>
@@ -231,6 +314,13 @@ export default function AssignmentsPage() {
             </>
           )}
         </div>
+
+        {/* Create Assignment Dialog */}
+        <CreateAssignmentDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          onSuccess={loadAssignments}
+        />
       </DashboardLayout>
     </ProtectedRoute>
   )

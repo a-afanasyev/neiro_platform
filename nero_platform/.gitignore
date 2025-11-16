@@ -1,65 +1,181 @@
-# Зависимости
+# ============================================
+# NERO PLATFORM .gitignore
+# ============================================
+
+# ============================================
+# ЗАВИСИМОСТИ
+# ============================================
 node_modules/
 .pnp
 .pnp.js
+.pnpm-store/
+.yarn/
+.npm/
 
-# Тестирование
-coverage/
-*.lcov
-
+# ============================================
+# СБОРКА И АРТЕФАКТЫ
+# ============================================
 # Next.js
 .next/
 out/
+
+# Build outputs
 build/
 dist/
+.turbo/
 
-# Production
+# TypeScript
+*.tsbuildinfo
+# Комментарий: next-env.d.ts генерируется автоматически, но можно коммитить
+# Раскомментируйте, если не хотите его в репозитории:
+# next-env.d.ts
+
+# ============================================
+# ТЕСТИРОВАНИЕ
+# ============================================
+# Jest
+coverage/
+*.lcov
+.nyc_output/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# ============================================
+# ЛОГИ
+# ============================================
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+logs/
 
-# Локальные env файлы
+# ============================================
+# ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ
+# ============================================
 .env
 .env*.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Vercel
-.vercel
+# Исключение: .env.example нужен для документации
+!.env.example
 
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
+# ============================================
+# БАЗА ДАННЫХ
+# ============================================
+# SQLite базы данных (для локальной разработки)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
 
-# IDE
+# ВАЖНО: НЕ игнорируем миграции Prisma - они важны для версионирования!
+# prisma/migrations/ - должны быть в git
+
+# Резервные копии БД
+*.sql.backup
+*.dump
+
+# ============================================
+# DOCKER
+# ============================================
+docker-compose.override.yml
+.dockerignore
+
+# ============================================
+# IDE И РЕДАКТОРЫ
+# ============================================
+# VSCode
 .vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# JetBrains IDEs
 .idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
 *.swp
 *.swo
 *~
+.vim/
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# ОПЕРАЦИОННАЯ СИСТЕМА
+# ============================================
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
 
-# Prisma
-prisma/migrations/
-*.db
-*.db-journal
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# Docker
-docker-compose.override.yml
+# Linux
+.directory
+.Trash-*
 
-# Временные файлы
+# ============================================
+# ВРЕМЕННЫЕ ФАЙЛЫ
+# ============================================
 tmp/
 temp/
 *.tmp
+*.temp
+*.cache
 
-# Логи
-logs/
-*.log
+# ============================================
+# PRODUCTION И DEPLOY
+# ============================================
+# Vercel
+.vercel
 
-# OS
-Thumbs.db
+# PM2
+.pm2/
 
+# ============================================
+# БЕЗОПАСНОСТЬ
+# ============================================
+# Приватные ключи
+*.pem
+*.key
+*.cert
+*.crt
+
+# Секреты
+secrets/
+.secrets/
+
+# ============================================
+# РАЗНОЕ
+# ============================================
+# Локальные заметки разработчика
+TODO.local.md
+NOTES.local.md
+*.local.md
+
+# Экспериментальные файлы
+scratch/
+playground/
+experiments/

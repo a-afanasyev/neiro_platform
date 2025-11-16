@@ -168,6 +168,10 @@ export const authController = {
         throw new AppError('Пользователь с таким email уже существует', 409, 'USER_EXISTS');
       }
 
+      // Генерация временного пароля для приглашенного пользователя
+      const temporaryPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+      const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+
       // Создание пользователя со статусом 'invited'
       const user = await prisma.user.create({
         data: {
@@ -176,6 +180,7 @@ export const authController = {
           lastName,
           role,
           status: 'invited',
+          password: hashedPassword,
         },
       });
 

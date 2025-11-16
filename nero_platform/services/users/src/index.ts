@@ -50,8 +50,10 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // Routes
-app.use('/users/v1', usersRouter);
+// IMPORTANT: specialistsRouter must be registered BEFORE usersRouter
+// to ensure /users/v1/specialists is matched before /users/v1/:id
 app.use('/users/v1/specialists', specialistsRouter);
+app.use('/users/v1', usersRouter);
 
 // Error handling
 app.use(errorHandler);

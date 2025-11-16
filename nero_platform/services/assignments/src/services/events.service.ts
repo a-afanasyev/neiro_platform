@@ -35,8 +35,8 @@ export async function publishEvent(
 export const publishAssignmentCreated = (assignmentId: string, childId: string, actorId: string) =>
   publishEvent('assignment', assignmentId, 'assignments.assignment.created', { assignment_id: assignmentId, child_id: childId }, actorId);
 
-export const publishAssignmentStatusChanged = (assignmentId: string, status: string, actorId: string) =>
-  publishEvent('assignment', assignmentId, 'assignments.assignment.status_changed', { assignment_id: assignmentId, status }, actorId);
+export const publishAssignmentStatusChanged = (assignmentId: string, oldStatus: string, newStatus: string, actorId: string) =>
+  publishEvent('assignment', assignmentId, 'assignments.assignment.status_changed', { assignment_id: assignmentId, old_status: oldStatus, new_status: newStatus }, actorId);
 
 export const publishAssignmentCancelled = (assignmentId: string, reason: string, actorId: string) =>
   publishEvent('assignment', assignmentId, 'assignments.assignment.cancelled', { assignment_id: assignmentId, reason }, actorId);

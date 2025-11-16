@@ -1,49 +1,97 @@
 /**
- * Routes Service - Упрощенная бизнес-логика управления маршрутами
+ * Assignments Service - Бизнес-логика управления назначениями
  */
 
-import { PrismaClient, Route } from '@neiro/database';
+import { PrismaClient, Assignment } from '@neiro/database';
 import { AppError } from '../utils/AppError';
-import { CreateRouteInput, UpdateRouteInput, ListRoutesQuery } from '../validators/routes.validators';
 import * as eventsService from './events.service';
 
 const prisma = new PrismaClient();
 
-export async function createRoute(data: CreateRouteInput, userId: string): Promise<Route> {
-  // Проверка активного маршрута для ребенка
-  const activeRoute = await prisma.route.findFirst({
-    where: { childId: data.childId, status: 'active' }
-  });
+// Допустимые статусы назначений
+export const ASSIGNMENT_STATUSES = {
+  SCHEDULED: 'scheduled',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+  SKIPPED: 'skipped',
+  OVERDUE: 'overdue'
+} as const;
 
-  if (activeRoute) {
-    throw new AppError('У ребенка уже есть активный маршрут', 409, 'ACTIVE_ROUTE_EXISTS');
-  }
+// Допустимые переходы статусов
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  scheduled: ['in_progress', 'cancelled', 'skipped', 'overdue'],
+  in_progress: ['completed', 'cancelled'],
+  completed: [],
+  cancelled: [],
+  skipped: [],
+  overdue: ['in_progress', 'cancelled', 'skipped']
+};
 
-  const route = await prisma.route.create({
+export interface CreateAssignmentInput {
+  routeId?: string;
+  childId: string;
+  specialistId: string;
+  exerciseId?: string;
+  title: string;
+  description?: string;
+  scheduledFor: Date;
+  durationMinutes?: number;
+  location?: string;
+  isHomework?: boolean;
+}
+
+export interface UpdateAssignmentInput {
+  title?: string;
+  description?: string;
+  scheduledFor?: Date;
+  durationMinutes?: number;
+  location?: string;
+}
+
+export interface ListAssignmentsQuery {
+  childId?: string;
+  specialistId?: string;
+  routeId?: string;
+  status?: string;
+  fromDate?: string;
+  toDate?: string;
+  limit?: number;
+  cursor?: string;
+}
+
+export async function createAssignment(data: CreateAssignmentInput, userId: string): Promise<Assignment> {
+  const assignment = await prisma.assignment.create({
     data: {
       ...data,
-      status: 'draft',
-      version: 1,
-      createdById: userId
+      status: ASSIGNMENT_STATUSES.SCHEDULED
     }
   });
 
-  await eventsService.publishRouteCreated(route.id, route.childId, userId);
-  console.log(`✅ Создан маршрут: ${route.name} (${route.id})`);
+  await eventsService.publishAssignmentCreated(assignment.id, assignment.childId, userId);
+  console.log(`✅ Создано назначение: ${assignment.title} (${assignment.id})`);
 
-  return route;
+  return assignment;
 }
 
-export async function listRoutes(query: ListRoutesQuery): Promise<{ data: Route[]; meta: any }> {
-  const { childId, status, limit = 20, cursor } = query;
+export async function listAssignments(query: ListAssignmentsQuery): Promise<{ data: Assignment[]; meta: any }> {
+  const { childId, specialistId, routeId, status, fromDate, toDate, limit = 20, cursor } = query;
 
   const where: any = {};
   if (childId) where.childId = childId;
+  if (specialistId) where.specialistId = specialistId;
+  if (routeId) where.routeId = routeId;
   if (status) where.status = status;
+
+  if (fromDate || toDate) {
+    where.scheduledFor = {};
+    if (fromDate) where.scheduledFor.gte = new Date(fromDate);
+    if (toDate) where.scheduledFor.lte = new Date(toDate);
+  }
 
   const paginationOptions: any = {
     take: limit + 1,
-    orderBy: { createdAt: 'desc' }
+    orderBy: { scheduledFor: 'asc' }
   };
 
   if (cursor) {
@@ -51,59 +99,105 @@ export async function listRoutes(query: ListRoutesQuery): Promise<{ data: Route[
     paginationOptions.skip = 1;
   }
 
-  const routes = await prisma.route.findMany({ where, ...paginationOptions });
+  const assignments = await prisma.assignment.findMany({ where, ...paginationOptions });
 
-  const hasMore = routes.length > limit;
-  const data = hasMore ? routes.slice(0, limit) : routes;
+  const hasMore = assignments.length > limit;
+  const data = hasMore ? assignments.slice(0, limit) : assignments;
   const nextCursor = hasMore ? data[data.length - 1].id : undefined;
-  const total = await prisma.route.count({ where });
+  const total = await prisma.assignment.count({ where });
 
   return { data, meta: { total, hasMore, nextCursor } };
 }
 
-export async function getRouteById(id: string): Promise<Route> {
-  const route = await prisma.route.findUnique({ where: { id } });
-  if (!route) {
-    throw new AppError('Маршрут не найден', 404, 'ROUTE_NOT_FOUND');
+export async function getAssignmentById(id: string): Promise<Assignment> {
+  const assignment = await prisma.assignment.findUnique({ where: { id } });
+  if (!assignment) {
+    throw new AppError('Назначение не найдено', 404, 'ASSIGNMENT_NOT_FOUND');
   }
-  return route;
+  return assignment;
 }
 
-export async function updateRoute(id: string, data: UpdateRouteInput, userId: string): Promise<Route> {
-  await getRouteById(id);
-  const route = await prisma.route.update({ where: { id }, data });
-  console.log(`✅ Обновлен маршрут: ${route.name} (${route.id})`);
-  return route;
-}
+export async function updateAssignment(id: string, data: UpdateAssignmentInput, userId: string): Promise<Assignment> {
+  const existing = await getAssignmentById(id);
 
-export async function activateRoute(id: string, userId: string): Promise<Route> {
-  const route = await getRouteById(id);
-  if (route.status === 'active') {
-    throw new AppError('Маршрут уже активен', 400, 'ALREADY_ACTIVE');
+  if (['completed', 'cancelled', 'skipped'].includes(existing.status)) {
+    throw new AppError('Невозможно редактировать завершенное назначение', 400, 'ASSIGNMENT_IMMUTABLE');
   }
 
-  const updatedRoute = await prisma.route.update({
-    where: { id },
-    data: { status: 'active', startedAt: new Date() }
-  });
-
-  await eventsService.publishRouteActivated(id, userId);
-  console.log(`✅ Активирован маршрут: ${updatedRoute.name} (${updatedRoute.id})`);
-
-  return updatedRoute;
+  const assignment = await prisma.assignment.update({ where: { id }, data });
+  console.log(`✅ Обновлено назначение: ${assignment.title} (${assignment.id})`);
+  return assignment;
 }
 
-export async function completeRoute(id: string, userId: string): Promise<Route> {
-  await getRouteById(id);
+export async function updateAssignmentStatus(id: string, newStatus: string, userId: string, notes?: string): Promise<Assignment> {
+  const assignment = await getAssignmentById(id);
+  const currentStatus = assignment.status;
 
-  const updatedRoute = await prisma.route.update({
-    where: { id },
-    data: { status: 'completed', completedAt: new Date() }
-  });
+  if (!VALID_TRANSITIONS[currentStatus]?.includes(newStatus)) {
+    throw new AppError(`Недопустимый переход: ${currentStatus} → ${newStatus}`, 400, 'INVALID_STATUS_TRANSITION');
+  }
 
-  await eventsService.publishRouteCompleted(id, userId);
-  console.log(`✅ Завершен маршрут: ${updatedRoute.name} (${updatedRoute.id})`);
+  const updateData: any = { status: newStatus };
 
-  return updatedRoute;
+  if (newStatus === ASSIGNMENT_STATUSES.COMPLETED) {
+    updateData.completedAt = new Date();
+  } else if (newStatus === ASSIGNMENT_STATUSES.IN_PROGRESS) {
+    updateData.startedAt = new Date();
+  }
+
+  if (notes) updateData.notes = notes;
+
+  const updatedAssignment = await prisma.assignment.update({ where: { id }, data: updateData });
+
+  await eventsService.publishAssignmentStatusChanged(id, currentStatus, newStatus, userId);
+  console.log(`✅ Статус: ${currentStatus} → ${newStatus} (${id})`);
+
+  return updatedAssignment;
 }
 
+export async function startAssignment(id: string, userId: string): Promise<Assignment> {
+  return updateAssignmentStatus(id, ASSIGNMENT_STATUSES.IN_PROGRESS, userId);
+}
+
+export async function completeAssignment(id: string, userId: string, notes?: string): Promise<Assignment> {
+  return updateAssignmentStatus(id, ASSIGNMENT_STATUSES.COMPLETED, userId, notes);
+}
+
+export async function cancelAssignment(id: string, userId: string, reason?: string): Promise<Assignment> {
+  return updateAssignmentStatus(id, ASSIGNMENT_STATUSES.CANCELLED, userId, reason);
+}
+
+export async function skipAssignment(id: string, userId: string, reason?: string): Promise<Assignment> {
+  return updateAssignmentStatus(id, ASSIGNMENT_STATUSES.SKIPPED, userId, reason);
+}
+
+export async function getOverdueAssignments(): Promise<Assignment[]> {
+  return prisma.assignment.findMany({
+    where: { status: ASSIGNMENT_STATUSES.SCHEDULED, scheduledFor: { lt: new Date() } },
+    orderBy: { scheduledFor: 'asc' }
+  });
+}
+
+export async function markOverdueAssignments(): Promise<number> {
+  const result = await prisma.assignment.updateMany({
+    where: { status: ASSIGNMENT_STATUSES.SCHEDULED, scheduledFor: { lt: new Date() } },
+    data: { status: ASSIGNMENT_STATUSES.OVERDUE }
+  });
+  if (result.count > 0) console.log(`⏰ Просрочено: ${result.count} назначений`);
+  return result.count;
+}
+
+export async function getCalendar(childId: string, fromDate: Date, toDate: Date): Promise<Assignment[]> {
+  return prisma.assignment.findMany({
+    where: { childId, scheduledFor: { gte: fromDate, lte: toDate } },
+    orderBy: { scheduledFor: 'asc' }
+  });
+}
+
+export async function getAssignmentStats(childId: string): Promise<Record<string, number>> {
+  const stats: Record<string, number> = {};
+  for (const status of Object.values(ASSIGNMENT_STATUSES)) {
+    stats[status] = await prisma.assignment.count({ where: { childId, status } });
+  }
+  return stats;
+}

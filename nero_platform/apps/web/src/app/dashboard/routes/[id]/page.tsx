@@ -278,7 +278,14 @@ export default function RouteDetailPage() {
                     {isActionLoading ? 'Завершение...' : 'Завершить маршрут'}
                   </Button>
                 )}
-                <Button variant="outline">Редактировать</Button>
+                {(route.status === 'draft' || route.status === 'active') && (
+                  <Button 
+                    variant="outline"
+                    onClick={() => router.push(`/dashboard/routes/${routeId}/edit`)}
+                  >
+                    Редактировать
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}

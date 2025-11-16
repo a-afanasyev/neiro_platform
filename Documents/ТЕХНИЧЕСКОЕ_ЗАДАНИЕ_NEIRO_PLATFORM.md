@@ -1,7 +1,7 @@
 # ТЕХНИЧЕСКОЕ ЗАДАНИЕ
 # Платформа "Neiro" - Система нейропсихологического сопровождения детей с Особенностями
 
-**Версия:** 3.3 *(обновлено 30 октября 2025)*
+**Версия:** 3.4 *(обновлено 16 ноября 2025)*
 **Дата первоначальной версии:** 21 декабря 2024
 **Статус:** Техническое задание для разработки
 **Команда:** Frontend + Backend + DevOps
@@ -20,6 +20,13 @@
 | §6 «Безопасность и соответствие» | Security & Compliance Officer | Политики данных, регуляторика, безопасность |
 | §7–§8 «Интеграции, инфраструктура» | Lead Engineer · DevOps Lead | Внешние интерфейсы, окружения, CI/CD, эксплуатация |
 | §9–§10 «Этапы разработки и приемка» | Delivery Manager | Планирование релизов, Definition of Done, критерии приемки |
+
+**Изменения в версии 3.4:**
+- ✅ Раздел 9.1: Миграция на микросервисную архитектуру с отдельными контейнерами для каждого сервиса (auth, users, children, diagnostics, routes, assignments, exercises, templates, web).
+- ✅ Раздел 9.1: Обновлен Docker Compose setup с использованием отдельных контейнеров, автоматической установкой зависимостей через `pnpm install --filter`, health checks для всех сервисов.
+- ✅ Раздел 9.1: Добавлена информация о скриптах проверки готовности сервисов и тестирования API.
+- ✅ Таблица статусов: добавлена ссылка на отчет о миграции и тестировании.
+- ✅ Раздел 2.2: Уточнена информация о микросервисной архитектуре в технологическом стеке.
 
 **Изменения в версии 3.3:**
 - ✅ Обновлена конституция проекта до v1.1 (расширены границы сервисов, зафиксированы Postgres Outbox и актуальная политика ретеншна).
@@ -69,6 +76,7 @@
 | DATA_MODEL_AND_EVENTS.md | ERD, сущности, события, Constitution Check | §4 · Lead Engineer | [DATA_MODEL_AND_EVENTS.md](DATA_MODEL_AND_EVENTS.md) |
 | Correction_route.md | Функциональные требования по маршрутам | §3, §4 · Head of Clinical Ops | [Correction_route.md](Correction_route.md) |
 | API_CONTRACTS_MVP.md | REST/tRPC контракты и схемы авторизации | §3, §8 · Lead Engineer | [API_CONTRACTS_MVP.md](API_CONTRACTS_MVP.md) |
+| MIGRATION_AND_TESTING_REPORT.md | Отчет о миграции на микросервисную архитектуру | §9 · Lead Engineer | [MIGRATION_AND_TESTING_REPORT.md](../nero_platform/Documents/MIGRATION_AND_TESTING_REPORT.md) |
 | DESIGN_SYSTEM.md | Дизайн-система, компоненты, гайды | §6 · Design Lead | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) |
 | UI_KIT.md | Реализация UI-паттернов | §6 · Design Lead | [UI_KIT.md](UI_KIT.md) |
 | DATA_GOVERNANCE.md | Политики данных, DSAR, ретеншн | §4, §7 · Security & Compliance Officer | [DATA_GOVERNANCE.md](DATA_GOVERNANCE.md) |
@@ -244,8 +252,10 @@ graph TB
 
 **DevOps:**
 - Docker для контейнеризации
-- Docker Compose для локальной разработки
+- Docker Compose для локальной разработки с микросервисной архитектурой (каждый сервис в отдельном контейнере)
 - Вся разработка и автоматические тесты выполняются внутри контейнеров (Docker/Compose для локали, CI-образы для пайплайнов)
+- Автоматическая установка зависимостей через `pnpm install --filter` в каждом контейнере
+- Health checks для всех микросервисов
 - Kubernetes для продакшена
 - Nginx как reverse proxy
 - Let's Encrypt для SSL
@@ -986,58 +996,170 @@ export const appRouter = router({
 
 Все сервисы и автоматические тесты запускаются внутри Docker/Compose-контейнеров. Нативный запуск вне контейнеров запрещён, если не оформлено явное исключение; локальный workflow использует те же образы, что и CI.
 
-**Docker Compose setup:**
+**Docker Compose setup (микросервисная архитектура):**
+
+> **Обновлено:** 16 ноября 2025 — Платформа использует микросервисную архитектуру с отдельными контейнерами для каждого сервиса.
+
 ```yaml
-version: '3.8'
+# Общий шаблон для микросервисов
+x-service-template: &service-template
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  volumes:
+    - ./services:/app/services
+    - ./apps:/app/apps
+    - ./packages:/app/packages
+    - ./node_modules:/app/node_modules
+  networks:
+    - neiro_network
+
 services:
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000
-  
-  backend:
-    build: ./backend
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://user:pass@db:5432/neiro
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=kafka:9092
-    depends_on:
-      - db
-      - redis
-      - kafka
-  
-  db:
+  # Инфраструктура
+  postgres:
     image: postgres:15
     environment:
-      - POSTGRES_DB=neiro
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
+      POSTGRES_DB: neiro_platform
+      POSTGRES_USER: neiro_user
+      POSTGRES_PASSWORD: neiro_password_dev
+    ports:
+      - "5437:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neiro_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:7-alpine
+    ports:
+      - "6380:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  kafka:
-    image: bitnami/kafka:3
-    environment:
-      - KAFKA_ENABLE_KRAFT=yes
-      - KAFKA_CFG_NODE_ID=1
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+  minio:
+    image: minio/minio:latest
     ports:
-      - "9092:9092"
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+  # Микросервисы (каждый в отдельном контейнере)
+  auth:
+    <<: *service-template
+    container_name: neiro_auth
+    ports:
+      - "4001:4000"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/auth --recursive && pnpm --filter @neiro/auth dev"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  users:
+    <<: *service-template
+    container_name: neiro_users
+    ports:
+      - "4002:4002"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/users-service --recursive && pnpm --filter @neiro/users-service dev"
+
+  children:
+    <<: *service-template
+    container_name: neiro_children
+    ports:
+      - "4003:4003"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/children-service --recursive && pnpm --filter @neiro/children-service dev"
+
+  diagnostics:
+    <<: *service-template
+    container_name: neiro_diagnostics
+    ports:
+      - "4004:4004"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/diagnostics --recursive && pnpm --filter @neiro/diagnostics dev"
+
+  routes:
+    <<: *service-template
+    container_name: neiro_routes
+    ports:
+      - "4005:4005"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/routes --recursive && pnpm --filter @neiro/routes dev"
+
+  assignments:
+    <<: *service-template
+    container_name: neiro_assignments
+    ports:
+      - "4006:4006"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/assignments --recursive && pnpm --filter @neiro/assignments dev"
+
+  exercises:
+    <<: *service-template
+    container_name: neiro_exercises
+    ports:
+      - "4007:4007"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/exercises --recursive && pnpm --filter @neiro/exercises dev"
+
+  templates:
+    <<: *service-template
+    container_name: neiro_templates
+    ports:
+      - "4008:4008"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/templates --recursive && pnpm --filter @neiro/templates dev"
+
+  # Frontend
+  web:
+    <<: *service-template
+    container_name: neiro_web
+    ports:
+      - "3001:3000"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/web --recursive && pnpm --filter @neiro/web dev"
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  neiro_network:
+    driver: bridge
 ```
+
+**Ключевые особенности:**
+- ✅ Каждый микросервис запускается в отдельном контейнере
+- ✅ Автоматическая установка зависимостей через `pnpm install --filter @neiro/<service> --recursive`
+- ✅ Health checks для всех сервисов
+- ✅ Общий network `neiro_network` для межсервисного взаимодействия
+- ✅ Скрипты проверки готовности: `scripts/wait-for-services.sh`
+- ✅ Скрипты тестирования API: `scripts/test-api-simple.sh`
+
+**Подробный отчет о миграции:** [`nero_platform/Documents/MIGRATION_AND_TESTING_REPORT.md`](../nero_platform/Documents/MIGRATION_AND_TESTING_REPORT.md)
 
 ### 9.2 Продакшен инфраструктура
 
@@ -1246,7 +1368,7 @@ jobs:
 
 ### Статус готовности документации
 
-**Подготовленные артефакты (октябрь 2025):**
+**Подготовленные артефакты (ноябрь 2025):**
 
 | Документ | Версия | Статус | Описание |
 |----------|--------|--------|----------|
@@ -1257,18 +1379,20 @@ jobs:
 | `Neiro_CJM_Extended.md` | 1.3 | ✅ Готов | 12 детализированных Customer Journey Maps |
 | `neiro.md` | 1.0 | ✅ Готов | Спецификация платформы, архитектура |
 | `constitution.md` | 1.1 | ✅ Готов | Нормативные принципы, обновлённые границы сервисов, Outbox и политика данных |
+| `MIGRATION_AND_TESTING_REPORT.md` | 1.0 | ✅ Готов | Отчет о миграции на микросервисную архитектуру, результаты тестирования API и E2E |
 
 **Следующие этапы:**
 - Разработка Prisma Schema на основе SQL DDL
 - Настройка outbox-инфраструктуры (воркеры, мониторинг, DLQ-таблицы)
 - Реализация Constitution Check валидаторов
 - Подготовка тестовых seeders для БД
+- Исправление выявленных проблем (отсутствующий компонент Badge, ошибка 500 в Children API)
 
 ---
 
 **Документ подготовлен:** Команда разработки Neiro
-**Версия:** 3.3
-**Дата:** 30 октября 2025
+**Версия:** 3.4
+**Дата:** 16 ноября 2025
 **Статус:** Утвержден для разработки
 **Следующий пересмотр:** По завершении MVP
 

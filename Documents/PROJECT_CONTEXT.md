@@ -1,7 +1,10 @@
 # 📋 Контекст проекта Neiro Platform
 
-**Последнее обновление:** 2025-11-15  
-**Версия:** 0.3.3
+**Последнее обновление:** 2025-11-16  
+**Версия:** 0.4.0
+
+**Миграция на микросервисную архитектуру:** ✅ Завершена 16 ноября 2025  
+**Отчет:** [`nero_platform/Documents/MIGRATION_AND_TESTING_REPORT.md`](nero_platform/Documents/MIGRATION_AND_TESTING_REPORT.md)
 
 ---
 
@@ -16,6 +19,10 @@
 | **Users Service** | `4002` | http://localhost:4002 | API управления пользователями |
 | **Children Service** | `4003` | http://localhost:4003 | API управления детьми |
 | **Diagnostics Service** | `4004` | http://localhost:4004 | API диагностики |
+| **Routes Service** | `4005` | http://localhost:4005 | API управления маршрутами |
+| **Assignments Service** | `4006` | http://localhost:4006 | API управления назначениями |
+| **Exercises Service** | `4007` | http://localhost:4007 | API библиотеки упражнений |
+| **Templates Service** | `4008` | http://localhost:4008 | API шаблонов маршрутов |
 | **PostgreSQL** | `5437` | localhost:5437 | База данных |
 | **Redis** | `6380` | localhost:6380 | Кэш и очереди |
 | **MinIO API** | `9000` | http://localhost:9000 | S3-совместимое хранилище |
@@ -31,6 +38,10 @@
 | **Users Service** | `4002` | Слушает внутри контейнера |
 | **Children Service** | `4003` | Слушает внутри контейнера |
 | **Diagnostics Service** | `4004` | Слушает внутри контейнера |
+| **Routes Service** | `4005` | Слушает внутри контейнера |
+| **Assignments Service** | `4006` | Слушает внутри контейнера |
+| **Exercises Service** | `4007` | Слушает внутри контейнера |
+| **Templates Service** | `4008` | Слушает внутри контейнера |
 | **PostgreSQL** | `5432` | Стандартный порт PostgreSQL |
 | **Redis** | `6379` | Стандартный порт Redis |
 | **MinIO API** | `9000` | API порт MinIO |
@@ -42,6 +53,13 @@
 ports:
   - "3001:3000"  # Frontend: внешний:внутренний
   - "4001:4000"  # Auth Service: внешний:внутренний
+  - "4002:4002"  # Users Service
+  - "4003:4003"  # Children Service
+  - "4004:4004"  # Diagnostics Service
+  - "4005:4005"  # Routes Service
+  - "4006:4006"  # Assignments Service
+  - "4007:4007"  # Exercises Service
+  - "4008:4008"  # Templates Service
   - "5437:5432"  # PostgreSQL: внешний:внутренний
   - "6380:6379"  # Redis: внешний:внутренний
   - "9000:9000"  # MinIO API
@@ -142,16 +160,23 @@ type UserRole = 'admin' | 'specialist' | 'supervisor' | 'parent'
 ```
 nero_platform/
 ├── apps/
-│   └── web/              # Next.js 14 frontend
-├── services/
-│   ├── auth/             # Auth Service (порт 4000/4001)
+│   └── web/              # Next.js 14 frontend (порт 3001)
+├── services/             # Микросервисы (каждый в отдельном контейнере)
+│   ├── auth/             # Auth Service (порт 4001)
 │   ├── users/            # Users Service (порт 4002)
 │   ├── children/         # Children Service (порт 4003)
-│   └── diagnostics/     # Diagnostics Service (порт 4004)
+│   ├── diagnostics/     # Diagnostics Service (порт 4004)
+│   ├── routes/           # Routes Service (порт 4005)
+│   ├── assignments/      # Assignments Service (порт 4006)
+│   ├── exercises/        # Exercises Service (порт 4007)
+│   └── templates/        # Templates Service (порт 4008)
 ├── packages/
 │   ├── database/         # Prisma schema & client
 │   ├── types/            # Общие TypeScript типы
 │   └── utils/            # Общие утилиты
+├── scripts/              # Вспомогательные скрипты
+│   ├── wait-for-services.sh  # Скрипт проверки готовности сервисов
+│   └── test-api-simple.sh    # Скрипт тестирования API
 └── infrastructure/       # Docker, CI/CD
 ```
 
@@ -223,14 +248,35 @@ PORT=4004  # Diagnostics Service
 
 ### Docker Compose Services
 
+**Обновлено:** 16 ноября 2025 - Микросервисная архитектура
+
 ```yaml
 services:
-  postgres:    # PostgreSQL 15
-  redis:       # Redis 7
-  minio:       # MinIO S3
-  adminer:     # Database UI
-  app:         # Node.js контейнер для разработки
+  # Инфраструктура
+  postgres:      # PostgreSQL 15
+  redis:         # Redis 7
+  minio:         # MinIO S3
+  adminer:       # Database UI
+  
+  # Микросервисы (каждый в отдельном контейнере)
+  auth:          # Auth Service (порт 4001)
+  users:         # Users Service (порт 4002)
+  children:      # Children Service (порт 4003)
+  diagnostics:   # Diagnostics Service (порт 4004)
+  routes:        # Routes Service (порт 4005)
+  assignments:   # Assignments Service (порт 4006)
+  exercises:     # Exercises Service (порт 4007)
+  templates:     # Templates Service (порт 4008)
+  
+  # Frontend
+  web:           # Next.js Frontend (порт 3001)
 ```
+
+**Ключевые особенности:**
+- ✅ Каждый микросервис запускается в отдельном контейнере
+- ✅ Автоматическая установка зависимостей через `pnpm install --filter`
+- ✅ Health checks для всех сервисов
+- ✅ Общий network `neiro_network` для межсервисного взаимодействия
 
 ---
 
@@ -287,56 +333,112 @@ GET    /diagnostics/v1/sessions/:id/results
 GET    /health
 ```
 
+### Routes Service (`http://localhost:4005`)
+
+```
+POST   /routes/v1
+GET    /routes/v1
+GET    /routes/v1/:id
+PATCH  /routes/v1/:id
+POST   /routes/v1/:id/activate
+POST   /routes/v1/:id/complete
+GET    /health
+```
+
+### Assignments Service (`http://localhost:4006`)
+
+```
+POST   /assignments/v1
+GET    /assignments/v1
+GET    /assignments/v1/:id
+PATCH  /assignments/v1/:id/status
+GET    /assignments/v1/calendar
+GET    /health
+```
+
+### Exercises Service (`http://localhost:4007`)
+
+```
+POST   /exercises/v1
+GET    /exercises/v1
+GET    /exercises/v1/:id
+GET    /exercises/v1/categories
+POST   /exercises/v1/:id/publish
+GET    /health
+```
+
+### Templates Service (`http://localhost:4008`)
+
+```
+POST   /templates/v1
+GET    /templates/v1
+GET    /templates/v1/:id
+POST   /templates/v1/:id/clone
+POST   /templates/v1/:id/publish
+GET    /health
+```
+
 ---
 
 ## 🚀 Команды разработки
 
 ### Запуск сервисов
 
+**Обновлено:** 16 ноября 2025 - Микросервисная архитектура
+
 ```bash
-# Запустить все контейнеры
-docker-compose up -d
+# Запустить инфраструктуру
+docker compose up -d postgres redis minio adminer
 
-# Запустить frontend
-docker-compose exec app sh -c "cd apps/web && pnpm dev"
+# Применить миграции БД
+docker compose exec -T auth sh -c "cd /app/packages/database && prisma migrate deploy"
 
-# Запустить auth service
-docker-compose exec app sh -c "cd services/auth && pnpm dev"
+# Загрузить seed данные
+docker compose exec -T auth sh -c "cd /app/packages/database && npx tsx prisma/seed.ts"
 
-# Запустить users service
-docker-compose exec app sh -c "cd services/users && pnpm dev"
+# Запустить все микросервисы и фронтенд
+docker compose up -d auth users children diagnostics routes assignments exercises templates web
 
-# Запустить children service
-docker-compose exec app sh -c "cd services/children && pnpm dev"
+# Проверить статус всех сервисов
+docker compose ps
 
-# Запустить diagnostics service
-docker-compose exec app sh -c "cd services/diagnostics && pnpm dev"
+# Проверить готовность всех сервисов (скрипт)
+./scripts/wait-for-services.sh
+
+# Логи конкретного сервиса
+docker compose logs -f auth
+docker compose logs -f users
+# и т.д.
 ```
 
 ### Работа с базой данных
 
 ```bash
-# Генерация Prisma Client
-docker-compose exec app pnpm run db:generate
-
-# Применение миграций
-docker-compose exec app pnpm run db:migrate
+# Применение миграций (из контейнера auth)
+docker compose exec -T auth sh -c "cd /app/packages/database && prisma migrate deploy"
 
 # Заполнение тестовыми данными
-docker-compose exec app pnpm run db:seed
+docker compose exec -T auth sh -c "cd /app/packages/database && npx tsx prisma/seed.ts"
 
-# Prisma Studio (UI для БД)
-docker-compose exec app pnpm run db:studio
+# Prisma Studio (с хоста, подключаясь к контейнерной БД)
+pnpm --filter @neiro/database prisma studio
+
+# Генерация Prisma Client
+pnpm --filter @neiro/database prisma generate
 ```
 
 ### Установка зависимостей
 
-```bash
-# Установить все зависимости
-docker-compose exec app pnpm install
+**Обновлено:** 16 ноября 2025
 
-# Установить зависимость в конкретный пакет
-docker-compose exec app pnpm --filter @neiro/web add <package>
+Зависимости устанавливаются автоматически при запуске контейнеров через `pnpm install --filter @neiro/<service> --recursive`.
+
+```bash
+# Установить зависимости вручную (если требуется)
+docker compose exec auth sh -c "cd /app && pnpm install"
+
+# Установить зависимость в конкретный пакет (с хоста)
+pnpm --filter @neiro/web add <package>
 ```
 
 ---
@@ -401,6 +503,10 @@ CORS настроен на `http://localhost:3001` (внешний порт fron
 - **Users Service Health:** http://localhost:4002/health
 - **Children Service Health:** http://localhost:4003/health
 - **Diagnostics Service Health:** http://localhost:4004/health
+- **Routes Service Health:** http://localhost:4005/health
+- **Assignments Service Health:** http://localhost:4006/health
+- **Exercises Service Health:** http://localhost:4007/health
+- **Templates Service Health:** http://localhost:4008/health
 
 ---
 
@@ -422,9 +528,21 @@ CORS настроен на `http://localhost:3001` (внешний порт fron
 - ✅ ProtectedRoute защищает маршруты
 - ✅ Подробный отчет: `Documents/ПОЛНАЯ_ПРОВЕРКА_МЕСЯЦ_1.md`
 
+✅ **Миграция на микросервисную архитектуру:** 16 ноября 2025
+
+- ✅ Все 8 микросервисов запущены и работают
+- ✅ Функциональное тестирование API: 95% успешных тестов (19/20)
+- ✅ E2E тестирование фронтенда: 67% успешных тестов (2/3)
+- ✅ Health checks для всех сервисов работают
+- ✅ Подробный отчет: `nero_platform/Documents/MIGRATION_AND_TESTING_REPORT.md`
+
+**Найденные проблемы:**
+- ⚠️ Отсутствует компонент `@/components/ui/badge` (страница маршрутов не загружается)
+- ⚠️ Ошибка 500 в Children API при получении списка детей
+
 ---
 
 **Статус:** ✅ Актуально  
-**Версия документа:** 1.1  
-**Дата обновления:** 2025-11-15
+**Версия документа:** 1.2  
+**Дата обновления:** 2025-11-16
 

@@ -18,16 +18,22 @@
 
 ## 🏃 ЗАПУСК ЗА 3 ШАГА
 
-### Шаг 1: Установить зависимости
+### Шаг 1: Установить зависимости (на хосте)
 ```bash
 cd nero_platform
 pnpm install
 ```
 
-### Шаг 2: Запустить все сервисы
+### Шаг 2: Запустить инфраструктуру и микросервисы
 ```bash
-docker-compose up
+# Инфраструктура
+docker compose up -d postgres redis minio adminer
+
+# Все микросервисы и фронтенд (каждый в своём контейнере)
+docker compose up -d auth users children diagnostics routes assignments exercises templates web
 ```
+
+> Turbo в dev-контейнере даёт deadlock на macOS. Запуск через `docker compose` стартует dev-скрипты сервисов напрямую, без turbo-daemon.
 
 ### Шаг 3: Открыть браузер
 ```
@@ -58,13 +64,13 @@ Parent:
 
 ---
 
-## 📊 ПОРТЫ СЕРВИСОВ
+## 📊 ПОРТЫ СЕРВИСОВ (docker-compose)
 
 - **Frontend:** http://localhost:3001
-- **Auth Service:** http://localhost:4002
-- **Users Service:** http://localhost:4003
-- **Children Service:** http://localhost:4010
-- **Diagnostics Service:** http://localhost:4011
+- **Auth Service:** http://localhost:4001
+- **Users Service:** http://localhost:4002
+- **Children Service:** http://localhost:4003
+- **Diagnostics Service:** http://localhost:4004
 - **Route Orchestrator:** http://localhost:4005
 - **Assignments Service:** http://localhost:4006
 - **Exercises Service:** http://localhost:4007
@@ -230,4 +236,3 @@ docker-compose exec app pnpm --filter @neiro/auth test
 ---
 
 **Последнее обновление:** 15 ноября 2025
-

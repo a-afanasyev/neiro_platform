@@ -1,7 +1,46 @@
-version: '3.8'
+# Общие переменные окружения для всех сервисов
+x-common-variables: &common-variables
+  NODE_ENV: development
+  DATABASE_URL: postgresql://neiro_user:neiro_password_dev@postgres:5432/neiro_platform
+  REDIS_URL: redis://redis:6379
+  JWT_ACCESS_SECRET: dev_access_secret_change_in_production_2024
+  JWT_REFRESH_SECRET: dev_refresh_secret_change_in_production_2024
+  JWT_ACCESS_EXPIRES_IN: 15m
+  JWT_REFRESH_EXPIRES_IN: 7d
+  CORS_ORIGIN: http://localhost:3001
+
+# Общая конфигурация для Node.js сервисов
+x-service-template: &service-template
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  environment:
+    <<: *common-variables
+  volumes:
+    - ./packages:/app/packages
+    - ./services:/app/services
+    - ./apps:/app/apps
+    - ./.pnpm-store:/root/.pnpm-store
+    - ./node_modules:/app/node_modules
+    - ./tsconfig.json:/app/tsconfig.json:ro
+    - ./turbo.json:/app/turbo.json:ro
+    - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
+    - ./package.json:/app/package.json:ro
+    - ./pnpm-lock.yaml:/app/pnpm-lock.yaml:ro
+  networks:
+    - neiro_network
 
 services:
-  # PostgreSQL Database - порт 5437 (не стандартный 5432)
+  # ============================================
+  # ИНФРАСТРУКТУРА
+  # ============================================
+  
   postgres:
     image: postgres:15-alpine
     container_name: neiro_postgres
@@ -20,8 +59,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - neiro_network
 
-  # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: neiro_redis
@@ -36,8 +76,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - neiro_network
 
-  # MinIO S3-compatible storage
   minio:
     image: minio/minio:latest
     container_name: neiro_minio
@@ -56,8 +97,9 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+    networks:
+      - neiro_network
 
-  # Adminer - Database Management UI
   adminer:
     image: adminer:latest
     container_name: neiro_adminer
@@ -68,61 +110,134 @@ services:
       ADMINER_DEFAULT_SERVER: postgres
     depends_on:
       - postgres
+    networks:
+      - neiro_network
 
-  # Node.js Application Container
-  # КРИТИЧНО: Весь код исполняется здесь, не на хосте!
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: neiro_app
-    restart: unless-stopped
+  # ============================================
+  # МИКРОСЕРВИСЫ - МЕСЯЦ 1
+  # ============================================
+
+  auth:
+    <<: *service-template
+    container_name: neiro_auth
+    ports:
+      - "4001:4000"
     working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/auth --recursive && pnpm --filter @neiro/auth dev"
     environment:
-      NODE_ENV: development
-      DATABASE_URL: postgresql://neiro_user:neiro_password_dev@postgres:5432/neiro_platform
-      REDIS_URL: redis://redis:6379
+      <<: *common-variables
+      AUTH_SERVICE_PORT: 4000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  users:
+    <<: *service-template
+    container_name: neiro_users
+    ports:
+      - "4002:4002"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/users-service --recursive && pnpm --filter @neiro/users-service dev"
+    environment:
+      <<: *common-variables
+      USERS_SERVICE_PORT: 4002
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  children:
+    <<: *service-template
+    container_name: neiro_children
+    ports:
+      - "4003:4003"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/children-service --recursive && pnpm --filter @neiro/children-service dev"
+    environment:
+      <<: *common-variables
+      CHILDREN_SERVICE_PORT: 4003
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  diagnostics:
+    <<: *service-template
+    container_name: neiro_diagnostics
+    ports:
+      - "4004:4004"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/diagnostics --recursive && pnpm --filter @neiro/diagnostics dev"
+    environment:
+      <<: *common-variables
+      PORT: 4004
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # МИКРОСЕРВИСЫ - МЕСЯЦ 2
+  # ============================================
+
+  routes:
+    <<: *service-template
+    container_name: neiro_routes
+    ports:
+      - "4005:4005"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/routes --recursive && pnpm --filter @neiro/routes dev"
+    environment:
+      <<: *common-variables
+      ROUTES_SERVICE_PORT: 4005
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  assignments:
+    <<: *service-template
+    container_name: neiro_assignments
+    ports:
+      - "4006:4006"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/assignments --recursive && pnpm --filter @neiro/assignments dev"
+    environment:
+      <<: *common-variables
+      ASSIGNMENTS_SERVICE_PORT: 4006
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  exercises:
+    <<: *service-template
+    container_name: neiro_exercises
+    ports:
+      - "4007:4007"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/exercises --recursive && pnpm --filter @neiro/exercises dev"
+    environment:
+      <<: *common-variables
+      EXERCISES_SERVICE_PORT: 4007
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin123
       MINIO_USE_SSL: false
-      # JWT Secrets для Auth Service
-      JWT_ACCESS_SECRET: dev_access_secret_change_in_production_2024
-      JWT_REFRESH_SECRET: dev_refresh_secret_change_in_production_2024
-      JWT_ACCESS_EXPIRES_IN: 15m
-      JWT_REFRESH_EXPIRES_IN: 7d
-    ports:
-      - "3001:3001"  # Next.js frontend (порт 3001 внутри контейнера для соответствия CORS)
-      - "4001:4000"  # API Gateway (Auth Service)
-      - "4002:4002"  # Users Service
-      - "4003:4003"  # Children Service
-      - "4004:4004"  # Profiles Service
-      - "4005:4005"  # Route Orchestrator Service
-      - "4006:4006"  # Assignments Service
-      - "4007:4007"  # Exercises Service
-      - "4008:4008"  # Templates Service
-    volumes:
-      # Mount source code for hot reload (редактируем на хосте, исполняем в контейнере)
-      - ./package.json:/app/package.json:ro
-      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
-      - ./turbo.json:/app/turbo.json:ro
-      - ./apps:/app/apps
-      - ./services:/app/services
-      - ./packages:/app/packages
-      - ./infrastructure:/app/infrastructure
-      # Persist node_modules in volume (не на хосте!)
-      - node_modules:/app/node_modules
-      - app_node_modules:/app/apps/web/node_modules
-      # Отдельные volumes для node_modules каждого пакета
-      - packages_database_nm:/app/packages/database/node_modules
-      - packages_types_nm:/app/packages/types/node_modules
-      - packages_utils_nm:/app/packages/utils/node_modules
-      # Volumes для node_modules новых сервисов (Месяц 2)
-      - services_routes_nm:/app/services/routes/node_modules
-      - services_assignments_nm:/app/services/assignments/node_modules
-      - services_exercises_nm:/app/services/exercises/node_modules
-      - services_templates_nm:/app/services/templates/node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -130,9 +245,59 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    # Команда по умолчанию - просто держать контейнер запущенным
-    # Разработчики запускают команды вручную через: docker-compose exec app <command>
-    command: tail -f /dev/null
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  templates:
+    <<: *service-template
+    container_name: neiro_templates
+    ports:
+      - "4008:4008"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/templates --recursive && pnpm --filter @neiro/templates dev"
+    environment:
+      <<: *common-variables
+      TEMPLATES_SERVICE_PORT: 4008
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # ФРОНТЕНД
+  # ============================================
+
+  web:
+    <<: *service-template
+    container_name: neiro_web
+    ports:
+      - "3001:3001"
+    working_dir: /app
+    command: sh -c "pnpm install --filter @neiro/web --recursive && pnpm --filter @neiro/web dev"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:4001
+    depends_on:
+      - auth
+      - users
+      - children
+      - diagnostics
+      - routes
+      - assignments
+      - exercises
+      - templates
+    networks:
+      - neiro_network
+
+# ============================================
+# VOLUMES
+# ============================================
 
 volumes:
   postgres_data:
@@ -141,28 +306,11 @@ volumes:
     driver: local
   minio_data:
     driver: local
-  node_modules:
-    driver: local
-  app_node_modules:
-    driver: local
-  # Отдельные volumes для node_modules пакетов
-  packages_database_nm:
-    driver: local
-  packages_types_nm:
-    driver: local
-  packages_utils_nm:
-    driver: local
-  # Volumes для новых сервисов (Месяц 2)
-  services_routes_nm:
-    driver: local
-  services_assignments_nm:
-    driver: local
-  services_exercises_nm:
-    driver: local
-  services_templates_nm:
-    driver: local
+
+# ============================================
+# NETWORKS
+# ============================================
 
 networks:
-  default:
-    name: neiro_network
-
+  neiro_network:
+    driver: bridge
