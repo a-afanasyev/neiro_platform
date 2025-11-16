@@ -102,12 +102,24 @@ export async function markOverdue(req: Request, res: Response, next: NextFunctio
 
 export async function getCalendar(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { childId, fromDate, toDate } = req.query;
-    const assignments = await assignmentsService.getCalendar(
-      childId as string,
-      new Date(fromDate as string),
-      new Date(toDate as string)
-    );
+    const { childId, startDate, endDate, fromDate, toDate } = req.query;
+
+    // Поддержка обоих форматов параметров: startDate/endDate и fromDate/toDate
+    const start = (startDate || fromDate) as string;
+    const end = (endDate || toDate) as string;
+
+    if (!start || !end) {
+      return res.status(400).json({
+        success: false,
+        error: 'Необходимо указать startDate и endDate (или fromDate и toDate)'
+      }) as any;
+    }
+
+    // childId опционален - если не указан, возвращаем все назначения за период
+    const assignments = childId
+      ? await assignmentsService.getCalendar(childId as string, new Date(start), new Date(end))
+      : await assignmentsService.getCalendarAll(new Date(start), new Date(end));
+
     res.status(200).json({ success: true, data: assignments });
   } catch (error) {
     next(error);

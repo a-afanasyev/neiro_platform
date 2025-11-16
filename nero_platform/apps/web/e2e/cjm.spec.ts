@@ -96,8 +96,10 @@ test.describe('CJM #1: Родитель - Онбординг', () => {
     await page.click('text=Дети')
     await expect(page).toHaveURL(/\/dashboard\/children/)
 
-    // Клик на карточку первого ребенка
-    await page.click('text=Алиса >> .. >> button')
+    // Клик на кнопку "Подробнее" в карточке ребенка с именем "Алиса"
+    // Используем корректный Playwright селектор: находим карточку с текстом "Алиса",
+    // затем внутри нее ищем кнопку "Подробнее"
+    await page.locator('div:has-text("Алиса")').locator('button:has-text("Подробнее")').first().click()
 
     // Проверка, что открылся профиль ребенка с основной информацией
     await expect(page.locator('text=Дата рождения')).toBeVisible({ timeout: 5000 })

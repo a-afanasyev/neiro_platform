@@ -787,14 +787,362 @@ async function main() {
   console.log('✅ Проверено/создано шаблонов: 3');
 
   // ============================================================
-  // Примечание: Создание маршрутов и назначений требует
-  // дополнительной настройки моделей. Пока пропускаем.
+  // 8. Создаём маршруты
   // ============================================================
 
-  console.log('📝 Пропускаем создание тестовых маршрутов и назначений...');
-  console.log('   (требуется синхронизация схемы с DATA_MODEL_AND_EVENTS.md)');
+  console.log('📝 Создание маршрутов...');
 
+  // Маршрут для ребенка 1 (Артем) - активный
+  const route1 = await prisma.route.create({
+    data: {
+      childId: child1.id,
+      leadSpecialistId: neuroSpecialist.id,
+      title: 'Комплексная коррекция - Артем',
+      summary: 'Работа над речью, моторикой и социальными навыками',
+      status: 'active',
+      planHorizonWeeks: 24,
+      startDate: new Date('2025-10-01'),
+      endDate: new Date('2026-03-31'),
+    },
+  });
+
+  // Маршрут для ребенка 2 (София) - draft
+  const route2 = await prisma.route.create({
+    data: {
+      childId: child2.id,
+      leadSpecialistId: neuroSpecialist.id,
+      title: 'Логопедическая коррекция - София',
+      summary: 'Фокус на развитие коммуникативных навыков',
+      status: 'draft',
+      planHorizonWeeks: 16,
+    },
+  });
+
+  console.log('✅ Создано маршрутов: 2');
+
+  // ============================================================
+  // 9. Создаём фазы маршрутов
+  // ============================================================
+
+  console.log('📝 Создание фаз маршрутов...');
+
+  const phase1_1 = await prisma.routePhase.create({
+    data: {
+      routeId: route1.id,
+      responsibleSpecialistId: neuroSpecialist.id,
+      name: 'Диагностика и адаптация',
+      description: 'Начальная оценка и адаптация ребенка к занятиям',
+      orderIndex: 1,
+      status: 'completed',
+      startDate: new Date('2025-10-01'),
+      endDate: new Date('2025-10-14'),
+      durationWeeks: 2,
+      expectedOutcomes: 'Полная диагностика, адаптация к процессу',
+    },
+  });
+
+  const phase1_2 = await prisma.routePhase.create({
+    data: {
+      routeId: route1.id,
+      responsibleSpecialistId: speechSpecialist.id,
+      name: 'Развитие речи',
+      description: 'Логопедическая коррекция и развитие речевых навыков',
+      orderIndex: 2,
+      status: 'active',
+      startDate: new Date('2025-10-15'),
+      endDate: new Date('2025-12-15'),
+      durationWeeks: 8,
+      expectedOutcomes: 'Улучшение артикуляции, расширение словарного запаса',
+    },
+  });
+
+  const phase1_3 = await prisma.routePhase.create({
+    data: {
+      routeId: route1.id,
+      responsibleSpecialistId: abaSpecialist.id,
+      name: 'Поведенческая коррекция',
+      description: 'ABA-терапия для коррекции поведения',
+      orderIndex: 3,
+      status: 'planned',
+      durationWeeks: 10,
+      expectedOutcomes: 'Снижение нежелательного поведения, новые навыки',
+    },
+  });
+
+  console.log('✅ Создано фаз: 3');
+
+  // ============================================================
+  // 10. Создаём цели маршрутов
+  // ============================================================
+
+  console.log('📝 Создание целей маршрутов...');
+
+  const goal1_1 = await prisma.routeGoal.create({
+    data: {
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      category: 'speech',
+      goalType: 'skill',
+      description: 'Улучшить произношение звуков Р и Л',
+      targetMetric: 'Правильное произношение',
+      measurementUnit: 'процент',
+      baselineValue: '30',
+      targetValue: '80',
+      reviewPeriodWeeks: 4,
+      priority: 'high',
+      status: 'active',
+    },
+  });
+
+  const goal1_2 = await prisma.routeGoal.create({
+    data: {
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      category: 'speech',
+      goalType: 'skill',
+      description: 'Расширить активный словарный запас до 200 слов',
+      targetMetric: 'Количество слов',
+      measurementUnit: 'слов',
+      baselineValue: '100',
+      targetValue: '200',
+      reviewPeriodWeeks: 8,
+      priority: 'high',
+      status: 'active',
+    },
+  });
+
+  const goal1_3 = await prisma.routeGoal.create({
+    data: {
+      routeId: route1.id,
+      phaseId: phase1_3.id,
+      category: 'behavior',
+      goalType: 'behaviour',
+      description: 'Уменьшить частоту аутостимуляции',
+      targetMetric: 'Эпизодов в день',
+      measurementUnit: 'раз',
+      baselineValue: '20',
+      targetValue: '5',
+      reviewPeriodWeeks: 4,
+      priority: 'medium',
+      status: 'active',
+    },
+  });
+
+  console.log('✅ Создано целей: 3');
+
+  // ============================================================
+  // 11. Создаём назначения
+  // ============================================================
+
+  console.log('📝 Создание назначений...');
+
+  const speechExercise = createdExercises.find(e => e.slug === 'articulation-gymnastics')!;
+  const cognitiveExercise = createdExercises.find(e => e.slug === 'sorting-by-colors')!;
+  const motorExercise = createdExercises.find(e => e.slug === 'finger-gymnastics')!;
+  const socialExercise = createdExercises.find(e => e.slug === 'emotions-on-faces')!;
+
+  // Назначения для ребенка 1 (разные статусы)
+  // ВАЖНО: specialistId ссылается на userId (не на Specialist.id)
+  await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: speechExercise.id,
+      assignedById: neuropsychologist.id,
+      specialistId: speechTherapist.id, // userId логопеда
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      targetGoalId: goal1_1.id,
+      plannedStartDate: new Date('2025-11-16'),
+      dueDate: new Date('2025-11-16'),
+      status: 'completed',
+      deliveryChannel: 'in_person',
+      frequencyPerWeek: 3,
+      expectedDurationMinutes: 15,
+      notes: 'Отлично справился! Прогресс заметен.',
+    },
+  });
+
+  await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: cognitiveExercise.id,
+      assignedById: neuropsychologist.id,
+      specialistId: neuropsychologist.id, // userId нейропсихолога
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      plannedStartDate: new Date('2025-11-17'),
+      dueDate: new Date('2025-11-17'),
+      status: 'in_progress',
+      deliveryChannel: 'in_person',
+      frequencyPerWeek: 2,
+      expectedDurationMinutes: 20,
+    },
+  });
+
+  await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: motorExercise.id,
+      assignedById: neuropsychologist.id,
+      specialistId: neuropsychologist.id, // userId нейропсихолога
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      plannedStartDate: new Date('2025-11-17'),
+      dueDate: new Date('2025-11-17'),
+      status: 'assigned',
+      deliveryChannel: 'home',
+      frequencyPerWeek: 5,
+      expectedDurationMinutes: 10,
+      notes: 'Выполнять дома с родителями',
+    },
+  });
+
+  await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: socialExercise.id,
+      assignedById: neuropsychologist.id,
+      specialistId: abaTherapist.id, // userId ABA-терапевта
+      routeId: route1.id,
+      phaseId: phase1_3.id,
+      targetGoalId: goal1_3.id,
+      plannedStartDate: new Date('2025-11-18'),
+      dueDate: new Date('2025-11-18'),
+      status: 'assigned',
+      deliveryChannel: 'in_person',
+      frequencyPerWeek: 2,
+      expectedDurationMinutes: 30,
+    },
+  });
+
+  await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: speechExercise.id,
+      assignedById: neuropsychologist.id,
+      specialistId: speechTherapist.id, // userId логопеда
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      targetGoalId: goal1_1.id,
+      plannedStartDate: new Date('2025-11-10'),
+      dueDate: new Date('2025-11-10'),
+      status: 'overdue',
+      deliveryChannel: 'telepractice',
+      frequencyPerWeek: 3,
+      expectedDurationMinutes: 15,
+      notes: 'Пропущено из-за болезни',
+    },
+  });
+
+  await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: motorExercise.id,
+      assignedById: neuropsychologist.id,
+      specialistId: neuropsychologist.id, // userId нейропсихолога
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      plannedStartDate: new Date('2025-11-12'),
+      dueDate: new Date('2025-11-12'),
+      status: 'cancelled',
+      deliveryChannel: 'in_person',
+      frequencyPerWeek: 2,
+      expectedDurationMinutes: 10,
+      notes: 'Отменено по просьбе родителей',
+    },
+  });
+
+  await prisma.assignment.create({
+    data: {
+      childId: child2.id,
+      exerciseId: speechExercise.id,
+      assignedById: neuropsychologist.id,
+      specialistId: speechTherapist.id, // userId логопеда
+      routeId: route2.id,
+      phaseId: phase1_2.id,
+      plannedStartDate: new Date('2025-11-18'),
+      dueDate: new Date('2025-11-18'),
+      status: 'assigned',
+      deliveryChannel: 'in_person',
+      frequencyPerWeek: 3,
+      expectedDurationMinutes: 15,
+    },
+  });
+
+  await prisma.assignment.create({
+    data: {
+      childId: child2.id,
+      exerciseId: socialExercise.id,
+      assignedById: neuropsychologist.id,
+      specialistId: neuropsychologist.id, // userId нейропсихолога
+      routeId: route2.id,
+      phaseId: phase1_2.id,
+      plannedStartDate: new Date('2025-11-19'),
+      dueDate: new Date('2025-11-19'),
+      status: 'assigned',
+      deliveryChannel: 'home',
+      frequencyPerWeek: 2,
+      expectedDurationMinutes: 20,
+    },
+  });
+
+  console.log('✅ Создано назначений: 8');
+
+  // ============================================================
+  // 12. Создаём диагностические сессии
+  // ============================================================
+
+  console.log('📝 Создание диагностических сессий...');
+
+  await prisma.diagnosticSession.create({
+    data: {
+      childId: child1.id,
+      performedBy: neuropsychologist.id,
+      questionnaireCode: 'CARS',
+      status: 'completed',
+      startedAt: new Date('2025-10-01T10:00:00Z'),
+      completedAt: new Date('2025-10-01T11:30:00Z'),
+      scoreTotal: '32',
+      scoreRaw: {
+        items: [
+          { questionId: 1, answer: 3, notes: 'Умеренные трудности' },
+          { questionId: 2, answer: 2, notes: 'Легкие отклонения' },
+        ],
+      },
+      interpretationLevel: 'moderate_risk',
+      notes: 'Начальная диагностика. Ребенок сотрудничал хорошо.',
+    },
+  });
+
+  await prisma.diagnosticSession.create({
+    data: {
+      childId: child2.id,
+      performedBy: neuropsychologist.id,
+      questionnaireCode: 'M-CHAT',
+      status: 'in_progress',
+      startedAt: new Date('2025-11-15T14:00:00Z'),
+      scoreRaw: {
+        items: [
+          { questionId: 1, answer: 'yes' },
+          { questionId: 2, answer: 'no' },
+        ],
+      },
+    },
+  });
+
+  console.log('✅ Создано диагностических сессий: 2');
+
+  console.log('');
   console.log('🎉 Seed завершен успешно!');
+  console.log('');
+  console.log('📋 Тестовые учетные данные:');
+  console.log('   Admin:          admin@neiro.dev / admin123');
+  console.log('   Supervisor:     supervisor@neiro.dev / supervisor123');
+  console.log('   Neuropsych:     neuro@neiro.dev / neuro123');
+  console.log('   Speech:         speech@neiro.dev / speech123');
+  console.log('   ABA:            aba@neiro.dev / aba123');
+  console.log('   Parent 1:       parent1@example.com / parent123');
+  console.log('   Parent 2:       parent2@example.com / parent123');
 }
 
 main()

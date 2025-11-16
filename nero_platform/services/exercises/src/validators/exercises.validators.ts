@@ -22,9 +22,9 @@ export const ExerciseCategoryEnum = z.enum([
  * Уровни сложности
  */
 export const ExerciseDifficultyEnum = z.enum([
-  'easy',
-  'medium',
-  'hard'
+  'beginner',
+  'intermediate',
+  'advanced'
 ]);
 
 /**

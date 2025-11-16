@@ -79,6 +79,12 @@ export default function ChildDetailPage() {
 
   /**
    * Вычисление возраста ребенка
+   * 
+   * Корректно вычисляет полные годы и месяцы с учетом дня рождения.
+   * Например:
+   * - Дата рождения: 15 ноября 2024
+   * - Сегодня: 5 ноября 2025
+   * - Результат: 0 лет 11 месяцев (т.к. день рождения еще не наступил в ноябре)
    */
   function calculateAge(dateOfBirth: string): string {
     const today = new Date()
@@ -86,12 +92,16 @@ export default function ChildDetailPage() {
     let years = today.getFullYear() - birthDate.getFullYear()
     let months = today.getMonth() - birthDate.getMonth()
     
+    // Если месяц рождения еще не наступил в этом году,
+    // или наступил, но день рождения еще не прошел
     if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
       years--
       months += 12
     }
     
-    if (today.getDate() < birthDate.getDate()) {
+    // Если день рождения в текущем месяце еще не наступил,
+    // уменьшаем количество месяцев (но только если не обрабатывали это выше)
+    if (months > 0 && today.getDate() < birthDate.getDate()) {
       months--
     }
 

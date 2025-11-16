@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
 /**
  * Axios instance для API запросов
@@ -213,7 +213,7 @@ export const exercisesApi = {
   },
 
   updateExercise: async (id: string, data: any) => {
-    const response = await api.put(`/exercises/v1/${id}`, data)
+    const response = await api.patch(`/exercises/v1/${id}`, data)
     return response.data
   },
 

@@ -210,6 +210,46 @@ export default function ExerciseDetailPage() {
     )
   }
 
+  /**
+   * Безопасный рендер инструкций:
+   * - Если с бэкенда пришла строка – показываем как есть.
+   * - Если пришёл объект формата { steps: [...] } – выводим шаги по одному.
+   * - Если формат неожиданно другой – аккуратно сериализуем в JSON, чтобы не падать.
+   */
+  const renderInstructions = () => {
+    const instructions: any = exercise.instructions
+
+    // Строка – самый простой и ожидаемый вариант
+    if (typeof instructions === 'string') {
+      return <p className="whitespace-pre-wrap">{instructions}</p>
+    }
+
+    // Объект с массивом шагов: { steps: [...] }
+    if (instructions && typeof instructions === 'object' && Array.isArray(instructions.steps)) {
+      return (
+        <ol className="list-decimal list-inside space-y-1">
+          {instructions.steps.map((step: any, index: number) => (
+            <li key={index}>
+              {typeof step === 'string' ? step : JSON.stringify(step)}
+            </li>
+          ))}
+        </ol>
+      )
+    }
+
+    // Любой другой объект – безопасно сериализуем
+    if (instructions && typeof instructions === 'object') {
+      return (
+        <pre className="text-sm bg-neutral-50 p-3 rounded-md overflow-x-auto">
+          {JSON.stringify(instructions, null, 2)}
+        </pre>
+      )
+    }
+
+    // Ничего осмысленного нет – ничего не рендерим
+    return null
+  }
+
   return (
     <ProtectedRoute allowedRoles={['admin', 'specialist', 'supervisor']}>
       <DashboardLayout>
@@ -353,7 +393,7 @@ export default function ExerciseDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="prose max-w-none">
-                  <p className="whitespace-pre-wrap">{exercise.instructions}</p>
+                  {renderInstructions()}
                 </div>
               </CardContent>
             </Card>

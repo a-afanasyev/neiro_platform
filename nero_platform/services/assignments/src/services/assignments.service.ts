@@ -35,7 +35,7 @@ export interface CreateAssignmentInput {
   exerciseId?: string;
   title: string;
   description?: string;
-  scheduledFor: Date;
+  plannedStartDate: Date;
   durationMinutes?: number;
   location?: string;
   isHomework?: boolean;
@@ -44,7 +44,7 @@ export interface CreateAssignmentInput {
 export interface UpdateAssignmentInput {
   title?: string;
   description?: string;
-  scheduledFor?: Date;
+  plannedStartDate?: Date;
   durationMinutes?: number;
   location?: string;
 }
@@ -84,14 +84,14 @@ export async function listAssignments(query: ListAssignmentsQuery): Promise<{ da
   if (status) where.status = status;
 
   if (fromDate || toDate) {
-    where.scheduledFor = {};
-    if (fromDate) where.scheduledFor.gte = new Date(fromDate);
-    if (toDate) where.scheduledFor.lte = new Date(toDate);
+    where.plannedStartDate = {};
+    if (fromDate) where.plannedStartDate.gte = new Date(fromDate);
+    if (toDate) where.plannedStartDate.lte = new Date(toDate);
   }
 
   const paginationOptions: any = {
     take: limit + 1,
-    orderBy: { scheduledFor: 'asc' }
+    orderBy: { plannedStartDate: 'asc' }
   };
 
   if (cursor) {
@@ -173,14 +173,14 @@ export async function skipAssignment(id: string, userId: string, reason?: string
 
 export async function getOverdueAssignments(): Promise<Assignment[]> {
   return prisma.assignment.findMany({
-    where: { status: ASSIGNMENT_STATUSES.SCHEDULED, scheduledFor: { lt: new Date() } },
-    orderBy: { scheduledFor: 'asc' }
+    where: { status: ASSIGNMENT_STATUSES.SCHEDULED, plannedStartDate: { lt: new Date() } },
+    orderBy: { plannedStartDate: 'asc' }
   });
 }
 
 export async function markOverdueAssignments(): Promise<number> {
   const result = await prisma.assignment.updateMany({
-    where: { status: ASSIGNMENT_STATUSES.SCHEDULED, scheduledFor: { lt: new Date() } },
+    where: { status: ASSIGNMENT_STATUSES.SCHEDULED, plannedStartDate: { lt: new Date() } },
     data: { status: ASSIGNMENT_STATUSES.OVERDUE }
   });
   if (result.count > 0) console.log(`⏰ Просрочено: ${result.count} назначений`);
@@ -189,8 +189,15 @@ export async function markOverdueAssignments(): Promise<number> {
 
 export async function getCalendar(childId: string, fromDate: Date, toDate: Date): Promise<Assignment[]> {
   return prisma.assignment.findMany({
-    where: { childId, scheduledFor: { gte: fromDate, lte: toDate } },
-    orderBy: { scheduledFor: 'asc' }
+    where: { childId, plannedStartDate: { gte: fromDate, lte: toDate } },
+    orderBy: { plannedStartDate: 'asc' }
+  });
+}
+
+export async function getCalendarAll(fromDate: Date, toDate: Date): Promise<Assignment[]> {
+  return prisma.assignment.findMany({
+    where: { plannedStartDate: { gte: fromDate, lte: toDate } },
+    orderBy: { plannedStartDate: 'asc' }
   });
 }
 
