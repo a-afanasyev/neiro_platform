@@ -11,34 +11,38 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { PhaseEditor } from '@/components/routes/PhaseEditor'
+import { TemplatePhaseEditor } from '@/components/routes/TemplatePhaseEditor'
+import { TemplateGoalEditor } from '@/components/routes/TemplateGoalEditor'
 import { templatesApi } from '@/lib/api'
 import { useToast } from '@/hooks/useToast'
 
 /**
- * Интерфейс для фазы шаблона
+ * Интерфейс для фазы шаблона (новый контракт)
  */
 interface TemplatePhase {
   id?: string
-  title: string
-  description: string
+  name: string
+  description?: string
   orderIndex: number
-  durationWeeks: number
-  objectives?: Record<string, any>
-  goals?: PhaseGoal[]
+  durationWeeks?: number
+  specialtyHint?: string
+  notes?: string
 }
 
 /**
- * Интерфейс для цели фазы
+ * Интерфейс для цели шаблона (новый контракт)
  */
-interface PhaseGoal {
+interface TemplateGoal {
   id?: string
-  title: string
-  domain: string
   description: string
-  priority: 'low' | 'medium' | 'high'
-  targetDate?: string
-  successCriteria?: Record<string, any>
+  category: string
+  goalType?: 'skill' | 'behaviour' | 'academic' | 'other'
+  targetMetric?: string
+  measurementUnit?: string
+  baselineGuideline?: string
+  targetGuideline?: string
+  priority?: 'low' | 'medium' | 'high'
+  notes?: string
 }
 
 /**
@@ -58,64 +62,29 @@ export default function NewTemplatePage() {
 
   const [formData, setFormData] = useState({
     title: '',
-    slug: '',
     description: '',
-    targetAudience: '',
-    ageMin: 3,
-    ageMax: 18,
-    durationWeeks: 12,
-    tags: '',
+    targetAgeRange: '',
+    severityLevel: '',
   })
 
   const [phases, setPhases] = useState<TemplatePhase[]>([])
+  const [goals, setGoals] = useState<TemplateGoal[]>([])
   const [isAddingPhase, setIsAddingPhase] = useState(false)
   const [editingPhaseIndex, setEditingPhaseIndex] = useState<number | null>(null)
+  const [isAddingGoal, setIsAddingGoal] = useState(false)
+  const [editingGoalIndex, setEditingGoalIndex] = useState<number | null>(null)
 
   /**
    * Обработчик изменения полей формы
    */
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: ['ageMin', 'ageMax', 'durationWeeks'].includes(name)
-        ? parseInt(value) || 0
-        : value,
+      [name]: value,
     }))
-  }
-
-  /**
-   * Автоматическая генерация slug из заголовка
-   */
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const title = e.target.value
-    setFormData((prev) => ({
-      ...prev,
-      title,
-      slug: prev.slug || generateSlug(title),
-    }))
-  }
-
-  /**
-   * Генерация slug из текста
-   */
-  const generateSlug = (text: string): string => {
-    const cyrillicMap: Record<string, string> = {
-      'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'zh',
-      'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
-      'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'ts',
-      'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
-    }
-
-    return text
-      .toLowerCase()
-      .split('')
-      .map(char => cyrillicMap[char] || char)
-      .join('')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
   }
 
   /**
@@ -142,13 +111,43 @@ export default function NewTemplatePage() {
    * Обработчик удаления фазы
    */
   const handleDeletePhase = (index: number) => {
-    if (confirm('Удалить эту фазу? Все цели фазы также будут удалены.')) {
+    if (confirm('Удалить эту фазу?')) {
       setPhases((prev) =>
         prev
           .filter((_, idx) => idx !== index)
           .map((p, idx) => ({ ...p, orderIndex: idx }))
       )
       setEditingPhaseIndex(null)
+    }
+  }
+
+  /**
+   * Обработчик добавления новой цели
+   */
+  const handleAddGoal = (goal: TemplateGoal) => {
+    setGoals((prev) => [...prev, goal])
+    setIsAddingGoal(false)
+  }
+
+  /**
+   * Обработчик редактирования цели
+   */
+  const handleEditGoal = (goal: TemplateGoal) => {
+    if (editingGoalIndex === null) return
+
+    setGoals((prev) =>
+      prev.map((g, idx) => (idx === editingGoalIndex ? goal : g))
+    )
+    setEditingGoalIndex(null)
+  }
+
+  /**
+   * Обработчик удаления цели
+   */
+  const handleDeleteGoal = (index: number) => {
+    if (confirm('Удалить эту цель?')) {
+      setGoals((prev) => prev.filter((_, idx) => idx !== index))
+      setEditingGoalIndex(null)
     }
   }
 
@@ -161,58 +160,39 @@ export default function NewTemplatePage() {
     setError(null)
 
     try {
-      // Подготовка данных
-      const tagsArray = formData.tags
-        .split(',')
-        .map(t => t.trim())
-        .filter(t => t.length > 0)
-
+      // Подготовка данных для нового контракта API
       const templateData = {
         title: formData.title,
-        slug: formData.slug,
-        description: formData.description,
-        targetAudience: formData.targetAudience,
-        ageMin: formData.ageMin,
-        ageMax: formData.ageMax,
-        durationWeeks: formData.durationWeeks,
-        tags: tagsArray,
-        status: 'draft',
+        description: formData.description || undefined,
+        targetAgeRange: formData.targetAgeRange || undefined,
+        severityLevel: formData.severityLevel || undefined,
+        phases: phases.map(p => ({
+          name: p.name,
+          description: p.description,
+          orderIndex: p.orderIndex,
+          durationWeeks: p.durationWeeks,
+          specialtyHint: p.specialtyHint,
+          notes: p.notes,
+        })),
+        goals: goals.map(g => ({
+          description: g.description,
+          category: g.category,
+          goalType: g.goalType,
+          targetMetric: g.targetMetric,
+          measurementUnit: g.measurementUnit,
+          baselineGuideline: g.baselineGuideline,
+          targetGuideline: g.targetGuideline,
+          priority: g.priority,
+          notes: g.notes,
+        })),
       }
 
-      // Создаем шаблон
+      // Создаем шаблон с фазами и целями в одном запросе
       const response = await templatesApi.createTemplate(templateData)
-      
+
       if (response.success) {
         const templateId = response.data.id
-
-        // Создаем фазы
-        for (const phase of phases) {
-          const phaseRes = await templatesApi.createPhase(templateId, {
-            title: phase.title,
-            description: phase.description,
-            orderIndex: phase.orderIndex,
-            durationWeeks: phase.durationWeeks,
-            objectives: phase.objectives,
-          })
-
-          // Создаем цели для каждой фазы
-          if (phaseRes.success && phase.goals) {
-            const phaseId = phaseRes.data.id
-            for (const goal of phase.goals) {
-              await templatesApi.createPhaseGoal(templateId, phaseId, {
-                title: goal.title,
-                domain: goal.domain,
-                description: goal.description,
-                priority: goal.priority,
-                targetDate: goal.targetDate,
-                successCriteria: goal.successCriteria,
-              })
-            }
-          }
-        }
-
         success('Шаблон создан успешно', 'Все фазы и цели добавлены')
-        // Перенаправляем на страницу созданного шаблона
         router.push(`/dashboard/templates/${templateId}`)
       }
     } catch (err: any) {
@@ -261,29 +241,11 @@ export default function NewTemplatePage() {
                     id="title"
                     name="title"
                     value={formData.title}
-                    onChange={handleTitleChange}
+                    onChange={handleChange}
                     placeholder="Например: Программа развития речи (3-6 лет)"
                     required
                     maxLength={255}
                   />
-                </div>
-
-                {/* Slug */}
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug (URL-идентификатор) *</Label>
-                  <Input
-                    id="slug"
-                    name="slug"
-                    value={formData.slug}
-                    onChange={handleChange}
-                    placeholder="programma-razvitiya-rechi-3-6"
-                    required
-                    maxLength={255}
-                    pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
-                  />
-                  <p className="text-sm text-neutral-600">
-                    Только строчные латинские буквы, цифры и дефисы
-                  </p>
                 </div>
 
                 {/* Description */}
@@ -300,74 +262,40 @@ export default function NewTemplatePage() {
                   />
                 </div>
 
-                {/* Target Audience */}
+                {/* Target Age Range */}
                 <div className="space-y-2">
-                  <Label htmlFor="targetAudience">Целевая аудитория</Label>
-                  <Textarea
-                    id="targetAudience"
-                    name="targetAudience"
-                    value={formData.targetAudience}
-                    onChange={handleChange}
-                    placeholder="Для кого предназначена программа"
-                    rows={2}
-                  />
-                </div>
-
-                {/* Age Range */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="ageMin">Минимальный возраст *</Label>
-                    <Input
-                      id="ageMin"
-                      name="ageMin"
-                      type="number"
-                      min="1"
-                      max="25"
-                      value={formData.ageMin}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="ageMax">Максимальный возраст *</Label>
-                    <Input
-                      id="ageMax"
-                      name="ageMax"
-                      type="number"
-                      min="1"
-                      max="25"
-                      value={formData.ageMax}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Duration */}
-                <div className="space-y-2">
-                  <Label htmlFor="durationWeeks">Длительность (недель) *</Label>
+                  <Label htmlFor="targetAgeRange">Целевой возраст</Label>
                   <Input
-                    id="durationWeeks"
-                    name="durationWeeks"
-                    type="number"
-                    min="1"
-                    max="260"
-                    value={formData.durationWeeks}
+                    id="targetAgeRange"
+                    name="targetAgeRange"
+                    value={formData.targetAgeRange}
                     onChange={handleChange}
-                    required
+                    placeholder="Например: 3-6, 4-8, 2-10"
+                    maxLength={50}
                   />
+                  <p className="text-sm text-neutral-600">
+                    Диапазон возраста в формате "мин-макс"
+                  </p>
                 </div>
 
-                {/* Tags */}
+                {/* Severity Level */}
                 <div className="space-y-2">
-                  <Label htmlFor="tags">Теги (через запятую)</Label>
-                  <Input
-                    id="tags"
-                    name="tags"
-                    value={formData.tags}
+                  <Label htmlFor="severityLevel">Уровень сложности</Label>
+                  <select
+                    id="severityLevel"
+                    name="severityLevel"
+                    value={formData.severityLevel}
                     onChange={handleChange}
-                    placeholder="речь, коммуникация, звукопроизношение"
-                  />
+                    className="w-full rounded-md border border-neutral-300 px-3 py-2"
+                  >
+                    <option value="">Не указан</option>
+                    <option value="mild">Легкий</option>
+                    <option value="mild_to_moderate">Легкий-Умеренный</option>
+                    <option value="moderate">Умеренный</option>
+                    <option value="moderate_to_severe">Умеренный-Тяжелый</option>
+                    <option value="severe">Тяжелый</option>
+                    <option value="varies">Варьируется</option>
+                  </select>
                 </div>
               </CardContent>
             </Card>
@@ -401,13 +329,15 @@ export default function NewTemplatePage() {
                               {index + 1}
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-semibold mb-1">{phase.title}</h4>
+                              <h4 className="font-semibold mb-1">{phase.name}</h4>
                               <p className="text-sm text-neutral-600 mb-2">
-                                {phase.description}
+                                {phase.description || 'Без описания'}
                               </p>
                               <div className="flex gap-4 text-xs text-neutral-500">
-                                <span>📅 {phase.durationWeeks} недель</span>
-                                <span>🎯 {phase.goals?.length || 0} целей</span>
+                                <span>📅 {phase.durationWeeks || '?'} недель</span>
+                                {phase.specialtyHint && (
+                                  <span>👤 {phase.specialtyHint}</span>
+                                )}
                               </div>
                             </div>
                             <Button
@@ -437,7 +367,7 @@ export default function NewTemplatePage() {
 
                 {/* Add phase form */}
                 {isAddingPhase && (
-                  <PhaseEditor
+                  <TemplatePhaseEditor
                     phaseIndex={phases.length}
                     onSave={handleAddPhase}
                     onDelete={() => setIsAddingPhase(false)}
@@ -447,12 +377,106 @@ export default function NewTemplatePage() {
 
                 {/* Edit phase form */}
                 {editingPhaseIndex !== null && (
-                  <PhaseEditor
+                  <TemplatePhaseEditor
                     phase={phases[editingPhaseIndex]}
                     phaseIndex={editingPhaseIndex}
                     onSave={handleEditPhase}
                     onDelete={() => handleDeletePhase(editingPhaseIndex)}
                     onCancel={() => setEditingPhaseIndex(null)}
+                  />
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Goals */}
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Цели программы</CardTitle>
+                    <CardDescription>
+                      Добавьте цели, которые должны быть достигнуты
+                    </CardDescription>
+                  </div>
+                  {!isAddingGoal && editingGoalIndex === null && (
+                    <Button type="button" onClick={() => setIsAddingGoal(true)}>
+                      + Добавить цель
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* List of goals */}
+                {goals.length > 0 && (
+                  <div className="space-y-3">
+                    {goals.map((goal, index) => (
+                      <Card key={index} className="bg-neutral-50">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant={
+                                  goal.priority === 'high' ? 'destructive' :
+                                  goal.priority === 'medium' ? 'default' : 'secondary'
+                                }>
+                                  {goal.priority === 'high' ? 'Высокий' :
+                                   goal.priority === 'medium' ? 'Средний' : 'Низкий'}
+                                </Badge>
+                                <Badge variant="outline">{goal.category}</Badge>
+                                {goal.goalType && (
+                                  <Badge variant="outline">{goal.goalType}</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-neutral-700 mb-2">
+                                {goal.description}
+                              </p>
+                              <div className="flex gap-4 text-xs text-neutral-500">
+                                {goal.targetMetric && (
+                                  <span>📊 {goal.targetMetric} {goal.measurementUnit && `(${goal.measurementUnit})`}</span>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setEditingGoalIndex(index)}
+                            >
+                              Редактировать
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {/* Empty state */}
+                {goals.length === 0 && !isAddingGoal && (
+                  <div className="text-center py-8 text-neutral-500">
+                    <p className="mb-2">Нет целей. Добавьте цели программы.</p>
+                    <p className="text-sm">
+                      Цели определяют ожидаемые результаты для ребенка
+                    </p>
+                  </div>
+                )}
+
+                {/* Add goal form */}
+                {isAddingGoal && (
+                  <TemplateGoalEditor
+                    onSave={handleAddGoal}
+                    onDelete={() => setIsAddingGoal(false)}
+                    onCancel={() => setIsAddingGoal(false)}
+                  />
+                )}
+
+                {/* Edit goal form */}
+                {editingGoalIndex !== null && (
+                  <TemplateGoalEditor
+                    goal={goals[editingGoalIndex]}
+                    onSave={handleEditGoal}
+                    onDelete={() => handleDeleteGoal(editingGoalIndex)}
+                    onCancel={() => setEditingGoalIndex(null)}
                   />
                 )}
               </CardContent>

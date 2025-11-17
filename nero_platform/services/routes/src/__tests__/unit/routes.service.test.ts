@@ -217,15 +217,17 @@ describe('Routes Service - Unit Tests', () => {
       // Arrange
       const routeId = 'route-123';
       const userId = 'user-123';
-      const changes = { title: 'New Title', description: 'New Description' };
+      const payload = { title: 'New Title', description: 'New Description' };
+      const changeReason = 'Updated route information';
 
       const revisionEntry = {
         id: 'revision-1',
         routeId,
         version: 1,
-        changes,
+        payload,
         changedBy: userId,
         changedAt: new Date(),
+        changeReason,
       };
 
       (prisma.routeRevisionHistory.create as jest.Mock).mockResolvedValue(revisionEntry);
@@ -235,16 +237,18 @@ describe('Routes Service - Unit Tests', () => {
         data: {
           routeId,
           version: 1,
-          changes,
+          payload,
           changedBy: userId,
           changedAt: new Date(),
+          changeReason,
         },
       });
 
       // Assert
       expect(revision.routeId).toBe(routeId);
       expect(revision.version).toBe(1);
-      expect(revision.changes).toEqual(changes);
+      expect(revision.payload).toEqual(payload);
+      expect(revision.changeReason).toBe(changeReason);
       expect(prisma.routeRevisionHistory.create).toHaveBeenCalled();
     });
   });

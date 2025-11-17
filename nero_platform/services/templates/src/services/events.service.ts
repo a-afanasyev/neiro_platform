@@ -61,7 +61,7 @@ export async function publishEvent(
 
 export async function publishTemplatePublished(
   templateId: string,
-  slug: string,
+  title: string,
   version: number,
   actorId: string
 ): Promise<void> {
@@ -71,7 +71,7 @@ export async function publishTemplatePublished(
     'templates.template.published',
     {
       template_id: templateId,
-      slug,
+      title,
       version,
       published_at: new Date().toISOString()
     },

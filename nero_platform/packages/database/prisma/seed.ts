@@ -703,88 +703,320 @@ async function main() {
   console.log(`✅ Проверено/создано упражнений: ${exercises.length}`);
 
   // ============================================================
-  // 7. Создаём шаблоны маршрутов (упрощенная версия)
+  // 7. Создаём шаблоны маршрутов (реляционная структура)
   // ============================================================
 
   console.log('📝 Создание шаблонов маршрутов...');
 
   // Шаблон 1: Комплексный коррекционный маршрут (3-6 лет)
-  await prisma.routeTemplate.upsert({
-    where: { slug: 'comprehensive-correction-3-6' },
-    update: {},
-    create: {
-      name: 'Комплексный коррекционный маршрут 3-6 лет',
-      slug: 'comprehensive-correction-3-6',
+  const template1 = await prisma.routeTemplate.create({
+    data: {
+      title: 'Комплексный коррекционный маршрут 3-6 лет',
       description: 'Универсальный шаблон для детей 3-6 лет с задержкой развития.',
-      ageMin: 3,
-      ageMax: 6,
-      durationWeeks: 24,
-      phases: {
-        phases: [
-          { name: 'Диагностика и адаптация', weeks: 2 },
-          { name: 'Базовые навыки', weeks: 8 },
-          { name: 'Развитие', weeks: 10 },
-          { name: 'Закрепление', weeks: 4 },
-        ],
-      },
-      goals: { tags: ['комплексный', 'дошкольники', 'ЗПРР'] },
+      targetAgeRange: '3-6',
+      severityLevel: 'moderate',
+      version: 1,
       status: 'published',
-      createdById: admin.id,
+      publishedAt: new Date(),
+    },
+  });
+
+  // Фазы для шаблона 1
+  const t1Phase1 = await prisma.templatePhase.create({
+    data: {
+      templateId: template1.id,
+      name: 'Диагностика и адаптация',
+      description: 'Начальная оценка и привыкание к занятиям',
+      orderIndex: 1,
+      durationWeeks: 2,
+      specialtyHint: 'neuropsychologist',
+    },
+  });
+
+  const t1Phase2 = await prisma.templatePhase.create({
+    data: {
+      templateId: template1.id,
+      name: 'Базовые навыки',
+      description: 'Формирование основных когнитивных и моторных навыков',
+      orderIndex: 2,
+      durationWeeks: 8,
+      specialtyHint: 'neuropsychologist',
+    },
+  });
+
+  const t1Phase3 = await prisma.templatePhase.create({
+    data: {
+      templateId: template1.id,
+      name: 'Развитие',
+      description: 'Углубленная работа над речью и социальными навыками',
+      orderIndex: 3,
+      durationWeeks: 10,
+      specialtyHint: 'speech_therapist',
+    },
+  });
+
+  await prisma.templatePhase.create({
+    data: {
+      templateId: template1.id,
+      name: 'Закрепление',
+      description: 'Закрепление навыков и подготовка к завершению',
+      orderIndex: 4,
+      durationWeeks: 4,
+      specialtyHint: 'neuropsychologist',
+    },
+  });
+
+  // Цели для шаблона 1
+  await prisma.templateGoal.create({
+    data: {
+      templateId: template1.id,
+      templatePhaseId: t1Phase2.id,
+      category: 'cognitive',
+      goalType: 'skill',
+      description: 'Развитие базовых когнитивных функций',
+      targetMetric: 'Успешность выполнения заданий',
+      measurementUnit: 'процент',
+      baselineGuideline: 'Начальная оценка 30-50%',
+      targetGuideline: 'Целевой показатель 75-85%',
+      priority: 'high',
+    },
+  });
+
+  await prisma.templateGoal.create({
+    data: {
+      templateId: template1.id,
+      templatePhaseId: t1Phase3.id,
+      category: 'speech',
+      goalType: 'skill',
+      description: 'Расширение словарного запаса',
+      targetMetric: 'Количество слов',
+      measurementUnit: 'слов',
+      baselineGuideline: 'Базовый уровень 50-100 слов',
+      targetGuideline: 'Целевой уровень 150-200 слов',
+      priority: 'high',
+    },
+  });
+
+  // Контрольные точки для шаблона 1
+  await prisma.templateMilestone.create({
+    data: {
+      templatePhaseId: t1Phase1.id,
+      title: 'Завершение диагностики',
+      description: 'Полная оценка всех областей развития',
+      checkpointType: 'assessment',
+      dueWeek: 2,
+      successCriteria: 'Составлен полный профиль ребенка',
     },
   });
 
   // Шаблон 2: Логопедический интенсив
-  await prisma.routeTemplate.upsert({
-    where: { slug: 'speech-intensive' },
-    update: {},
-    create: {
-      name: 'Логопедический интенсив',
-      slug: 'speech-intensive',
+  const template2 = await prisma.routeTemplate.create({
+    data: {
+      title: 'Логопедический интенсив',
       description: 'Интенсивная программа для коррекции речевых нарушений.',
-      ageMin: 4,
-      ageMax: 8,
-      durationWeeks: 16,
-      phases: {
-        phases: [
-          { name: 'Подготовительный', weeks: 2 },
-          { name: 'Постановка звуков', weeks: 6 },
-          { name: 'Автоматизация', weeks: 6 },
-          { name: 'Интеграция в речь', weeks: 2 },
-        ],
-      },
-      goals: { tags: ['логопедия', 'речь', 'интенсив'] },
+      targetAgeRange: '4-8',
+      severityLevel: 'mild_to_moderate',
+      version: 1,
       status: 'published',
-      createdById: admin.id,
+      publishedAt: new Date(),
+    },
+  });
+
+  const t2Phase1 = await prisma.templatePhase.create({
+    data: {
+      templateId: template2.id,
+      name: 'Подготовительный',
+      description: 'Подготовка артикуляционного аппарата',
+      orderIndex: 1,
+      durationWeeks: 2,
+      specialtyHint: 'speech_therapist',
+    },
+  });
+
+  await prisma.templatePhase.create({
+    data: {
+      templateId: template2.id,
+      name: 'Постановка звуков',
+      description: 'Работа над постановкой отсутствующих звуков',
+      orderIndex: 2,
+      durationWeeks: 6,
+      specialtyHint: 'speech_therapist',
+    },
+  });
+
+  await prisma.templatePhase.create({
+    data: {
+      templateId: template2.id,
+      name: 'Автоматизация',
+      description: 'Закрепление звуков в слогах, словах, фразах',
+      orderIndex: 3,
+      durationWeeks: 6,
+      specialtyHint: 'speech_therapist',
+    },
+  });
+
+  await prisma.templatePhase.create({
+    data: {
+      templateId: template2.id,
+      name: 'Интеграция в речь',
+      description: 'Использование звуков в спонтанной речи',
+      orderIndex: 4,
+      durationWeeks: 2,
+      specialtyHint: 'speech_therapist',
+    },
+  });
+
+  await prisma.templateGoal.create({
+    data: {
+      templateId: template2.id,
+      templatePhaseId: t2Phase1.id,
+      category: 'speech',
+      goalType: 'skill',
+      description: 'Улучшение артикуляционной моторики',
+      targetMetric: 'Качество выполнения упражнений',
+      measurementUnit: 'процент',
+      baselineGuideline: 'Базовый уровень 40-60%',
+      targetGuideline: 'Целевой уровень 85-95%',
+      priority: 'high',
     },
   });
 
   // Шаблон 3: Сенсорная интеграция
-  await prisma.routeTemplate.upsert({
-    where: { slug: 'sensory-integration' },
-    update: {},
-    create: {
-      name: 'Программа сенсорной интеграции',
-      slug: 'sensory-integration',
+  const template3 = await prisma.routeTemplate.create({
+    data: {
+      title: 'Программа сенсорной интеграции',
       description: 'Программа для детей с нарушениями сенсорной обработки.',
-      ageMin: 2,
-      ageMax: 8,
-      durationWeeks: 20,
-      phases: {
-        phases: [
-          { name: 'Оценка и адаптация', weeks: 2 },
-          { name: 'Тактильная стимуляция', weeks: 6 },
-          { name: 'Вестибулярная система', weeks: 6 },
-          { name: 'Проприоцепция', weeks: 4 },
-          { name: 'Интеграция', weeks: 2 },
-        ],
-      },
-      goals: { tags: ['сенсорика', 'РАС', 'СДВГ'] },
+      targetAgeRange: '2-8',
+      severityLevel: 'varies',
+      version: 1,
       status: 'published',
-      createdById: admin.id,
+      publishedAt: new Date(),
     },
   });
 
-  console.log('✅ Проверено/создано шаблонов: 3');
+  const t3Phase1 = await prisma.templatePhase.create({
+    data: {
+      templateId: template3.id,
+      name: 'Оценка и адаптация',
+      description: 'Сенсорный профиль и план вмешательства',
+      orderIndex: 1,
+      durationWeeks: 2,
+      specialtyHint: 'occupational',
+    },
+  });
+
+  await prisma.templatePhase.create({
+    data: {
+      templateId: template3.id,
+      name: 'Тактильная стимуляция',
+      description: 'Работа с тактильными ощущениями',
+      orderIndex: 2,
+      durationWeeks: 6,
+      specialtyHint: 'occupational',
+    },
+  });
+
+  await prisma.templatePhase.create({
+    data: {
+      templateId: template3.id,
+      name: 'Вестибулярная система',
+      description: 'Упражнения на равновесие и координацию',
+      orderIndex: 3,
+      durationWeeks: 6,
+      specialtyHint: 'occupational',
+    },
+  });
+
+  await prisma.templatePhase.create({
+    data: {
+      templateId: template3.id,
+      name: 'Проприоцепция',
+      description: 'Осознание тела в пространстве',
+      orderIndex: 4,
+      durationWeeks: 4,
+      specialtyHint: 'occupational',
+    },
+  });
+
+  await prisma.templatePhase.create({
+    data: {
+      templateId: template3.id,
+      name: 'Интеграция',
+      description: 'Объединение всех сенсорных систем',
+      orderIndex: 5,
+      durationWeeks: 2,
+      specialtyHint: 'occupational',
+    },
+  });
+
+  await prisma.templateGoal.create({
+    data: {
+      templateId: template3.id,
+      templatePhaseId: t3Phase1.id,
+      category: 'sensory',
+      goalType: 'behaviour',
+      description: 'Улучшение сенсорной регуляции',
+      targetMetric: 'Количество сенсорных срывов в день',
+      measurementUnit: 'эпизодов',
+      baselineGuideline: 'Базовый уровень 5-10 эпизодов',
+      targetGuideline: 'Целевой уровень 1-2 эпизода',
+      priority: 'high',
+    },
+  });
+
+  // Связи упражнений с фазами шаблонов (TemplateExercise)
+  const speechExerciseTemplate = createdExercises.find(e => e.slug === 'articulation-gymnastics')!;
+  const cognitiveExerciseTemplate = createdExercises.find(e => e.slug === 'sorting-by-colors')!;
+  const motorExerciseTemplate = createdExercises.find(e => e.slug === 'finger-gymnastics')!;
+
+  // Упражнения для шаблона 1
+  await prisma.templateExercise.create({
+    data: {
+      templatePhaseId: t1Phase2.id,
+      exerciseId: cognitiveExerciseTemplate.id,
+      orderIndex: 1,
+      frequencyPerWeek: 3,
+      durationMinutes: 15,
+      notes: 'Начинать с простых заданий',
+    },
+  });
+
+  await prisma.templateExercise.create({
+    data: {
+      templatePhaseId: t1Phase3.id,
+      exerciseId: speechExerciseTemplate.id,
+      orderIndex: 1,
+      frequencyPerWeek: 5,
+      durationMinutes: 10,
+      notes: 'Ежедневная артикуляционная гимнастика',
+    },
+  });
+
+  // Упражнения для шаблона 2
+  await prisma.templateExercise.create({
+    data: {
+      templatePhaseId: t2Phase1.id,
+      exerciseId: speechExerciseTemplate.id,
+      orderIndex: 1,
+      frequencyPerWeek: 7,
+      durationMinutes: 15,
+      notes: 'Интенсивная подготовка артикуляционного аппарата',
+    },
+  });
+
+  // Упражнения для шаблона 3
+  await prisma.templateExercise.create({
+    data: {
+      templatePhaseId: t3Phase1.id,
+      exerciseId: motorExerciseTemplate.id,
+      orderIndex: 1,
+      frequencyPerWeek: 4,
+      durationMinutes: 10,
+      notes: 'Мелкая моторика для тактильной стимуляции',
+    },
+  });
+
+  console.log('✅ Создано шаблонов: 3 с фазами, целями, контрольными точками и упражнениями');
 
   // ============================================================
   // 8. Создаём маршруты
@@ -886,8 +1118,8 @@ async function main() {
       description: 'Улучшить произношение звуков Р и Л',
       targetMetric: 'Правильное произношение',
       measurementUnit: 'процент',
-      baselineValue: '30',
-      targetValue: '80',
+      baselineValue: 30,
+      targetValue: 80,
       reviewPeriodWeeks: 4,
       priority: 'high',
       status: 'active',
@@ -903,8 +1135,8 @@ async function main() {
       description: 'Расширить активный словарный запас до 200 слов',
       targetMetric: 'Количество слов',
       measurementUnit: 'слов',
-      baselineValue: '100',
-      targetValue: '200',
+      baselineValue: 100,
+      targetValue: 200,
       reviewPeriodWeeks: 8,
       priority: 'high',
       status: 'active',
@@ -920,8 +1152,8 @@ async function main() {
       description: 'Уменьшить частоту аутостимуляции',
       targetMetric: 'Эпизодов в день',
       measurementUnit: 'раз',
-      baselineValue: '20',
-      targetValue: '5',
+      baselineValue: 20,
+      targetValue: 5,
       reviewPeriodWeeks: 4,
       priority: 'medium',
       status: 'active',
@@ -1102,7 +1334,7 @@ async function main() {
       status: 'completed',
       startedAt: new Date('2025-10-01T10:00:00Z'),
       completedAt: new Date('2025-10-01T11:30:00Z'),
-      scoreTotal: '32',
+      scoreTotal: 32,
       scoreRaw: {
         items: [
           { questionId: 1, answer: 3, notes: 'Умеренные трудности' },

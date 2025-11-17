@@ -74,7 +74,7 @@ export async function getRouteById(id: string): Promise<Route> {
 
 export async function updateRoute(id: string, data: UpdateRouteInput, userId: string): Promise<Route> {
   const oldRoute = await getRouteById(id);
-  
+
   // Создаем объект изменений для версионирования
   const changes: Record<string, { old: any; new: any }> = {};
   for (const [key, newValue] of Object.entries(data)) {
@@ -83,15 +83,15 @@ export async function updateRoute(id: string, data: UpdateRouteInput, userId: st
       changes[key] = { old: oldValue, new: newValue };
     }
   }
-  
-  // Обновляем маршрут и создаем ревизию в транзакции
-  const [route] = await prisma.$transaction([
-    prisma.route.update({ where: { id }, data }),
-    createRevision(id, changes, userId)
-  ]);
-  
-  console.log(`✅ Обновлен маршрут: ${route.title} (${route.id}), создана ревизия`);
-  return route;
+
+  // Обновляем маршрут
+  const updatedRoute = await prisma.route.update({ where: { id }, data });
+
+  // Создаем ревизию с финальным состоянием
+  await createRevision(id, { changes, snapshot: updatedRoute }, userId, 'Route updated');
+
+  console.log(`✅ Обновлен маршрут: ${updatedRoute.title} (${updatedRoute.id}), создана ревизия`);
+  return updatedRoute;
 }
 
 export async function activateRoute(id: string, userId: string): Promise<Route> {
@@ -146,15 +146,13 @@ export async function activateRoute(id: string, userId: string): Promise<Route> 
     status: { old: route.status, new: 'active' },
     startDate: { old: route.startDate, new: startDate }
   };
-  
-  const [updatedRoute] = await prisma.$transaction([
-    prisma.route.update({
-      where: { id },
-      data: { status: 'active', startDate }
-    }),
-    createRevision(id, changes, userId)
-  ]);
 
+  const updatedRoute = await prisma.route.update({
+    where: { id },
+    data: { status: 'active', startDate }
+  });
+
+  await createRevision(id, { changes, snapshot: updatedRoute }, userId, 'Route activated');
   await eventsService.publishRouteActivated(id, userId);
   console.log(`✅ Активирован маршрут: ${updatedRoute.title} (${updatedRoute.id}), создана ревизия`);
 
@@ -185,15 +183,13 @@ export async function completeRoute(id: string, userId: string): Promise<Route> 
     status: { old: route.status, new: 'completed' },
     endDate: { old: route.endDate, new: endDate }
   };
-  
-  const [updatedRoute] = await prisma.$transaction([
-    prisma.route.update({
-      where: { id },
-      data: { status: 'completed', endDate }
-    }),
-    createRevision(id, changes, userId)
-  ]);
 
+  const updatedRoute = await prisma.route.update({
+    where: { id },
+    data: { status: 'completed', endDate }
+  });
+
+  await createRevision(id, { changes, snapshot: updatedRoute }, userId, 'Route completed');
   await eventsService.publishRouteCompleted(id, userId);
   console.log(`✅ Завершен маршрут: ${updatedRoute.title} (${updatedRoute.id}), создана ревизия`);
 
@@ -203,16 +199,18 @@ export async function completeRoute(id: string, userId: string): Promise<Route> 
 /**
  * Создание ревизии изменений маршрута
  * @param routeId - ID маршрута
- * @param changes - Объект с изменениями {field: {old, new}}
- * @param userId - ID пользователя, внесшего изменения
+ * @param payload - JSON с полным снимком состояния маршрута или изменениями
+ * @param userId - ID специалиста, внесшего изменения
+ * @param changeReason - Причина изменения (опционально)
  */
 async function createRevision(
   routeId: string,
-  changes: Record<string, { old: any; new: any }>,
-  userId: string
+  payload: Record<string, any>,
+  userId: string,
+  changeReason?: string
 ) {
-  // Пропускаем создание ревизии, если изменений нет
-  if (Object.keys(changes).length === 0) {
+  // Пропускаем создание ревизии, если данных нет
+  if (Object.keys(payload).length === 0) {
     return null;
   }
 
@@ -228,8 +226,9 @@ async function createRevision(
     data: {
       routeId,
       version,
-      changes,
-      changedBy: userId
+      payload,
+      changedBy: userId,
+      changeReason
     }
   });
 }

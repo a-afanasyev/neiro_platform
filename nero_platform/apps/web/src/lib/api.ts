@@ -257,9 +257,7 @@ export const exercisesApi = {
 export const templatesApi = {
   getTemplates: async (params?: {
     status?: string
-    ageMin?: number
-    ageMax?: number
-    tags?: string
+    search?: string
     cursor?: string
     limit?: number
   }) => {
@@ -299,48 +297,6 @@ export const templatesApi = {
 
   cloneTemplate: async (id: string, title: string) => {
     const response = await api.post(`/templates/v1/${id}/clone`, { title })
-    return response.data
-  },
-
-  getVersions: async (id: string) => {
-    const response = await api.get(`/templates/v1/${id}/versions`)
-    return response.data
-  },
-
-  // Фазы шаблона
-  createPhase: async (templateId: string, data: any) => {
-    const response = await api.post(`/templates/v1/${templateId}/phases`, data)
-    return response.data
-  },
-
-  updatePhase: async (templateId: string, phaseId: string, data: any) => {
-    const response = await api.put(`/templates/v1/${templateId}/phases/${phaseId}`, data)
-    return response.data
-  },
-
-  deletePhase: async (templateId: string, phaseId: string) => {
-    const response = await api.delete(`/templates/v1/${templateId}/phases/${phaseId}`)
-    return response.data
-  },
-
-  // Цели фазы
-  createPhaseGoal: async (templateId: string, phaseId: string, data: any) => {
-    const response = await api.post(`/templates/v1/${templateId}/phases/${phaseId}/goals`, data)
-    return response.data
-  },
-
-  updatePhaseGoal: async (templateId: string, phaseId: string, goalId: string, data: any) => {
-    const response = await api.put(
-      `/templates/v1/${templateId}/phases/${phaseId}/goals/${goalId}`,
-      data
-    )
-    return response.data
-  },
-
-  deletePhaseGoal: async (templateId: string, phaseId: string, goalId: string) => {
-    const response = await api.delete(
-      `/templates/v1/${templateId}/phases/${phaseId}/goals/${goalId}`
-    )
     return response.data
   },
 }

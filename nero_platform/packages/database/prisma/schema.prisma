@@ -35,11 +35,12 @@ model User {
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
-  specialist      Specialist?
-  childrenParents ChildParent[]
-  assignedBy      Assignment[]        @relation("AssignedBy")
-  reports         Report[]            @relation("ParentReports")
-  diagnostics     DiagnosticSession[] @relation("PerformedBy")
+  specialist        Specialist?
+  childrenParents   ChildParent[]
+  assignedBy        Assignment[]        @relation("AssignedBy")
+  reports           Report[]            @relation("ParentReports")
+  diagnostics       DiagnosticSession[] @relation("PerformedBy")
+  assignmentHistory AssignmentHistory[]
 
   @@index([email])
   @@index([role, status])
@@ -63,7 +64,10 @@ model Specialist {
   user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   childrenSpecialists ChildSpecialist[]
   leadRoutes          Route[]           @relation("LeadSpecialist")
+  responsiblePhases   RoutePhase[]      @relation("ResponsibleSpecialist")
   assignments         Assignment[]      @relation("SpecialistAssignments")
+  reportReviews       ReportReview[]
+  revisionHistory     RouteRevisionHistory[]
 
   @@map("specialist")
 }
@@ -157,9 +161,10 @@ model DiagnosticSession {
   notes               String?   @db.Text
 
   // Relations
-  child      Child                    @relation(fields: [childId], references: [id], onDelete: Cascade)
-  specialist User                     @relation("PerformedBy", fields: [performedBy], references: [id], onDelete: Restrict)
-  results    DiagnosticSessionResult?
+  child           Child                    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  specialist      User                     @relation("PerformedBy", fields: [performedBy], references: [id], onDelete: Restrict)
+  results         DiagnosticSessionResult?
+  recommendations RouteRecommendation[]
 
   @@map("diagnostic_sessions")
 }
@@ -201,9 +206,10 @@ model Exercise {
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
-  assignments    Assignment[]
-  phaseExercises PhaseExercise[]
-  goalExercises  GoalExercise[]
+  assignments       Assignment[]
+  phaseExercises    PhaseExercise[]
+  goalExercises     GoalExercise[]
+  templateExercises TemplateExercise[]
 
   @@map("exercise")
 }
@@ -215,24 +221,106 @@ model Exercise {
 /// Шаблоны коррекционных маршрутов
 model RouteTemplate {
   id              String    @id @default(uuid()) @db.Uuid
-  name            String    @db.VarChar(255)
-  slug            String    @unique @db.VarChar(255)
+  title           String    @db.VarChar(255)
   description     String?   @db.Text
-  ageMin          Int?      @map("age_min")
-  ageMax          Int?      @map("age_max")
-  durationWeeks   Int?      @map("duration_weeks")
-  phases          Json?     @db.JsonB
-  goals           Json?     @db.JsonB
+  targetAgeRange  String?   @map("target_age_range") @db.VarChar(50)
+  severityLevel   String?   @map("severity_level") @db.VarChar(50)
+  version         Int       @default(1)
   /// Статус: draft, published, archived
   status          String    @default("draft") @db.VarChar(20)
-  publishedAt     DateTime? @map("published_at") @db.Timestamptz(6)
-  archivedAt      DateTime? @map("archived_at") @db.Timestamptz(6)
-  createdById     String    @map("created_by_id") @db.Uuid
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  publishedAt     DateTime? @map("published_at") @db.Timestamptz(6)
+
+  // Relations
+  phases TemplatePhase[]
+  goals  TemplateGoal[]
+  routes Route[]
 
   @@index([status])
   @@map("route_templates")
+}
+
+/// Фазы шаблона маршрута
+model TemplatePhase {
+  id            String  @id @default(uuid()) @db.Uuid
+  templateId    String  @map("template_id") @db.Uuid
+  name          String  @db.VarChar(255)
+  description   String? @db.Text
+  orderIndex    Int     @map("order_index")
+  durationWeeks Int?    @map("duration_weeks")
+  specialtyHint String? @map("specialty_hint") @db.VarChar(100)
+  notes         String? @db.Text
+
+  // Relations
+  template   RouteTemplate       @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  goals      TemplateGoal[]
+  milestones TemplateMilestone[]
+  exercises  TemplateExercise[]
+
+  @@unique([templateId, orderIndex])
+  @@map("template_phases")
+}
+
+/// Цели шаблона маршрута
+model TemplateGoal {
+  id                String  @id @default(uuid()) @db.Uuid
+  templateId        String  @map("template_id") @db.Uuid
+  templatePhaseId   String? @map("template_phase_id") @db.Uuid
+  category          String? @db.VarChar(100)
+  /// Тип цели: skill, behaviour, academic, other
+  goalType          String? @map("goal_type") @db.VarChar(50)
+  description       String  @db.Text
+  targetMetric      String? @map("target_metric") @db.VarChar(100)
+  measurementUnit   String? @map("measurement_unit") @db.VarChar(50)
+  baselineGuideline String? @map("baseline_guideline") @db.Text
+  targetGuideline   String? @map("target_guideline") @db.Text
+  /// Приоритет: high, medium, low
+  priority          String? @db.VarChar(20)
+  notes             String? @db.Text
+
+  // Relations
+  template  RouteTemplate      @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  phase     TemplatePhase?     @relation(fields: [templatePhaseId], references: [id], onDelete: SetNull)
+  exercises TemplateExercise[]
+
+  @@map("template_goals")
+}
+
+/// Контрольные точки шаблона
+model TemplateMilestone {
+  id              String  @id @default(uuid()) @db.Uuid
+  templatePhaseId String  @map("template_phase_id") @db.Uuid
+  title           String  @db.VarChar(255)
+  description     String? @db.Text
+  /// Тип контрольной точки: assessment, observation, meeting
+  checkpointType  String? @map("checkpoint_type") @db.VarChar(50)
+  dueWeek         Int?    @map("due_week")
+  successCriteria String? @map("success_criteria") @db.Text
+
+  // Relations
+  phase TemplatePhase @relation(fields: [templatePhaseId], references: [id], onDelete: Cascade)
+
+  @@map("template_milestones")
+}
+
+/// Связь шаблон - упражнение (через фазу)
+model TemplateExercise {
+  id               String  @id @default(uuid()) @db.Uuid
+  templatePhaseId  String  @map("template_phase_id") @db.Uuid
+  exerciseId       String  @map("exercise_id") @db.Uuid
+  templateGoalId   String? @map("template_goal_id") @db.Uuid
+  orderIndex       Int?    @map("order_index")
+  frequencyPerWeek Int?    @map("frequency_per_week")
+  durationMinutes  Int?    @map("duration_minutes")
+  notes            String? @db.Text
+
+  // Relations
+  phase    TemplatePhase @relation(fields: [templatePhaseId], references: [id], onDelete: Cascade)
+  exercise Exercise      @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+  goal     TemplateGoal? @relation(fields: [templateGoalId], references: [id], onDelete: SetNull)
+
+  @@map("template_exercises")
 }
 
 // ============================================================
@@ -260,6 +348,7 @@ model Route {
   // Relations
   child          Child                  @relation(fields: [childId], references: [id], onDelete: Cascade)
   leadSpecialist Specialist             @relation("LeadSpecialist", fields: [leadSpecialistId], references: [id], onDelete: Restrict)
+  template       RouteTemplate?         @relation(fields: [templateId], references: [id], onDelete: SetNull)
   goals          RouteGoal[]
   phases         RoutePhase[]
   assignments    Assignment[]
@@ -291,9 +380,10 @@ model RouteGoal {
   updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
-  route         Route          @relation(fields: [routeId], references: [id], onDelete: Cascade)
-  phase         RoutePhase?    @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  route         Route                 @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  phase         RoutePhase?           @relation(fields: [phaseId], references: [id], onDelete: SetNull)
   goalExercises GoalExercise[]
+  milestones    RoutePhaseMilestone[]
 
   @@map("route_goals")
 }
@@ -304,24 +394,26 @@ model RoutePhase {
   routeId                 String    @map("route_id") @db.Uuid
   responsibleSpecialistId String    @map("responsible_specialist_id") @db.Uuid
   name                    String    @db.VarChar(255)
-  description             String    @db.Text
+  description             String?   @db.Text
   orderIndex              Int       @map("order_index")
   parallelGroup           Int?      @map("parallel_group")
   /// Статус: planned, active, on_hold, completed
   status                  String    @default("planned") @db.VarChar(20)
   startDate               DateTime? @map("start_date") @db.Date
   endDate                 DateTime? @map("end_date") @db.Date
-  durationWeeks           Int       @map("duration_weeks")
-  expectedOutcomes        String    @map("expected_outcomes") @db.Text
+  durationWeeks           Int?      @map("duration_weeks")
+  expectedOutcomes        String?   @map("expected_outcomes") @db.Text
   notes                   String?   @db.Text
   createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
-  route          Route           @relation(fields: [routeId], references: [id], onDelete: Cascade)
-  goals          RouteGoal[]
-  phaseExercises PhaseExercise[]
-  assignments    Assignment[]
+  route                 Route                 @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  responsibleSpecialist Specialist            @relation("ResponsibleSpecialist", fields: [responsibleSpecialistId], references: [id], onDelete: Restrict)
+  goals                 RouteGoal[]
+  phaseExercises        PhaseExercise[]
+  assignments           Assignment[]
+  milestones            RoutePhaseMilestone[]
 
   @@unique([routeId, orderIndex])
   @@map("route_phases")
@@ -389,13 +481,14 @@ model Assignment {
   reminderPolicy          Json?    @map("reminder_policy") @db.JsonB
 
   // Relations
-  child      Child      @relation(fields: [childId], references: [id], onDelete: Cascade)
-  exercise   Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
-  assignedBy User       @relation("AssignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
-  specialist Specialist @relation("SpecialistAssignments", fields: [specialistId], references: [userId], onDelete: Restrict)
-  route      Route      @relation(fields: [routeId], references: [id], onDelete: Cascade)
-  phase      RoutePhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  child      Child               @relation(fields: [childId], references: [id], onDelete: Cascade)
+  exercise   Exercise            @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  assignedBy User                @relation("AssignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
+  specialist Specialist          @relation("SpecialistAssignments", fields: [specialistId], references: [userId], onDelete: Restrict)
+  route      Route               @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  phase      RoutePhase          @relation(fields: [phaseId], references: [id], onDelete: Cascade)
   reports    Report[]
+  history    AssignmentHistory[]
 
   @@map("assignments")
 }
@@ -424,8 +517,9 @@ model Report {
   reviewStatus    String    @default("not_reviewed") @map("review_status") @db.VarChar(50)
 
   // Relations
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  parent     User       @relation("ParentReports", fields: [parentId], references: [id], onDelete: Restrict)
+  assignment Assignment    @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  parent     User          @relation("ParentReports", fields: [parentId], references: [id], onDelete: Restrict)
+  reviews    ReportReview[]
 
   @@map("reports")
 }
@@ -469,19 +563,146 @@ model EventOutboxFailure {
 
 /// История изменений маршрутов
 model RouteRevisionHistory {
-  id        String   @id @default(uuid()) @db.Uuid
-  routeId   String   @map("route_id") @db.Uuid
-  version   Int
-  /// JSON с изменениями: {field: {old, new}, ...}
-  changes   Json     @db.JsonB
-  changedBy String   @map("changed_by") @db.Uuid
-  changedAt DateTime @default(now()) @map("changed_at") @db.Timestamptz(6)
+  id           String   @id @default(uuid()) @db.Uuid
+  routeId      String   @map("route_id") @db.Uuid
+  version      Int
+  /// JSON с полным снимком состояния маршрута
+  payload      Json     @db.JsonB
+  changedBy    String   @map("changed_by") @db.Uuid
+  changedAt    DateTime @default(now()) @map("changed_at") @db.Timestamptz(6)
+  changeReason String?  @map("change_reason") @db.Text
 
   // Relations
-  route Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  route     Route      @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  specialist Specialist @relation(fields: [changedBy], references: [id], onDelete: Restrict)
 
   @@unique([routeId, version])
   @@index([routeId])
   @@index([changedAt])
   @@map("route_revision_history")
+}
+
+// ============================================================
+// КОНТРОЛЬНЫЕ ТОЧКИ ФАЗЫ
+// ============================================================
+
+/// Контрольные точки фазы маршрута
+model RoutePhaseMilestone {
+  id              String    @id @default(uuid()) @db.Uuid
+  phaseId         String    @map("phase_id") @db.Uuid
+  goalId          String?   @map("goal_id") @db.Uuid
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  /// Тип контрольной точки: assessment, observation, meeting
+  checkpointType  String?   @map("checkpoint_type") @db.VarChar(50)
+  dueWeek         Int?      @map("due_week")
+  successCriteria String?   @map("success_criteria") @db.Text
+  /// Статус: planned, due, completed, overdue
+  status          String    @default("planned") @db.VarChar(20)
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz(6)
+  evidenceLinks   Json?     @map("evidence_links") @db.JsonB
+
+  // Relations
+  phase RoutePhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  goal  RouteGoal? @relation(fields: [goalId], references: [id], onDelete: SetNull)
+
+  @@map("route_phase_milestones")
+}
+
+// ============================================================
+// ИСТОРИЯ НАЗНАЧЕНИЙ (АУДИТ)
+// ============================================================
+
+/// История изменений назначений
+model AssignmentHistory {
+  id           String   @id @default(uuid()) @db.Uuid
+  assignmentId String   @map("assignment_id") @db.Uuid
+  changedBy    String   @map("changed_by") @db.Uuid
+  /// Тип события: status_change, reassigned, cancelled
+  eventType    String   @map("event_type") @db.VarChar(50)
+  fromStatus   String?  @map("from_status") @db.VarChar(20)
+  toStatus     String?  @map("to_status") @db.VarChar(20)
+  changedAt    DateTime @default(now()) @map("changed_at") @db.Timestamptz(6)
+  metadata     Json?    @db.JsonB
+
+  // Relations
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [changedBy], references: [id], onDelete: Restrict)
+
+  @@map("assignment_history")
+}
+
+// ============================================================
+// РЕКОМЕНДАЦИИ ИЗ ДИАГНОСТИКИ
+// ============================================================
+
+/// Рекомендации целей на основе диагностики
+model RouteRecommendation {
+  id         String   @id @default(uuid()) @db.Uuid
+  sessionId  String   @map("session_id") @db.Uuid
+  goalStub   Json     @map("goal_stub") @db.JsonB
+  confidence Decimal? @db.Decimal(3, 2)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  session DiagnosticSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("route_recommendations")
+}
+
+// ============================================================
+// КОММЕНТАРИИ К ОТЧЕТАМ
+// ============================================================
+
+/// Комментарии специалистов к отчетам
+model ReportReview {
+  id           String   @id @default(uuid()) @db.Uuid
+  reportId     String   @map("report_id") @db.Uuid
+  reviewerId   String   @map("reviewer_id") @db.Uuid
+  reviewStatus String?  @map("review_status") @db.VarChar(20)
+  notes        String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  report   Report     @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reviewer Specialist @relation(fields: [reviewerId], references: [id], onDelete: Restrict)
+
+  @@map("report_reviews")
+}
+
+// ============================================================
+// МЕДИА-РЕСУРСЫ
+// ============================================================
+
+/// Хранение медиа-файлов (presigned URLs для MinIO)
+model MediaAsset {
+  id        String    @id @default(uuid()) @db.Uuid
+  ownerType String    @map("owner_type") @db.VarChar(50)
+  ownerId   String    @map("owner_id") @db.Uuid
+  mediaType String?   @map("media_type") @db.VarChar(50)
+  path      String    @db.VarChar(500)
+  checksum  String?   @db.VarChar(64)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz(6)
+
+  @@map("media_assets")
+}
+
+// ============================================================
+// УВЕДОМЛЕНИЯ
+// ============================================================
+
+/// Очередь уведомлений
+model Notification {
+  id          String    @id @default(uuid()) @db.Uuid
+  channel     String    @db.VarChar(50)
+  payload     Json      @db.JsonB
+  /// Статус: pending, sent, failed
+  status      String    @default("pending") @db.VarChar(20)
+  attempts    Int       @default(0)
+  scheduledAt DateTime  @map("scheduled_at") @db.Timestamptz(6)
+  sentAt      DateTime? @map("sent_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("notifications")
 }

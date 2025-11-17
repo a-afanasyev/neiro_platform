@@ -30,11 +30,13 @@ interface GoalEditorProps {
   onSave: (goal: RouteGoal) => void
   /** Callback при отмене */
   onCancel: () => void
+  /** Callback при удалении (опционально) */
+  onDelete?: () => void
 }
 
 /**
  * Компонент для создания и редактирования цели маршрута
- * 
+ *
  * Позволяет специалисту задать:
  * - Название цели
  * - Домен (область развития: cognitive, speech, motor, social, sensory)
@@ -43,7 +45,7 @@ interface GoalEditorProps {
  * - Целевую дату достижения
  * - Критерии успеха (в формате JSON)
  */
-export function GoalEditor({ goal, onSave, onCancel }: GoalEditorProps) {
+export function GoalEditor({ goal, onSave, onCancel, onDelete }: GoalEditorProps) {
   const [formData, setFormData] = useState<RouteGoal>({
     title: goal?.title || '',
     domain: goal?.domain || 'cognitive',
@@ -194,6 +196,11 @@ export function GoalEditor({ goal, onSave, onCancel }: GoalEditorProps) {
 
       {/* Кнопки действий */}
       <div className="flex gap-2 justify-end">
+        {onDelete && (
+          <Button type="button" variant="destructive" onClick={onDelete}>
+            Удалить
+          </Button>
+        )}
         <Button type="button" variant="outline" onClick={onCancel}>
           Отмена
         </Button>
@@ -202,4 +209,3 @@ export function GoalEditor({ goal, onSave, onCancel }: GoalEditorProps) {
     </form>
   )
 }
-
