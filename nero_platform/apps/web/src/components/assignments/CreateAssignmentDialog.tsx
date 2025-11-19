@@ -54,6 +54,7 @@ export function CreateAssignmentDialog({
   const [specialists, setSpecialists] = useState<Array<{ id: string; name: string }>>([])
   const [exercises, setExercises] = useState<Array<{ id: string; title: string }>>([])
   const [routes, setRoutes] = useState<Array<{ id: string; title: string; childId: string }>>([])
+  const [routePhases, setRoutePhases] = useState<Array<{ id: string; name: string }>>([])
   const [routeGoals, setRouteGoals] = useState<Array<{ id: string; title: string }>>([])
 
   // Форма
@@ -61,14 +62,15 @@ export function CreateAssignmentDialog({
     childId: '',
     specialistId: '',
     routeId: '',
-    routeGoalId: '',
+    phaseId: '',
+    targetGoalId: '',
     exerciseId: '',
-    title: '',
-    description: '',
-    scheduledFor: '',
-    durationMinutes: 30,
-    location: '',
-    isHomework: false,
+    notes: '',
+    plannedStartDate: '',
+    dueDate: '',
+    expectedDurationMinutes: 30,
+    deliveryChannel: 'in_person',
+    frequencyPerWeek: 1,
   })
 
   useEffect(() => {
@@ -156,32 +158,48 @@ export function CreateAssignmentDialog({
   }
 
   /**
-   * Обработчик выбора маршрута - загружает цели маршрута
+   * Обработчик выбора маршрута - загружает фазы и цели маршрута
    */
   const handleRouteSelect = async (routeId: string) => {
-    setFormData((prev) => ({ ...prev, routeId, routeGoalId: '' }))
-    
+    setFormData((prev) => ({ ...prev, routeId, phaseId: '', targetGoalId: '' }))
+
     if (!routeId) {
+      setRoutePhases([])
       setRouteGoals([])
       return
     }
 
     try {
-      const response = await routesApi.getGoals(routeId)
-      if (response.success) {
-        // Для целей маршрута также придерживаемся формата: data = массив целей
-        const raw = response.data as any
+      const [phasesRes, goalsRes] = await Promise.all([
+        routesApi.getPhases(routeId),
+        routesApi.getGoals(routeId),
+      ])
+
+      if (phasesRes.success) {
+        const raw = phasesRes.data as any
+        const phases = Array.isArray(raw) ? raw : raw?.items ?? []
+
+        setRoutePhases(
+          phases.map((phase: any) => ({
+            id: phase.id,
+            name: phase.name || phase.title,
+          }))
+        )
+      }
+
+      if (goalsRes.success) {
+        const raw = goalsRes.data as any
         const goals = Array.isArray(raw) ? raw : raw?.items ?? []
 
         setRouteGoals(
           goals.map((goal: any) => ({
             id: goal.id,
-            title: goal.title,
+            title: goal.targetMetric || goal.description || goal.title,
           }))
         )
       }
     } catch (err: any) {
-      console.error('Ошибка загрузки целей:', err)
+      console.error('Ошибка загрузки фаз и целей:', err)
     }
   }
 
@@ -195,58 +213,63 @@ export function CreateAssignmentDialog({
 
     try {
       // Валидация
-      if (!formData.childId || !formData.specialistId || !formData.scheduledFor) {
+      if (!formData.childId || !formData.specialistId || !formData.plannedStartDate) {
         throw new Error('Заполните все обязательные поля')
       }
 
-      if (!formData.exerciseId && !formData.routeGoalId) {
-        throw new Error('Выберите упражнение или цель маршрута')
+      if (!formData.routeId || !formData.phaseId) {
+        throw new Error('Выберите маршрут и фазу')
       }
 
-      // Подготовка данных
+      if (!formData.exerciseId) {
+        throw new Error('Выберите упражнение')
+      }
+
+      // Подготовка данных для Assignment schema
       const data: any = {
         childId: formData.childId,
+        exerciseId: formData.exerciseId,
         specialistId: formData.specialistId,
-        title: formData.title,
-        description: formData.description,
-        scheduledFor: new Date(formData.scheduledFor).toISOString(),
-        durationMinutes: formData.durationMinutes,
-        location: formData.location,
-        isHomework: formData.isHomework,
-        status: 'scheduled',
+        routeId: formData.routeId,
+        phaseId: formData.phaseId,
+        plannedStartDate: formData.plannedStartDate.split('T')[0], // только дата
+        dueDate: formData.dueDate ? formData.dueDate.split('T')[0] : formData.plannedStartDate.split('T')[0],
+        deliveryChannel: formData.deliveryChannel,
+        expectedDurationMinutes: formData.expectedDurationMinutes,
+        frequencyPerWeek: formData.frequencyPerWeek,
+        notes: formData.notes || undefined,
       }
 
-      if (formData.exerciseId) {
-        data.exerciseId = formData.exerciseId
-      }
-
-      if (formData.routeGoalId) {
-        data.routeGoalId = formData.routeGoalId
+      if (formData.targetGoalId) {
+        data.targetGoalId = formData.targetGoalId
       }
 
       const response = await assignmentsApi.createAssignment(data)
-      
+
       if (response.success) {
         // Успех - закрываем диалог и обновляем список
         onOpenChange(false)
         if (onSuccess) {
           onSuccess()
         }
-        
+
         // Сбрасываем форму
         setFormData({
           childId: '',
           specialistId: '',
           routeId: '',
-          routeGoalId: '',
+          phaseId: '',
+          targetGoalId: '',
           exerciseId: '',
-          title: '',
-          description: '',
-          scheduledFor: '',
-          durationMinutes: 30,
-          location: '',
-          isHomework: false,
+          notes: '',
+          plannedStartDate: '',
+          dueDate: '',
+          expectedDurationMinutes: 30,
+          deliveryChannel: 'in_person',
+          frequencyPerWeek: 1,
         })
+        setRoutePhases([])
+        setRouteGoals([])
       }
     } catch (err: any) {
       console.error('Ошибка создания назначения:', err)
@@ -349,18 +372,42 @@ export function CreateAssignmentDialog({
               </div>
             )}
 
+            {/* Phase Selection */}
+            {formData.routeId && routePhases.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="phaseId">Фаза маршрута *</Label>
+                <Select
+                  value={formData.phaseId}
+                  onValueChange={(value) => setFormData({ ...formData, phaseId: value })}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите фазу" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {routePhases.map((phase) => (
+                      <SelectItem key={phase.id} value={phase.id}>
+                        {phase.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Route Goal Selection */}
             {formData.routeId && routeGoals.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="routeGoalId">Цель маршрута</Label>
+                <Label htmlFor="targetGoalId">Цель маршрута (опционально)</Label>
                 <Select
-                  value={formData.routeGoalId}
-                  onValueChange={(value) => setFormData({ ...formData, routeGoalId: value })}
+                  value={formData.targetGoalId}
+                  onValueChange={(value) => setFormData({ ...formData, targetGoalId: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Выберите цель" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">Без цели</SelectItem>
                     {routeGoals.map((goal) => (
                       <SelectItem key={goal.id} value={goal.id}>
                         {goal.title}
@@ -373,10 +420,11 @@ export function CreateAssignmentDialog({
 
             {/* Exercise Selection */}
             <div className="space-y-2">
-              <Label htmlFor="exerciseId">Упражнение</Label>
+              <Label htmlFor="exerciseId">Упражнение *</Label>
               <Select
                 value={formData.exerciseId}
                 onValueChange={(value) => setFormData({ ...formData, exerciseId: value })}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите упражнение" />
@@ -391,81 +439,90 @@ export function CreateAssignmentDialog({
               </Select>
             </div>
 
-            {/* Title */}
+            {/* Delivery Channel */}
             <div className="space-y-2">
-              <Label htmlFor="title">Название назначения *</Label>
+              <Label htmlFor="deliveryChannel">Канал доставки *</Label>
+              <Select
+                value={formData.deliveryChannel}
+                onValueChange={(value) => setFormData({ ...formData, deliveryChannel: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите канал" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="in_person">Очно</SelectItem>
+                  <SelectItem value="home">Домашнее задание</SelectItem>
+                  <SelectItem value="telepractice">Телепрактика</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Planned Start Date */}
+            <div className="space-y-2">
+              <Label htmlFor="plannedStartDate">Дата начала *</Label>
               <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Например: Занятие по развитию речи"
+                id="plannedStartDate"
+                type="date"
+                value={formData.plannedStartDate}
+                onChange={(e) => setFormData({ ...formData, plannedStartDate: e.target.value })}
                 required
               />
             </div>
 
-            {/* Description */}
+            {/* Due Date */}
             <div className="space-y-2">
-              <Label htmlFor="description">Описание</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Дополнительная информация о назначении"
-                rows={3}
-              />
-            </div>
-
-            {/* Scheduled Date/Time */}
-            <div className="space-y-2">
-              <Label htmlFor="scheduledFor">Дата и время *</Label>
+              <Label htmlFor="dueDate">Срок выполнения</Label>
               <Input
-                id="scheduledFor"
-                type="datetime-local"
-                value={formData.scheduledFor}
-                onChange={(e) => setFormData({ ...formData, scheduledFor: e.target.value })}
-                required
+                id="dueDate"
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
               />
             </div>
 
             {/* Duration */}
             <div className="space-y-2">
-              <Label htmlFor="durationMinutes">Длительность (минут) *</Label>
+              <Label htmlFor="expectedDurationMinutes">Длительность (минут) *</Label>
               <Input
-                id="durationMinutes"
+                id="expectedDurationMinutes"
                 type="number"
                 min="5"
                 max="180"
-                value={formData.durationMinutes}
+                value={formData.expectedDurationMinutes}
                 onChange={(e) =>
-                  setFormData({ ...formData, durationMinutes: parseInt(e.target.value) || 30 })
+                  setFormData({ ...formData, expectedDurationMinutes: parseInt(e.target.value) || 30 })
                 }
                 required
               />
             </div>
 
-            {/* Location */}
+            {/* Frequency Per Week */}
             <div className="space-y-2">
-              <Label htmlFor="location">Место проведения</Label>
+              <Label htmlFor="frequencyPerWeek">Частота (раз в неделю) *</Label>
               <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="Кабинет № 5"
+                id="frequencyPerWeek"
+                type="number"
+                min="1"
+                max="7"
+                value={formData.frequencyPerWeek}
+                onChange={(e) =>
+                  setFormData({ ...formData, frequencyPerWeek: parseInt(e.target.value) || 1 })
+                }
+                required
               />
             </div>
 
-            {/* Is Homework */}
-            <div className="flex items-center space-x-2">
-              <input
-                id="isHomework"
-                type="checkbox"
-                checked={formData.isHomework}
-                onChange={(e) => setFormData({ ...formData, isHomework: e.target.checked })}
-                className="h-4 w-4 rounded border-gray-300"
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="notes">Заметки</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Дополнительная информация о назначении"
+                rows={3}
               />
-              <Label htmlFor="isHomework" className="cursor-pointer">
-                Домашнее задание
-              </Label>
             </div>
 
             <DialogFooter>

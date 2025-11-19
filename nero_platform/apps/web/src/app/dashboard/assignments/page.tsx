@@ -13,13 +13,18 @@ import { useAuth } from '@/hooks/useAuth'
 
 interface Assignment {
   id: string
-  title: string
-  description?: string
+  title?: string
+  notes?: string
   status: string
-  scheduledFor: string
-  durationMinutes: number
-  location?: string
-  isHomework: boolean
+  plannedStartDate: string
+  dueDate: string
+  expectedDurationMinutes: number
+  deliveryChannel?: string
+  childId: string
+  exerciseId: string
+  specialistId: string
+  routeId: string
+  phaseId: string
   child?: {
     firstName: string
     lastName: string
@@ -163,7 +168,7 @@ export default function AssignmentsPage() {
 
   const groupedAssignments = assignments.reduce(
     (acc, assignment) => {
-      const dateKey = formatDateTime(assignment.scheduledFor).date
+      const dateKey = formatDateTime(assignment.plannedStartDate).date
       if (!acc[dateKey]) {
         acc[dateKey] = []
       }
@@ -232,7 +237,7 @@ export default function AssignmentsPage() {
                         <h3 className="text-lg font-semibold mb-3">{date}</h3>
                         <div className="space-y-3">
                           {dayAssignments.map((assignment) => {
-                            const { time } = formatDateTime(assignment.scheduledFor)
+                            const { time } = formatDateTime(assignment.plannedStartDate)
                             return (
                               <Card key={assignment.id}>
                                 <CardContent className="pt-6">
@@ -242,17 +247,17 @@ export default function AssignmentsPage() {
                                         <span className="text-sm font-medium text-primary">
                                           {time}
                                         </span>
-                                        <h4 className="font-semibold">{assignment.title}</h4>
+                                        <h4 className="font-semibold">{assignment.title || assignment.exercise?.title || 'Назначение'}</h4>
                                         <Badge variant={statusColors[assignment.status]}>
                                           {statusLabels[assignment.status]}
                                         </Badge>
-                                        {assignment.isHomework && (
+                                        {assignment.deliveryChannel === 'home' && (
                                           <Badge variant="outline">🏠 Домашнее</Badge>
                                         )}
                                       </div>
-                                      {assignment.description && (
+                                      {assignment.notes && (
                                         <p className="text-sm text-neutral-600 mb-2">
-                                          {assignment.description}
+                                          {assignment.notes}
                                         </p>
                                       )}
                                       <div className="flex flex-wrap gap-3 text-sm text-neutral-600">
@@ -268,10 +273,10 @@ export default function AssignmentsPage() {
                                             {assignment.specialist.lastName}
                                           </span>
                                         )}
-                                        {assignment.location && (
-                                          <span>Место: {assignment.location}</span>
+                                        {assignment.deliveryChannel && (
+                                          <span>Канал: {assignment.deliveryChannel}</span>
                                         )}
-                                        <span>Длительность: {assignment.durationMinutes} мин</span>
+                                        <span>Длительность: {assignment.expectedDurationMinutes} мин</span>
                                       </div>
                                     </div>
                                     <div className="flex gap-2 ml-4">

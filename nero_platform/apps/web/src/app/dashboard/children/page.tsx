@@ -18,7 +18,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { childrenApi } from '@/lib/api'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { childrenApi, usersApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
 interface Child {
@@ -30,6 +37,20 @@ interface Child {
   age?: number
 }
 
+interface Parent {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+}
+
+const relationshipLabels: Record<string, string> = {
+  mother: 'Мать',
+  father: 'Отец',
+  guardian: 'Опекун',
+  other: 'Другое',
+}
+
 export default function ChildrenPage() {
   const router = useRouter()
   const { user } = useAuth()
@@ -38,17 +59,44 @@ export default function ChildrenPage() {
   const [error, setError] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
+  const [isLoadingParents, setIsLoadingParents] = useState(false)
+  const [availableParents, setAvailableParents] = useState<Parent[]>([])
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     dateOfBirth: '',
     diagnosis: '',
+    parentUserId: '',
+    relationship: 'guardian' as 'mother' | 'father' | 'guardian' | 'other',
+    legalGuardian: true,
   })
 
   useEffect(() => {
     loadChildren()
   }, [])
+
+  useEffect(() => {
+    if (isDialogOpen) {
+      loadParents()
+    }
+  }, [isDialogOpen])
+
+  const loadParents = async () => {
+    setIsLoadingParents(true)
+    try {
+      const response = await usersApi.getParents()
+      if (response.success) {
+        const allParents = response.data?.items || response.data || []
+        setAvailableParents(allParents)
+      }
+    } catch (err: any) {
+      console.error('Ошибка загрузки родителей:', err)
+      setError('Не удалось загрузить список родителей')
+    } finally {
+      setIsLoadingParents(false)
+    }
+  }
 
   const loadChildren = async () => {
     setIsLoading(true)
@@ -79,14 +127,44 @@ export default function ChildrenPage() {
     setError(null)
 
     try {
-      const response = await childrenApi.createChild(formData)
-      if (response.success) {
+      if (!formData.parentUserId) {
+        throw new Error('Необходимо выбрать родителя/опекуна')
+      }
+
+      // Создаем ребенка
+      const childData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        dateOfBirth: formData.dateOfBirth,
+        diagnosis: formData.diagnosis || undefined,
+      }
+
+      const childResponse = await childrenApi.createChild(childData)
+
+      if (childResponse.success) {
+        const childId = childResponse.data.id
+
+        // Привязываем родителя к ребенку
+        await childrenApi.addParent(childId, {
+          parentUserId: formData.parentUserId,
+          relationship: formData.relationship,
+          legalGuardian: formData.legalGuardian,
+        })
+
         await loadChildren()
         setIsDialogOpen(false)
-        setFormData({ firstName: '', lastName: '', dateOfBirth: '', diagnosis: '' })
+        setFormData({
+          firstName: '',
+          lastName: '',
+          dateOfBirth: '',
+          diagnosis: '',
+          parentUserId: '',
+          relationship: 'guardian',
+          legalGuardian: true,
+        })
       }
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Не удалось создать профиль ребенка')
+      setError(err.response?.data?.error?.message || err.message || 'Не удалось создать профиль ребенка')
     } finally {
       setIsSubmitting(false)
     }
@@ -134,65 +212,142 @@ export default function ChildrenPage() {
                     </DialogDescription>
                   </DialogHeader>
 
-                  <form onSubmit={handleSubmit}>
-                    <div className="space-y-4 py-4">
-                      {error && (
-                        <Alert variant="destructive">
-                          <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                      )}
-
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName">Имя *</Label>
-                        <Input
-                          id="firstName"
-                          value={formData.firstName}
-                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName">Фамилия *</Label>
-                        <Input
-                          id="lastName"
-                          value={formData.lastName}
-                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="dateOfBirth">Дата рождения *</Label>
-                        <Input
-                          id="dateOfBirth"
-                          type="date"
-                          value={formData.dateOfBirth}
-                          onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="diagnosis">Диагноз</Label>
-                        <Input
-                          id="diagnosis"
-                          value={formData.diagnosis}
-                          onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
-                          placeholder="Например: РАС средней степени"
-                        />
-                      </div>
+                  {isLoadingParents ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
+                  ) : availableParents.length === 0 ? (
+                    <Alert>
+                      <AlertDescription>
+                        Нет доступных пользователей с ролью "Родитель". Сначала создайте
+                        пользователя с этой ролью в разделе "Пользователи".
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <form onSubmit={handleSubmit}>
+                      <div className="space-y-4 py-4">
+                        {error && (
+                          <Alert variant="destructive">
+                            <AlertDescription>{error}</AlertDescription>
+                          </Alert>
+                        )}
 
-                    <DialogFooter>
-                      <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                        Отмена
-                      </Button>
-                      <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? 'Создание...' : 'Создать'}
-                      </Button>
-                    </DialogFooter>
-                  </form>
+                        <div className="space-y-2">
+                          <Label htmlFor="firstName">Имя *</Label>
+                          <Input
+                            id="firstName"
+                            value={formData.firstName}
+                            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="lastName">Фамилия *</Label>
+                          <Input
+                            id="lastName"
+                            value={formData.lastName}
+                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="dateOfBirth">Дата рождения *</Label>
+                          <Input
+                            id="dateOfBirth"
+                            type="date"
+                            value={formData.dateOfBirth}
+                            onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="diagnosis">Диагноз</Label>
+                          <Input
+                            id="diagnosis"
+                            value={formData.diagnosis}
+                            onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
+                            placeholder="Например: РАС средней степени"
+                          />
+                        </div>
+
+                        <div className="border-t pt-4 mt-4">
+                          <h4 className="font-medium mb-4">Родитель/Опекун *</h4>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="parentUserId">Выберите родителя/опекуна *</Label>
+                            <Select
+                              value={formData.parentUserId}
+                              onValueChange={(value) => setFormData({ ...formData, parentUserId: value })}
+                              required
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Выберите пользователя" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {availableParents.map((parent) => (
+                                  <SelectItem key={parent.id} value={parent.id}>
+                                    {parent.lastName} {parent.firstName} ({parent.email})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2 mt-4">
+                            <Label htmlFor="relationship">Тип отношений *</Label>
+                            <Select
+                              value={formData.relationship}
+                              onValueChange={(value) =>
+                                setFormData({
+                                  ...formData,
+                                  relationship: value as 'mother' | 'father' | 'guardian' | 'other',
+                                })
+                              }
+                              required
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Выберите тип" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(relationshipLabels).map(([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="flex items-center space-x-2 mt-4">
+                            <input
+                              type="checkbox"
+                              id="legalGuardian"
+                              checked={formData.legalGuardian}
+                              onChange={(e) =>
+                                setFormData({ ...formData, legalGuardian: e.target.checked })
+                              }
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <Label htmlFor="legalGuardian" className="text-sm font-medium">
+                              Законный представитель
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                          Отмена
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting || !formData.parentUserId}>
+                          {isSubmitting ? 'Создание...' : 'Создать'}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  )}
                 </DialogContent>
               </Dialog>
             )}

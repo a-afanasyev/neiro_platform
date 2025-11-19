@@ -96,7 +96,7 @@ export const authApi = {
  * API клиент для работы с пользователями
  */
 export const usersApi = {
-  getUsers: async (params?: { cursor?: string; limit?: number }) => {
+  getUsers: async (params?: { cursor?: string; limit?: number; role?: string }) => {
     const response = await api.get('/users/v1', { params })
     return response.data
   },
@@ -108,6 +108,33 @@ export const usersApi = {
 
   updateUser: async (id: string, data: any) => {
     const response = await api.put(`/users/v1/${id}`, data)
+    return response.data
+  },
+
+  createUser: async (data: {
+    firstName: string
+    lastName: string
+    email: string
+    role: string
+    phone?: string
+  }) => {
+    const response = await api.post('/users/v1', data)
+    return response.data
+  },
+
+  /**
+   * Получить список пользователей с ролью parent
+   */
+  getParents: async () => {
+    const response = await api.get('/users/v1', { params: { role: 'parent' } })
+    return response.data
+  },
+
+  /**
+   * Получить детей пользователя (для родителей и специалистов)
+   */
+  getUserChildren: async (userId: string) => {
+    const response = await api.get(`/users/v1/${userId}/children`)
     return response.data
   },
 }
@@ -133,6 +160,45 @@ export const childrenApi = {
 
   updateChild: async (id: string, data: any) => {
     const response = await api.put(`/children/v1/${id}`, data)
+    return response.data
+  },
+
+  /**
+   * Добавить родителя/опекуна к ребенку
+   */
+  addParent: async (
+    childId: string,
+    data: {
+      parentUserId: string
+      relationship: 'mother' | 'father' | 'guardian' | 'other'
+      legalGuardian?: boolean
+    }
+  ) => {
+    const response = await api.post(`/children/v1/${childId}/parents`, data)
+    return response.data
+  },
+
+  /**
+   * Удалить связь родителя с ребенком
+   */
+  removeParent: async (childId: string, parentId: string) => {
+    const response = await api.delete(`/children/v1/${childId}/parents/${parentId}`)
+    return response.data
+  },
+
+  /**
+   * Обновить информацию о связи родителя с ребенком
+   */
+  updateParent: async (
+    childId: string,
+    parentId: string,
+    data: {
+      relationship?: 'mother' | 'father' | 'guardian' | 'other'
+      legalGuardian?: boolean
+      guardianshipType?: string
+    }
+  ) => {
+    const response = await api.patch(`/children/v1/${childId}/parents/${parentId}`, data)
     return response.data
   },
 }
@@ -298,6 +364,12 @@ export const templatesApi = {
   cloneTemplate: async (id: string, title: string) => {
     const response = await api.post(`/templates/v1/${id}/clone`, { title })
     return response.data
+  },
+
+  getVersions: async (id: string) => {
+    // TODO: Реализовать эндпоинт версий на бэкенде
+    // Пока возвращаем пустой массив
+    return { success: true, data: [] }
   },
 }
 

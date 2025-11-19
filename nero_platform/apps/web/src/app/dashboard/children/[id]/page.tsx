@@ -19,29 +19,41 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { childrenApi } from '@/lib/api'
+import { AddParentDialog } from '@/components/children/AddParentDialog'
+import { EditParentDialog } from '@/components/children/EditParentDialog'
+import { ParentCard } from '@/components/children/ParentCard'
+
+interface ParentInfo {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+  relationship: 'mother' | 'father' | 'guardian' | 'other'
+  legalGuardian: boolean
+}
 
 interface Child {
   id: string
   firstName: string
   lastName: string
   middleName?: string
-  dateOfBirth: string
+  birthDate: string  // API возвращает birthDate, не dateOfBirth
   gender: string
-  diagnosis?: string
+  diagnosisSummary?: string  // API возвращает diagnosisSummary, не diagnosis
   notes?: string
   createdAt: string
   updatedAt: string
-  parents?: Array<{
-    id: string
-    firstName: string
-    lastName: string
-    email: string
-  }>
+  parents?: ParentInfo[]
   specialists?: Array<{
     id: string
-    firstName: string
-    lastName: string
+    user?: {
+      firstName: string
+      lastName: string
+    }
+    specialty?: string
     specialization?: string
+    isPrimary?: boolean
   }>
 }
 
@@ -53,6 +65,10 @@ export default function ChildDetailPage() {
   const [child, setChild] = useState<Child | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [showAddParentDialog, setShowAddParentDialog] = useState(false)
+  const [showEditParentDialog, setShowEditParentDialog] = useState(false)
+  const [selectedParent, setSelectedParent] = useState<ParentInfo | null>(null)
 
   useEffect(() => {
     loadChildData()
@@ -227,7 +243,7 @@ export default function ChildDetailPage() {
                 {child.lastName} {child.firstName} {child.middleName || ''}
               </h1>
               <p className="text-muted-foreground">
-                {calculateAge(child.dateOfBirth)} • {getGenderText(child.gender)}
+                {calculateAge(child.birthDate)} • {getGenderText(child.gender)}
               </p>
             </div>
             <div className="flex gap-2">
@@ -264,11 +280,11 @@ export default function ChildDetailPage() {
                 )}
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Дата рождения</p>
-                  <p className="text-lg">{formatDate(child.dateOfBirth)}</p>
+                  <p className="text-lg">{formatDate(child.birthDate)}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Возраст</p>
-                  <p className="text-lg">{calculateAge(child.dateOfBirth)}</p>
+                  <p className="text-lg">{calculateAge(child.birthDate)}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Пол</p>
@@ -279,17 +295,17 @@ export default function ChildDetailPage() {
           </Card>
 
           {/* Медицинская информация */}
-          {(child.diagnosis || child.notes) && (
+          {(child.diagnosisSummary || child.notes) && (
             <Card>
               <CardHeader>
                 <CardTitle>Медицинская информация</CardTitle>
                 <CardDescription>Диагнозы и особенности развития</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {child.diagnosis && (
+                {child.diagnosisSummary && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-2">Диагноз</p>
-                    <p className="text-base">{child.diagnosis}</p>
+                    <p className="text-base">{child.diagnosisSummary}</p>
                   </div>
                 )}
                 {child.notes && (
@@ -302,36 +318,50 @@ export default function ChildDetailPage() {
             </Card>
           )}
 
-          {/* Родители */}
-          {child.parents && child.parents.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Родители</CardTitle>
-                <CardDescription>Законные представители ребенка</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
+          {/* Родители / Опекуны */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Родители / Опекуны</CardTitle>
+                  <CardDescription>
+                    Законные представители ребенка
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setShowAddParentDialog(true)}>
+                  + Добавить родителя
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {!child.parents || child.parents.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>У ребенка пока нет привязанных родителей или опекунов</p>
+                  <p className="text-sm mt-2">
+                    Нажмите "Добавить родителя" чтобы привязать законного представителя
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
                   {child.parents.map((parent) => (
-                    <div
+                    <ParentCard
                       key={parent.id}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent cursor-pointer"
-                      onClick={() => router.push(`/dashboard/users/${parent.id}`)}
-                    >
-                      <div>
-                        <p className="font-medium">
-                          {parent.lastName} {parent.firstName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{parent.email}</p>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        Подробнее →
-                      </Button>
-                    </div>
+                      parent={parent}
+                      childId={childId}
+                      onEdit={(parent) => {
+                        setSelectedParent(parent)
+                        setShowEditParentDialog(true)
+                      }}
+                      onRemove={loadChildData}
+                      legalGuardiansCount={
+                        child.parents?.filter((p) => p.legalGuardian).length || 0
+                      }
+                    />
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
 
           {/* Специалисты */}
           {child.specialists && child.specialists.length > 0 && (
@@ -366,6 +396,26 @@ export default function ChildDetailPage() {
             </Card>
           )}
         </div>
+
+        {/* Диалоги управления родителями */}
+        <AddParentDialog
+          childId={childId}
+          open={showAddParentDialog}
+          onOpenChange={setShowAddParentDialog}
+          onSuccess={loadChildData}
+          existingParentIds={child.parents?.map((p) => p.id) || []}
+        />
+
+        <EditParentDialog
+          childId={childId}
+          parent={selectedParent}
+          open={showEditParentDialog}
+          onOpenChange={setShowEditParentDialog}
+          onSuccess={loadChildData}
+          legalGuardiansCount={
+            child.parents?.filter((p) => p.legalGuardian).length || 0
+          }
+        />
       </DashboardLayout>
     </ProtectedRoute>
   )

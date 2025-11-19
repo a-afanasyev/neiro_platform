@@ -12,6 +12,10 @@ export const createChildSchema = z.object({
   gender: z.enum(['male', 'female', 'other']).optional().nullable(),
   diagnosisSummary: z.string().max(1000).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
+  // Обязательное указание родителя при создании ребенка
+  parentUserId: z.string().uuid('Необходимо указать родителя или опекуна'),
+  relationship: z.enum(['mother', 'father', 'guardian', 'other']),
+  legalGuardian: z.boolean().default(true),
 });
 
 export const updateChildSchema = z.object({
@@ -27,6 +31,12 @@ export const addParentSchema = z.object({
   parentUserId: z.string().uuid(),
   relationship: z.enum(['mother', 'father', 'guardian', 'other']),
   legalGuardian: z.boolean().optional(),
+});
+
+export const updateParentSchema = z.object({
+  relationship: z.enum(['mother', 'father', 'guardian', 'other']).optional(),
+  legalGuardian: z.boolean().optional(),
+  guardianshipType: z.string().max(100).optional().nullable(),
 });
 
 export const addSpecialistSchema = z.object({

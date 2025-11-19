@@ -248,4 +248,115 @@ export async function getRouteHistory(routeId: string) {
   return history;
 }
 
+// ===== GOALS =====
+
+export async function getRouteGoals(routeId: string) {
+  await getRouteById(routeId);
+  return prisma.routeGoal.findMany({
+    where: { routeId },
+    orderBy: { createdAt: 'asc' }
+  });
+}
+
+export async function createRouteGoal(routeId: string, data: any, userId: string) {
+  await getRouteById(routeId);
+
+  const goal = await prisma.routeGoal.create({
+    data: {
+      routeId,
+      category: data.domain || 'cognitive',
+      goalType: data.goalType || 'skill',
+      description: data.description || data.title,
+      targetMetric: data.title || 'Custom goal',
+      measurementUnit: data.measurementUnit || 'units',
+      reviewPeriodWeeks: data.reviewPeriodWeeks || 4,
+      priority: data.priority || 'medium',
+      status: 'active'
+    }
+  });
+
+  console.log(`✅ Добавлена цель к маршруту ${routeId}: ${goal.id}`);
+  return goal;
+}
+
+export async function updateRouteGoal(routeId: string, goalId: string, data: any, userId: string) {
+  await getRouteById(routeId);
+
+  const goal = await prisma.routeGoal.update({
+    where: { id: goalId },
+    data: {
+      category: data.domain,
+      description: data.description || data.title,
+      targetMetric: data.title,
+      priority: data.priority
+    }
+  });
+
+  console.log(`✅ Обновлена цель ${goalId} маршрута ${routeId}`);
+  return goal;
+}
+
+export async function deleteRouteGoal(routeId: string, goalId: string, userId: string) {
+  await getRouteById(routeId);
+  await prisma.routeGoal.delete({ where: { id: goalId } });
+  console.log(`✅ Удалена цель ${goalId} из маршрута ${routeId}`);
+}
+
+// ===== PHASES =====
+
+export async function getRoutePhases(routeId: string) {
+  await getRouteById(routeId);
+  return prisma.routePhase.findMany({
+    where: { routeId },
+    orderBy: { orderIndex: 'asc' }
+  });
+}
+
+export async function createRoutePhase(routeId: string, data: any, userId: string) {
+  const route = await getRouteById(routeId);
+
+  // Get next order index
+  const lastPhase = await prisma.routePhase.findFirst({
+    where: { routeId },
+    orderBy: { orderIndex: 'desc' }
+  });
+  const orderIndex = lastPhase ? lastPhase.orderIndex + 1 : 0;
+
+  const phase = await prisma.routePhase.create({
+    data: {
+      routeId,
+      responsibleSpecialistId: route.leadSpecialistId,
+      name: data.title,
+      description: data.description,
+      orderIndex,
+      status: 'pending'
+    }
+  });
+
+  console.log(`✅ Добавлена фаза к маршруту ${routeId}: ${phase.id}`);
+  return phase;
+}
+
+export async function updateRoutePhase(routeId: string, phaseId: string, data: any, userId: string) {
+  await getRouteById(routeId);
+
+  const phase = await prisma.routePhase.update({
+    where: { id: phaseId },
+    data: {
+      name: data.title,
+      description: data.description,
+      orderIndex: data.orderIndex
+    }
+  });
+
+  console.log(`✅ Обновлена фаза ${phaseId} маршрута ${routeId}`);
+  return phase;
+}
+
+export async function deleteRoutePhase(routeId: string, phaseId: string, userId: string) {
+  await getRouteById(routeId);
+  await prisma.routePhase.delete({ where: { id: phaseId } });
+  console.log(`✅ Удалена фаза ${phaseId} из маршрута ${routeId}`);
+}
+
 

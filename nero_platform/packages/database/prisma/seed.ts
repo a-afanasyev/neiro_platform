@@ -51,15 +51,15 @@ async function main() {
     },
   });
 
-  // Ведущий нейропсихолог (password: neuro123)
-  const neuropsychologist = await prisma.user.upsert({
-    where: { email: 'neuro@neiro.dev' },
+  // Specialist 1: Нейропсихолог (password: admin123)
+  const specialist1 = await prisma.user.upsert({
+    where: { email: 'specialist1@example.com' },
     update: {},
     create: {
-      email: 'neuro@neiro.dev',
-      password: await bcrypt.hash('neuro123', 12),
-      firstName: 'Мария',
-      lastName: 'Нейропсихологова',
+      email: 'specialist1@example.com',
+      password: await bcrypt.hash('admin123', 12),
+      firstName: 'Анна',
+      lastName: 'Смирнова',
       role: 'specialist',
       status: 'active',
       phone: '+998901234567',
@@ -67,15 +67,15 @@ async function main() {
     },
   });
 
-  // Логопед (password: speech123)
-  const speechTherapist = await prisma.user.upsert({
-    where: { email: 'speech@neiro.dev' },
+  // Specialist 2: Логопед (password: admin123)
+  const specialist2 = await prisma.user.upsert({
+    where: { email: 'specialist2@example.com' },
     update: {},
     create: {
-      email: 'speech@neiro.dev',
-      password: await bcrypt.hash('speech123', 12),
-      firstName: 'Анна',
-      lastName: 'Логопедова',
+      email: 'specialist2@example.com',
+      password: await bcrypt.hash('admin123', 12),
+      firstName: 'Елена',
+      lastName: 'Кузнецова',
       role: 'specialist',
       status: 'active',
       phone: '+998901234568',
@@ -83,15 +83,15 @@ async function main() {
     },
   });
 
-  // ABA-терапевт (password: aba123)
-  const abaTherapist = await prisma.user.upsert({
-    where: { email: 'aba@neiro.dev' },
+  // Specialist 3: ABA-терапевт (password: admin123)
+  const specialist3 = await prisma.user.upsert({
+    where: { email: 'specialist3@example.com' },
     update: {},
     create: {
-      email: 'aba@neiro.dev',
-      password: await bcrypt.hash('aba123', 12),
-      firstName: 'Елена',
-      lastName: 'ABA-терапевтова',
+      email: 'specialist3@example.com',
+      password: await bcrypt.hash('admin123', 12),
+      firstName: 'Дмитрий',
+      lastName: 'Соколов',
       role: 'specialist',
       status: 'active',
       phone: '+998901234569',
@@ -132,7 +132,55 @@ async function main() {
     },
   });
 
-  console.log(`✅ Создано пользователей: 7`);
+  // Родитель 3 (password: parent123)
+  const parent3 = await prisma.user.upsert({
+    where: { email: 'parent3@example.com' },
+    update: {},
+    create: {
+      email: 'parent3@example.com',
+      password: await bcrypt.hash('parent123', 12),
+      firstName: 'Дмитрий',
+      lastName: 'Сидоров',
+      role: 'parent',
+      status: 'active',
+      phone: '+998903333333',
+      timezone: 'Asia/Tashkent',
+    },
+  });
+
+  // Родитель 4 (password: parent123)
+  const parent4 = await prisma.user.upsert({
+    where: { email: 'parent4@example.com' },
+    update: {},
+    create: {
+      email: 'parent4@example.com',
+      password: await bcrypt.hash('parent123', 12),
+      firstName: 'Елена',
+      lastName: 'Михайлова',
+      role: 'parent',
+      status: 'active',
+      phone: '+998904444444',
+      timezone: 'Europe/Moscow',
+    },
+  });
+
+  // Родитель 5 (password: parent123)
+  const parent5 = await prisma.user.upsert({
+    where: { email: 'parent5@example.com' },
+    update: {},
+    create: {
+      email: 'parent5@example.com',
+      password: await bcrypt.hash('parent123', 12),
+      firstName: 'Сергей',
+      lastName: 'Козлов',
+      role: 'parent',
+      status: 'active',
+      phone: '+998905555555',
+      timezone: 'Asia/Tashkent',
+    },
+  });
+
+  console.log(`✅ Создано пользователей: 10`);
 
   // ============================================================
   // 2. Создаём профили специалистов
@@ -140,11 +188,11 @@ async function main() {
 
   console.log('📝 Создание профилей специалистов...');
 
-  const neuroSpecialist = await prisma.specialist.upsert({
-    where: { userId: neuropsychologist.id },
+  const spec1 = await prisma.specialist.upsert({
+    where: { userId: specialist1.id },
     update: {},
     create: {
-      userId: neuropsychologist.id,
+      userId: specialist1.id,
       specialty: 'neuropsychologist',
       licenseNumber: 'NP-2024-001',
       licenseValidUntil: new Date('2026-12-31'),
@@ -153,11 +201,11 @@ async function main() {
     },
   });
 
-  const speechSpecialist = await prisma.specialist.upsert({
-    where: { userId: speechTherapist.id },
+  const spec2 = await prisma.specialist.upsert({
+    where: { userId: specialist2.id },
     update: {},
     create: {
-      userId: speechTherapist.id,
+      userId: specialist2.id,
       specialty: 'speech_therapist',
       licenseNumber: 'SP-2024-002',
       licenseValidUntil: new Date('2026-06-30'),
@@ -166,11 +214,11 @@ async function main() {
     },
   });
 
-  const abaSpecialist = await prisma.specialist.upsert({
-    where: { userId: abaTherapist.id },
+  const spec3 = await prisma.specialist.upsert({
+    where: { userId: specialist3.id },
     update: {},
     create: {
-      userId: abaTherapist.id,
+      userId: specialist3.id,
       specialty: 'aba',
       licenseNumber: 'ABA-2024-003',
       licenseValidUntil: new Date('2025-12-31'),
@@ -200,11 +248,12 @@ async function main() {
 
   console.log('📝 Создание профилей детей...');
 
-  // Используем findFirst + create или просто проверяем наличие
+  // Создаём детей для тестовых сценариев CJM
+  // CJM требует: Алиса Иванова (5 лет) и Борис Петров (7 лет)
   let child1 = await prisma.child.findFirst({
     where: {
-      firstName: 'Артем',
-      lastName: 'Иванов',
+      firstName: 'Алиса',
+      lastName: 'Иванова',
       birthDate: new Date('2018-05-15'),
     },
   });
@@ -212,20 +261,20 @@ async function main() {
   if (!child1) {
     child1 = await prisma.child.create({
       data: {
-        firstName: 'Артем',
-        lastName: 'Иванов',
-        birthDate: new Date('2018-05-15'),
-        gender: 'male',
-        diagnosisSummary: 'РАС, средняя степень тяжести, задержка речевого развития',
-        notes: 'Любит конструкторы, избегает громких звуков',
+        firstName: 'Алиса',
+        lastName: 'Иванова',
+        birthDate: new Date('2018-05-15'), // ~5-6 лет
+        gender: 'female',
+        diagnosisSummary: 'РАС, средняя степень тяжести',
+        notes: 'Любит конструкторы',
       },
     });
   }
 
   let child2 = await prisma.child.findFirst({
     where: {
-      firstName: 'София',
-      lastName: 'Петрова',
+      firstName: 'Борис',
+      lastName: 'Петров',
       birthDate: new Date('2019-11-20'),
     },
   });
@@ -233,12 +282,12 @@ async function main() {
   if (!child2) {
     child2 = await prisma.child.create({
       data: {
-        firstName: 'София',
-        lastName: 'Петрова',
-        birthDate: new Date('2019-11-20'),
-        gender: 'female',
-        diagnosisSummary: 'РАС легкой степени, коммуникативные трудности',
-        notes: 'Интересуется рисованием, хорошо воспринимает визуальные подсказки',
+        firstName: 'Борис',
+        lastName: 'Петров',
+        birthDate: new Date('2019-11-20'), // ~5 лет
+        gender: 'male',
+        diagnosisSummary: 'РАС легкой степени',
+        notes: 'Интересуется рисованием',
       },
     });
   }
@@ -293,19 +342,19 @@ async function main() {
 
   console.log('📝 Назначение специалистов...');
 
-  // Ребенок 1: команда из нейропсихолога, логопеда, ABA
+  // Алиса: команда из specialist1 (нейропсихолог), specialist2 (логопед), specialist3 (ABA)
   await prisma.childSpecialist.upsert({
     where: {
       childId_specialistId_specialization: {
         childId: child1.id,
-        specialistId: neuroSpecialist.id,
+        specialistId: spec1.id,
         specialization: 'lead',
       },
     },
     update: {},
     create: {
       childId: child1.id,
-      specialistId: neuroSpecialist.id,
+      specialistId: spec1.id,
       specialization: 'lead',
       isPrimary: true,
       roleDescription: 'Ведущий специалист, координация маршрута',
@@ -316,14 +365,14 @@ async function main() {
     where: {
       childId_specialistId_specialization: {
         childId: child1.id,
-        specialistId: speechSpecialist.id,
+        specialistId: spec2.id,
         specialization: 'speech',
       },
     },
     update: {},
     create: {
       childId: child1.id,
-      specialistId: speechSpecialist.id,
+      specialistId: spec2.id,
       specialization: 'speech',
       isPrimary: false,
       roleDescription: 'Коррекция речевого развития',
@@ -334,33 +383,33 @@ async function main() {
     where: {
       childId_specialistId_specialization: {
         childId: child1.id,
-        specialistId: abaSpecialist.id,
+        specialistId: spec3.id,
         specialization: 'aba',
       },
     },
     update: {},
     create: {
       childId: child1.id,
-      specialistId: abaSpecialist.id,
+      specialistId: spec3.id,
       specialization: 'aba',
       isPrimary: false,
       roleDescription: 'Поведенческая терапия',
     },
   });
 
-  // Ребенок 2: нейропсихолог + логопед
+  // Борис: specialist1 (нейропсихолог) + specialist2 (логопед)
   await prisma.childSpecialist.upsert({
     where: {
       childId_specialistId_specialization: {
         childId: child2.id,
-        specialistId: neuroSpecialist.id,
+        specialistId: spec1.id,
         specialization: 'lead',
       },
     },
     update: {},
     create: {
       childId: child2.id,
-      specialistId: neuroSpecialist.id,
+      specialistId: spec1.id,
       specialization: 'lead',
       isPrimary: true,
       roleDescription: 'Ведущий специалист',
@@ -371,14 +420,14 @@ async function main() {
     where: {
       childId_specialistId_specialization: {
         childId: child2.id,
-        specialistId: speechSpecialist.id,
+        specialistId: spec2.id,
         specialization: 'speech',
       },
     },
     update: {},
     create: {
       childId: child2.id,
-      specialistId: speechSpecialist.id,
+      specialistId: spec2.id,
       specialization: 'speech',
       isPrimary: false,
       roleDescription: 'Развитие коммуникативных навыков',
@@ -1024,12 +1073,12 @@ async function main() {
 
   console.log('📝 Создание маршрутов...');
 
-  // Маршрут для ребенка 1 (Артем) - активный
+  // Маршрут для ребенка 1 (Алиса) - активный
   const route1 = await prisma.route.create({
     data: {
       childId: child1.id,
-      leadSpecialistId: neuroSpecialist.id,
-      title: 'Комплексная коррекция - Артем',
+      leadSpecialistId: spec1.id,
+      title: 'Комплексная коррекция - Алиса',
       summary: 'Работа над речью, моторикой и социальными навыками',
       status: 'active',
       planHorizonWeeks: 24,
@@ -1038,12 +1087,12 @@ async function main() {
     },
   });
 
-  // Маршрут для ребенка 2 (София) - draft
+  // Маршрут для ребенка 2 (Борис) - draft
   const route2 = await prisma.route.create({
     data: {
       childId: child2.id,
-      leadSpecialistId: neuroSpecialist.id,
-      title: 'Логопедическая коррекция - София',
+      leadSpecialistId: spec1.id,
+      title: 'Логопедическая коррекция - Борис',
       summary: 'Фокус на развитие коммуникативных навыков',
       status: 'draft',
       planHorizonWeeks: 16,
@@ -1061,7 +1110,7 @@ async function main() {
   const phase1_1 = await prisma.routePhase.create({
     data: {
       routeId: route1.id,
-      responsibleSpecialistId: neuroSpecialist.id,
+      responsibleSpecialistId: spec1.id,
       name: 'Диагностика и адаптация',
       description: 'Начальная оценка и адаптация ребенка к занятиям',
       orderIndex: 1,
@@ -1076,7 +1125,7 @@ async function main() {
   const phase1_2 = await prisma.routePhase.create({
     data: {
       routeId: route1.id,
-      responsibleSpecialistId: speechSpecialist.id,
+      responsibleSpecialistId: spec2.id,
       name: 'Развитие речи',
       description: 'Логопедическая коррекция и развитие речевых навыков',
       orderIndex: 2,
@@ -1091,7 +1140,7 @@ async function main() {
   const phase1_3 = await prisma.routePhase.create({
     data: {
       routeId: route1.id,
-      responsibleSpecialistId: abaSpecialist.id,
+      responsibleSpecialistId: spec3.id,
       name: 'Поведенческая коррекция',
       description: 'ABA-терапия для коррекции поведения',
       orderIndex: 3,
@@ -1173,14 +1222,14 @@ async function main() {
   const motorExercise = createdExercises.find(e => e.slug === 'finger-gymnastics')!;
   const socialExercise = createdExercises.find(e => e.slug === 'emotions-on-faces')!;
 
-  // Назначения для ребенка 1 (разные статусы)
+  // Назначения для Алисы (разные статусы)
   // ВАЖНО: specialistId ссылается на userId (не на Specialist.id)
   await prisma.assignment.create({
     data: {
       childId: child1.id,
       exerciseId: speechExercise.id,
-      assignedById: neuropsychologist.id,
-      specialistId: speechTherapist.id, // userId логопеда
+      assignedById: specialist1.id,
+      specialistId: specialist2.id, // userId логопеда
       routeId: route1.id,
       phaseId: phase1_2.id,
       targetGoalId: goal1_1.id,
@@ -1198,8 +1247,8 @@ async function main() {
     data: {
       childId: child1.id,
       exerciseId: cognitiveExercise.id,
-      assignedById: neuropsychologist.id,
-      specialistId: neuropsychologist.id, // userId нейропсихолога
+      assignedById: specialist1.id,
+      specialistId: specialist1.id, // userId нейропсихолога
       routeId: route1.id,
       phaseId: phase1_2.id,
       plannedStartDate: new Date('2025-11-17'),
@@ -1215,8 +1264,8 @@ async function main() {
     data: {
       childId: child1.id,
       exerciseId: motorExercise.id,
-      assignedById: neuropsychologist.id,
-      specialistId: neuropsychologist.id, // userId нейропсихолога
+      assignedById: specialist1.id,
+      specialistId: specialist1.id, // userId нейропсихолога
       routeId: route1.id,
       phaseId: phase1_2.id,
       plannedStartDate: new Date('2025-11-17'),
@@ -1233,8 +1282,8 @@ async function main() {
     data: {
       childId: child1.id,
       exerciseId: socialExercise.id,
-      assignedById: neuropsychologist.id,
-      specialistId: abaTherapist.id, // userId ABA-терапевта
+      assignedById: specialist1.id,
+      specialistId: specialist3.id, // userId ABA-терапевта
       routeId: route1.id,
       phaseId: phase1_3.id,
       targetGoalId: goal1_3.id,
@@ -1251,8 +1300,8 @@ async function main() {
     data: {
       childId: child1.id,
       exerciseId: speechExercise.id,
-      assignedById: neuropsychologist.id,
-      specialistId: speechTherapist.id, // userId логопеда
+      assignedById: specialist1.id,
+      specialistId: specialist2.id, // userId логопеда
       routeId: route1.id,
       phaseId: phase1_2.id,
       targetGoalId: goal1_1.id,
@@ -1270,8 +1319,8 @@ async function main() {
     data: {
       childId: child1.id,
       exerciseId: motorExercise.id,
-      assignedById: neuropsychologist.id,
-      specialistId: neuropsychologist.id, // userId нейропсихолога
+      assignedById: specialist1.id,
+      specialistId: specialist1.id, // userId нейропсихолога
       routeId: route1.id,
       phaseId: phase1_2.id,
       plannedStartDate: new Date('2025-11-12'),
@@ -1288,8 +1337,8 @@ async function main() {
     data: {
       childId: child2.id,
       exerciseId: speechExercise.id,
-      assignedById: neuropsychologist.id,
-      specialistId: speechTherapist.id, // userId логопеда
+      assignedById: specialist1.id,
+      specialistId: specialist2.id, // userId логопеда
       routeId: route2.id,
       phaseId: phase1_2.id,
       plannedStartDate: new Date('2025-11-18'),
@@ -1305,8 +1354,8 @@ async function main() {
     data: {
       childId: child2.id,
       exerciseId: socialExercise.id,
-      assignedById: neuropsychologist.id,
-      specialistId: neuropsychologist.id, // userId нейропсихолога
+      assignedById: specialist1.id,
+      specialistId: specialist1.id, // userId нейропсихолога
       routeId: route2.id,
       phaseId: phase1_2.id,
       plannedStartDate: new Date('2025-11-19'),
@@ -1329,7 +1378,7 @@ async function main() {
   await prisma.diagnosticSession.create({
     data: {
       childId: child1.id,
-      performedBy: neuropsychologist.id,
+      performedBy: specialist1.id,
       questionnaireCode: 'CARS',
       status: 'completed',
       startedAt: new Date('2025-10-01T10:00:00Z'),
@@ -1349,7 +1398,7 @@ async function main() {
   await prisma.diagnosticSession.create({
     data: {
       childId: child2.id,
-      performedBy: neuropsychologist.id,
+      performedBy: specialist1.id,
       questionnaireCode: 'M-CHAT',
       status: 'in_progress',
       startedAt: new Date('2025-11-15T14:00:00Z'),
@@ -1370,11 +1419,11 @@ async function main() {
   console.log('📋 Тестовые учетные данные:');
   console.log('   Admin:          admin@neiro.dev / admin123');
   console.log('   Supervisor:     supervisor@neiro.dev / supervisor123');
-  console.log('   Neuropsych:     neuro@neiro.dev / neuro123');
-  console.log('   Speech:         speech@neiro.dev / speech123');
-  console.log('   ABA:            aba@neiro.dev / aba123');
+  console.log('   Specialist 1:   specialist1@example.com / admin123 (Нейропсихолог)');
+  console.log('   Specialist 2:   specialist2@example.com / admin123 (Логопед)');
+  console.log('   Specialist 3:   specialist3@example.com / admin123 (ABA-терапевт)');
   console.log('   Parent 1:       parent1@example.com / parent123');
-  console.log('   Parent 2:       parent2@example.com / parent123');
+  console.log('   Parent 2-5:     parent2-5@example.com / parent123');
 }
 
 main()

@@ -1,8 +1,15 @@
 # Neiro Platform — Data Model & Domain Events
 
-**Версия:** 0.4
-**Дата:** 30 октября 2025
+**Версия:** 0.5
+**Дата:** 17 ноября 2025
 **Назначение:** нормативное описание ключевых сущностей MVP и каталога доменных событий, удовлетворяющего требованиям `constitution.md` (Stack Compliance, Service Boundaries, API Contract, Events, Data Policy).
+
+**Изменения в версии 0.5:**
+- ✅ Добавлен раздел 2.10 «Сервис children» с доменными событиями:
+  - `children.child.created`, `children.child.updated`
+  - `children.parent.linked`, `children.parent.unlinked`
+  - `children.specialist.assigned`, `children.specialist.unassigned`
+- ✅ Документированы подписчики событий и условия публикации для управления связями родитель-ребенок
 
 **Изменения в версии 0.4:**
 - ✅ Раздел 2: транспорт доменных событий переведён на Postgres Outbox + фоновые воркеры, Kafka отложена до пост-MVP.
@@ -330,6 +337,16 @@ interface BaseEvent {
 | `templates.template.archived` | `{ schema_version, template_id, version, archived_at, archived_by }` | Шаблон выведен из оборота | `route-orchestrator`, `analytics` |
 | `templates.template.updated` | `{ schema_version, template_id, new_version, updated_fields, updated_at, updated_by }` | Создана новая версия шаблона | `route-orchestrator`, `analytics` |
 | `templates.template.exercise_updated` | `{ schema_version, template_id, template_phase_id, exercise_id, action, updated_at }` | Добавлено/изменено упражнение в шаблоне | `route-orchestrator`, `analytics` |
+
+### 2.10 Сервис `children`
+| Event | Payload | Emit conditions | Primary subscribers |
+| --- | --- | --- | --- |
+| `children.child.created` | `{ schema_version, child_id, first_name, last_name, birth_date, created_at, created_by }` | Создан новый профиль ребенка | `analytics`, `comms`, `route-orchestrator` |
+| `children.child.updated` | `{ schema_version, child_id, updated_fields, updated_at, updated_by }` | Изменены данные профиля ребенка | `analytics`, `reports` |
+| `children.parent.linked` | `{ schema_version, child_id, parent_user_id, relationship, legal_guardian, linked_at, linked_by }` | Родитель привязан к ребенку | `comms` (уведомить родителя), `analytics`, `auth` (обновить доступ) |
+| `children.parent.unlinked` | `{ schema_version, child_id, parent_user_id, unlinked_at, unlinked_by }` | Родитель отвязан от ребенка | `comms`, `analytics`, `auth` (отозвать доступ) |
+| `children.specialist.assigned` | `{ schema_version, child_id, specialist_id, assignment_type, is_primary, assigned_at, assigned_by }` | Специалист назначен на ребенка | `comms`, `analytics`, `route-orchestrator` |
+| `children.specialist.unassigned` | `{ schema_version, child_id, specialist_id, unassigned_at, unassigned_by }` | Специалист снят с ребенка | `comms`, `analytics`, `assignments` (переназначить) |
 
 ---
 

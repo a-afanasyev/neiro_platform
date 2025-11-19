@@ -153,12 +153,32 @@ export default function DiagnosticsPage() {
     )
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ru-RU', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+  /**
+   * Форматирует дату в читаемый формат
+   * @param dateString - строка с датой в формате ISO или другой поддерживаемый формат
+   * @returns отформатированная дата или пустая строка, если дата невалидна
+   */
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) {
+      return 'Дата не указана'
+    }
+    
+    try {
+      const date = new Date(dateString)
+      // Проверяем, что дата валидна
+      if (isNaN(date.getTime())) {
+        return 'Неверная дата'
+      }
+      
+      return date.toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    } catch (error) {
+      console.error('Ошибка форматирования даты:', error, dateString)
+      return 'Ошибка даты'
+    }
   }
 
   return (

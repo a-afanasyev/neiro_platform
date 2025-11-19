@@ -76,14 +76,21 @@ export function TemplateGoalEditor({ goal, onSave, onDelete, onCancel }: Templat
   /**
    * Обработчик сохранения цели
    */
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSave = () => {
+    if (!formData.description.trim()) {
+      alert('Укажите описание цели')
+      return
+    }
+    if (!formData.category) {
+      alert('Выберите категорию')
+      return
+    }
     onSave(formData)
   }
 
   return (
     <Card className="p-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         <h3 className="text-lg font-semibold">
           {goal ? 'Редактирование цели' : 'Новая цель'}
         </h3>
@@ -232,10 +239,10 @@ export function TemplateGoalEditor({ goal, onSave, onDelete, onCancel }: Templat
             <Button type="button" variant="outline" onClick={onCancel}>
               Отмена
             </Button>
-            <Button type="submit">Сохранить цель</Button>
+            <Button type="button" onClick={handleSave}>Сохранить цель</Button>
           </div>
         </div>
-      </form>
+      </div>
     </Card>
   )
 }

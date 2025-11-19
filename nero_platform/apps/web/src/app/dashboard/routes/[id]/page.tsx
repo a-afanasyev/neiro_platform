@@ -11,6 +11,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { routesApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import { GoalEditor } from '@/components/routes/GoalEditor'
+import { PhaseEditor } from '@/components/routes/PhaseEditor'
+import { useToast } from '@/hooks/useToast'
 
 interface Route {
   id: string
@@ -92,6 +95,7 @@ export default function RouteDetailPage() {
   const router = useRouter()
   const params = useParams()
   const { user } = useAuth()
+  const { success, error: showError } = useToast()
   const routeId = params.id as string
 
   const [route, setRoute] = useState<Route | null>(null)
@@ -100,6 +104,10 @@ export default function RouteDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isActionLoading, setIsActionLoading] = useState(false)
+  const [isAddingGoal, setIsAddingGoal] = useState(false)
+  const [editingGoalId, setEditingGoalId] = useState<string | null>(null)
+  const [isAddingPhase, setIsAddingPhase] = useState(false)
+  const [editingPhaseId, setEditingPhaseId] = useState<string | null>(null)
 
   useEffect(() => {
     loadRouteData()
@@ -158,6 +166,88 @@ export default function RouteDetailPage() {
       setError(err.response?.data?.error?.message || 'Не удалось завершить маршрут')
     } finally {
       setIsActionLoading(false)
+    }
+  }
+
+  const handleAddGoal = async (goalData: any) => {
+    try {
+      const response = await routesApi.createGoal(routeId, goalData)
+      if (response.success) {
+        success('Цель добавлена', 'Цель успешно добавлена к маршруту')
+        setIsAddingGoal(false)
+        await loadRouteData()
+      }
+    } catch (err: any) {
+      showError('Ошибка', err.response?.data?.error?.message || 'Не удалось добавить цель')
+    }
+  }
+
+  const handleEditGoal = async (goalData: any) => {
+    if (!editingGoalId) return
+    try {
+      const response = await routesApi.updateGoal(routeId, editingGoalId, goalData)
+      if (response.success) {
+        success('Цель обновлена', 'Изменения сохранены')
+        setEditingGoalId(null)
+        await loadRouteData()
+      }
+    } catch (err: any) {
+      showError('Ошибка', err.response?.data?.error?.message || 'Не удалось обновить цель')
+    }
+  }
+
+  const handleDeleteGoal = async (goalId: string) => {
+    if (!confirm('Удалить эту цель?')) return
+    try {
+      const response = await routesApi.deleteGoal(routeId, goalId)
+      if (response.success) {
+        success('Цель удалена', 'Цель удалена из маршрута')
+        setEditingGoalId(null)
+        await loadRouteData()
+      }
+    } catch (err: any) {
+      showError('Ошибка', err.response?.data?.error?.message || 'Не удалось удалить цель')
+    }
+  }
+
+  const handleAddPhase = async (phaseData: any) => {
+    try {
+      const response = await routesApi.createPhase(routeId, phaseData)
+      if (response.success) {
+        success('Фаза добавлена', 'Фаза успешно добавлена к маршруту')
+        setIsAddingPhase(false)
+        await loadRouteData()
+      }
+    } catch (err: any) {
+      showError('Ошибка', err.response?.data?.error?.message || 'Не удалось добавить фазу')
+    }
+  }
+
+  const handleEditPhase = async (phaseData: any) => {
+    if (!editingPhaseId) return
+    try {
+      const response = await routesApi.updatePhase(routeId, editingPhaseId, phaseData)
+      if (response.success) {
+        success('Фаза обновлена', 'Изменения сохранены')
+        setEditingPhaseId(null)
+        await loadRouteData()
+      }
+    } catch (err: any) {
+      showError('Ошибка', err.response?.data?.error?.message || 'Не удалось обновить фазу')
+    }
+  }
+
+  const handleDeletePhase = async (phaseId: string) => {
+    if (!confirm('Удалить эту фазу?')) return
+    try {
+      const response = await routesApi.deletePhase(routeId, phaseId)
+      if (response.success) {
+        success('Фаза удалена', 'Фаза удалена из маршрута')
+        setEditingPhaseId(null)
+        await loadRouteData()
+      }
+    } catch (err: any) {
+      showError('Ошибка', err.response?.data?.error?.message || 'Не удалось удалить фазу')
     }
   }
 
@@ -305,12 +395,33 @@ export default function RouteDetailPage() {
 
             {/* Goals Tab */}
             <TabsContent value="goals" className="space-y-4">
-              {goals.length === 0 ? (
+              {canManageRoute && !isAddingGoal && editingGoalId === null && (
+                <div className="flex justify-end">
+                  <Button onClick={() => setIsAddingGoal(true)}>
+                    + Добавить цель
+                  </Button>
+                </div>
+              )}
+
+              {isAddingGoal && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <GoalEditor
+                      onSave={handleAddGoal}
+                      onCancel={() => setIsAddingGoal(false)}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+
+              {goals.length === 0 && !isAddingGoal ? (
                 <Card>
                   <CardContent className="py-12 text-center">
                     <p className="text-neutral-600 mb-4">Нет целей</p>
                     {canManageRoute && (
-                      <Button variant="outline">Добавить цель</Button>
+                      <Button variant="outline" onClick={() => setIsAddingGoal(true)}>
+                        Добавить первую цель
+                      </Button>
                     )}
                   </CardContent>
                 </Card>
@@ -319,29 +430,53 @@ export default function RouteDetailPage() {
                   {goals.map((goal) => (
                     <Card key={goal.id}>
                       <CardContent className="pt-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h4 className="font-semibold">{goal.title}</h4>
-                              <Badge variant="outline">
-                                {domainLabels[goal.domain] || goal.domain}
-                              </Badge>
-                              {goal.priority === 'high' && (
-                                <Badge>{priorityLabels[goal.priority]}</Badge>
+                        {editingGoalId === goal.id ? (
+                          <GoalEditor
+                            goal={{
+                              title: goal.title,
+                              domain: goal.domain,
+                              description: goal.description || '',
+                              priority: goal.priority as 'low' | 'medium' | 'high',
+                              targetDate: goal.targetDate,
+                            }}
+                            onSave={handleEditGoal}
+                            onCancel={() => setEditingGoalId(null)}
+                            onDelete={() => handleDeleteGoal(goal.id)}
+                          />
+                        ) : (
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-semibold">{goal.title}</h4>
+                                <Badge variant="outline">
+                                  {domainLabels[goal.domain] || goal.domain}
+                                </Badge>
+                                {goal.priority === 'high' && (
+                                  <Badge>{priorityLabels[goal.priority]}</Badge>
+                                )}
+                              </div>
+                              {goal.description && (
+                                <p className="text-sm text-neutral-600 mb-2">
+                                  {goal.description}
+                                </p>
+                              )}
+                              {goal.targetDate && (
+                                <p className="text-xs text-neutral-500">
+                                  Целевая дата: {formatDate(goal.targetDate)}
+                                </p>
                               )}
                             </div>
-                            {goal.description && (
-                              <p className="text-sm text-neutral-600 mb-2">
-                                {goal.description}
-                              </p>
-                            )}
-                            {goal.targetDate && (
-                              <p className="text-xs text-neutral-500">
-                                Целевая дата: {formatDate(goal.targetDate)}
-                              </p>
+                            {canManageRoute && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setEditingGoalId(goal.id)}
+                              >
+                                Редактировать
+                              </Button>
                             )}
                           </div>
-                        </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -351,12 +486,35 @@ export default function RouteDetailPage() {
 
             {/* Phases Tab */}
             <TabsContent value="phases" className="space-y-4">
-              {phases.length === 0 ? (
+              {canManageRoute && !isAddingPhase && editingPhaseId === null && (
+                <div className="flex justify-end">
+                  <Button onClick={() => setIsAddingPhase(true)}>
+                    + Добавить фазу
+                  </Button>
+                </div>
+              )}
+
+              {isAddingPhase && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <PhaseEditor
+                      phaseIndex={phases.length}
+                      onSave={handleAddPhase}
+                      onDelete={() => setIsAddingPhase(false)}
+                      onCancel={() => setIsAddingPhase(false)}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+
+              {phases.length === 0 && !isAddingPhase ? (
                 <Card>
                   <CardContent className="py-12 text-center">
                     <p className="text-neutral-600 mb-4">Нет фаз</p>
                     {canManageRoute && (
-                      <Button variant="outline">Добавить фазу</Button>
+                      <Button variant="outline" onClick={() => setIsAddingPhase(true)}>
+                        Добавить первую фазу
+                      </Button>
                     )}
                   </CardContent>
                 </Card>
@@ -365,24 +523,48 @@ export default function RouteDetailPage() {
                   {phases.map((phase, index) => (
                     <Card key={phase.id}>
                       <CardContent className="pt-6">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold mb-1">{phase.title}</h4>
-                            {phase.description && (
-                              <p className="text-sm text-neutral-600 mb-2">
-                                {phase.description}
-                              </p>
+                        {editingPhaseId === phase.id ? (
+                          <PhaseEditor
+                            phase={{
+                              title: phase.title,
+                              description: phase.description || '',
+                              orderIndex: phase.orderIndex,
+                              durationWeeks: 4,
+                            }}
+                            phaseIndex={index}
+                            onSave={handleEditPhase}
+                            onDelete={() => handleDeletePhase(phase.id)}
+                            onCancel={() => setEditingPhaseId(null)}
+                          />
+                        ) : (
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold mb-1">{phase.title}</h4>
+                              {phase.description && (
+                                <p className="text-sm text-neutral-600 mb-2">
+                                  {phase.description}
+                                </p>
+                              )}
+                              {(phase.startDate || phase.endDate) && (
+                                <p className="text-xs text-neutral-500">
+                                  {formatDate(phase.startDate)} — {formatDate(phase.endDate)}
+                                </p>
+                              )}
+                            </div>
+                            {canManageRoute && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setEditingPhaseId(phase.id)}
+                              >
+                                Редактировать
+                              </Button>
                             )}
-                            {(phase.startDate || phase.endDate) && (
-                              <p className="text-xs text-neutral-500">
-                                {formatDate(phase.startDate)} — {formatDate(phase.endDate)}
-                              </p>
-                            )}
                           </div>
-                        </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}

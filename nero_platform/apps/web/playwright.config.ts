@@ -29,11 +29,13 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:3001',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  // webServer is disabled because the app runs in Docker
+  // Make sure docker-compose is running before tests
+  // webServer: {
+  //   command: 'pnpm dev',
+  //   url: 'http://localhost:3001',
+  //   reuseExistingServer: !process.env.CI,
+  //   timeout: 120000,
+  // },
 })
 

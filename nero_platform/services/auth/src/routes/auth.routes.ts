@@ -53,5 +53,21 @@ router.post(
  */
 router.get('/me', authenticateToken, authController.getCurrentUser);
 
+/**
+ * POST /auth/v1/dev/hash-password
+ * TEMPORARY: Generate bcrypt hash for development (REMOVE IN PRODUCTION)
+ */
+if (process.env.NODE_ENV !== 'production') {
+  router.post('/dev/hash-password', async (req, res) => {
+    const bcrypt = require('bcrypt');
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ error: 'Password required' });
+    }
+    const hash = await bcrypt.hash(password, 12);
+    res.json({ password, hash });
+  });
+}
+
 export default router;
 

@@ -1,6 +1,6 @@
 /**
  * Children Routes
- * 
+ *
  * POST   /children/v1 - создание профиля ребенка
  * GET    /children/v1 - список детей
  * GET    /children/v1/:id - получение ребенка
@@ -8,6 +8,7 @@
  * DELETE /children/v1/:id - архивация ребенка
  * POST   /children/v1/:id/parents - добавление родителя
  * DELETE /children/v1/:id/parents/:parentId - удаление родителя
+ * PATCH  /children/v1/:id/parents/:parentId - обновление родителя
  * POST   /children/v1/:id/specialists - назначение специалиста
  * DELETE /children/v1/:id/specialists/:specialistId - снятие специалиста
  */
@@ -21,6 +22,7 @@ import {
   createChildSchema,
   updateChildSchema,
   addParentSchema,
+  updateParentSchema,
   addSpecialistSchema,
 } from '../validators/children.validators';
 
@@ -87,6 +89,17 @@ router.delete(
   '/:id/parents/:parentId',
   requireRole(['specialist', 'supervisor', 'admin']),
   childrenController.removeParent
+);
+
+/**
+ * PATCH /children/v1/:id/parents/:parentId
+ * Обновление информации о родителе
+ */
+router.patch(
+  '/:id/parents/:parentId',
+  requireRole(['specialist', 'supervisor', 'admin']),
+  validateRequest(updateParentSchema),
+  childrenController.updateParent
 );
 
 /**

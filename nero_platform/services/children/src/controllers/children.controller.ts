@@ -20,9 +20,18 @@ export const childrenController = {
   async createChild(req: Request, res: Response, next: NextFunction) {
     try {
       const currentUser = (req as any).user;
-      const { firstName, lastName, birthDate, gender, diagnosisSummary, notes } = req.body;
+      const {
+        firstName, lastName, birthDate, gender, diagnosisSummary, notes,
+        parentUserId, relationship, legalGuardian
+      } = req.body;
 
-      // Создание ребенка
+      // Проверка существования родителя
+      const parent = await prisma.user.findUnique({ where: { id: parentUserId } });
+      if (!parent || parent.role !== 'parent') {
+        throw new AppError('Родитель не найден или неверная роль', 404, 'PARENT_NOT_FOUND');
+      }
+
+      // Создание ребенка с родителем в транзакции
       const child = await prisma.child.create({
         data: {
           firstName,
@@ -31,13 +40,28 @@ export const childrenController = {
           gender,
           diagnosisSummary,
           notes,
+          parents: {
+            create: {
+              parentUserId,
+              relationship,
+              legalGuardian: legalGuardian !== undefined ? legalGuardian : true,
+              linkedAt: new Date(),
+            },
+          },
         },
       });
 
-      // Публикация события
+      // Публикация событий
       await publishEvent('children.child.created', {
         childId: child.id,
         createdBy: currentUser.userId,
+        timestamp: new Date().toISOString(),
+      });
+
+      await publishEvent('children.parent.linked', {
+        childId: child.id,
+        parentId: parentUserId,
+        linkedBy: currentUser.userId,
         timestamp: new Date().toISOString(),
       });
 
@@ -360,6 +384,33 @@ export const childrenController = {
       const { id, parentId } = req.params;
       const currentUser = (req as any).user;
 
+      // Проверка: нельзя удалить последнего законного представителя
+      const legalGuardiansCount = await prisma.childParent.count({
+        where: {
+          childId: id,
+          legalGuardian: true,
+        },
+      });
+
+      const parentToRemove = await prisma.childParent.findFirst({
+        where: {
+          childId: id,
+          parentUserId: parentId,
+        },
+      });
+
+      if (!parentToRemove) {
+        throw new AppError('Связь родителя с ребенком не найдена', 404, 'PARENT_LINK_NOT_FOUND');
+      }
+
+      if (parentToRemove.legalGuardian && legalGuardiansCount <= 1) {
+        throw new AppError(
+          'Нельзя удалить единственного законного представителя. У ребенка должен быть хотя бы один законный представитель.',
+          400,
+          'LAST_LEGAL_GUARDIAN'
+        );
+      }
+
       await prisma.childParent.deleteMany({
         where: {
           childId: id,
@@ -376,6 +427,76 @@ export const childrenController = {
       });
 
       res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * PATCH /children/v1/:id/parents/:parentId
+   * Обновление информации о родителе (relationship, legalGuardian)
+   */
+  async updateParent(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id, parentId } = req.params;
+      const currentUser = (req as any).user;
+      const { relationship, legalGuardian, guardianshipType } = req.body;
+
+      // Проверка существования связи
+      const existingLink = await prisma.childParent.findFirst({
+        where: {
+          childId: id,
+          parentUserId: parentId,
+        },
+      });
+
+      if (!existingLink) {
+        throw new AppError('Связь родителя с ребенком не найдена', 404, 'PARENT_LINK_NOT_FOUND');
+      }
+
+      // Если пытаются снять статус законного представителя, проверяем что он не последний
+      if (existingLink.legalGuardian && legalGuardian === false) {
+        const legalGuardiansCount = await prisma.childParent.count({
+          where: {
+            childId: id,
+            legalGuardian: true,
+          },
+        });
+
+        if (legalGuardiansCount <= 1) {
+          throw new AppError(
+            'Нельзя снять статус законного представителя у единственного опекуна. У ребенка должен быть хотя бы один законный представитель.',
+            400,
+            'LAST_LEGAL_GUARDIAN'
+          );
+        }
+      }
+
+      // Обновление связи
+      const updatedLink = await prisma.childParent.updateMany({
+        where: {
+          childId: id,
+          parentUserId: parentId,
+        },
+        data: {
+          ...(relationship && { relationship }),
+          ...(legalGuardian !== undefined && { legalGuardian }),
+          ...(guardianshipType && { guardianshipType }),
+        },
+      });
+
+      // Публикация события
+      await publishEvent('children.parent.updated', {
+        childId: id,
+        parentId,
+        updatedBy: currentUser.userId,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.status(200).json({
+        success: true,
+        data: { updated: true },
+      });
     } catch (error) {
       next(error);
     }

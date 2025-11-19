@@ -73,14 +73,17 @@ export function TemplatePhaseEditor({ phase, phaseIndex, onSave, onDelete, onCan
   /**
    * Обработчик сохранения фазы
    */
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSave = () => {
+    if (!formData.name.trim()) {
+      alert('Укажите название фазы')
+      return
+    }
     onSave(formData)
   }
 
   return (
     <Card className="p-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         <h3 className="text-lg font-semibold">
           {phase ? 'Редактирование фазы' : 'Новая фаза'} (Порядок: {phaseIndex + 1})
         </h3>
@@ -169,10 +172,10 @@ export function TemplatePhaseEditor({ phase, phaseIndex, onSave, onDelete, onCan
             <Button type="button" variant="outline" onClick={onCancel}>
               Отмена
             </Button>
-            <Button type="submit">Сохранить фазу</Button>
+            <Button type="button" onClick={handleSave}>Сохранить фазу</Button>
           </div>
         </div>
-      </form>
+      </div>
     </Card>
   )
 }

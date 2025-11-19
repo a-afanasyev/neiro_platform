@@ -27,6 +27,7 @@ export async function createSession(
     }
 
     // Проверяем права доступа специалиста к этому ребенку
+    // Администраторы и супервизоры имеют доступ ко всем детям
     if (req.user!.role === 'SPECIALIST') {
       const relationship = await prisma.childSpecialist.findFirst({
         where: {
