@@ -122,7 +122,7 @@ export default function ExercisesPage() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Библиотека упражнений</h1>
+              <h1 className="text-3xl font-bold text-neutral-900">Упражнения</h1>
               <p className="text-neutral-600 mt-1">
                 Коллекция коррекционных упражнений и активностей
               </p>

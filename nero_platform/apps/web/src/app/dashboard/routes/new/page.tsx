@@ -157,7 +157,7 @@ export default function NewRoutePage() {
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-bold text-neutral-900">Создать маршрут</h1>
+            <h1 className="text-3xl font-bold text-neutral-900">Новый маршрут</h1>
             <p className="text-neutral-600 mt-1">
               Индивидуальный коррекционный маршрут для ребенка
             </p>
@@ -188,6 +188,7 @@ export default function NewRoutePage() {
                       setFormData({ ...formData, childId: value })
                     }
                     required
+                    name="childId"
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите ребенка" />
@@ -211,6 +212,7 @@ export default function NewRoutePage() {
                       setFormData({ ...formData, leadSpecialistId: value })
                     }
                     required
+                    name="responsibleSpecialistId"
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите специалиста" />
@@ -260,6 +262,7 @@ export default function NewRoutePage() {
                   <Label htmlFor="title">Название *</Label>
                   <Input
                     id="title"
+                    name="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="Например: Индивидуальный маршрут Алисы"

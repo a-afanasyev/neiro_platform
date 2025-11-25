@@ -1,0 +1,28 @@
+# Dockerfile для API Validation
+FROM node:20-alpine
+
+# Установка pnpm
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+
+WORKDIR /app
+
+# Копируем package.json и lock файлы
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/types/package.json ./packages/types/
+COPY packages/database/package.json ./packages/database/
+COPY packages/utils/package.json ./packages/utils/
+
+# Установка зависимостей
+RUN pnpm install --frozen-lockfile
+
+# Копируем исходники
+COPY packages/ ./packages/
+COPY scripts/ ./scripts/
+COPY Documents/ ./Documents/
+COPY tsconfig.json ./
+
+# Установка tsx для запуска TypeScript
+RUN pnpm add -D tsx
+
+# Default command - run validation
+CMD ["pnpm", "exec", "tsc", "--noEmit", "-p", "packages/types/tsconfig.json"]

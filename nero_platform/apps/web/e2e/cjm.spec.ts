@@ -128,7 +128,7 @@ test.describe('CJM #2: Родитель - Выполнение программ�
 
     // Проверка, что отображается список назначений
     // В seed данных должны быть созданы назначения для детей parent1
-    await expect(page.locator('text=Задания').or(page.locator('text=Назначения'))).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Задания|Назначения/)
   })
 
   test('CJM #2.2: Родитель может просмотреть календарь занятий', async ({ page }) => {
@@ -289,8 +289,8 @@ test.describe('CJM #3: Нейропсихолог - Полный цикл', () =
       
       // Проверка наличия основных полей формы
       await expect(page.locator('input[name="title"]')).toBeVisible()
-      await expect(page.locator('select[name="childId"]')).toBeVisible()
-      await expect(page.locator('select[name="responsibleSpecialistId"]')).toBeVisible()
+      await expect(page.getByText('Ребенок *')).toBeVisible()
+      await expect(page.getByText('Ведущий специалист *')).toBeVisible()
     }
   })
 
@@ -303,7 +303,7 @@ test.describe('CJM #3: Нейропсихолог - Полный цикл', () =
     await expect(page).toHaveURL(/\/dashboard\/routes/)
 
     // Проверка отображения списка маршрутов
-    await expect(page.locator('text=Маршруты')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { level: 1, name: 'Маршруты' })).toBeVisible({ timeout: 5000 })
     
     // Если есть маршруты, проверяем возможность просмотра деталей
     const routeCards = page.locator('[data-testid="route-card"]')
@@ -337,9 +337,9 @@ test.describe('CJM #3: Нейропсихолог - Полный цикл', () =
       await expect(page.locator('text=Новое назначение')).toBeVisible({ timeout: 5000 })
       
       // Проверка наличия основных полей формы
-      await expect(page.locator('select[name="childId"]')).toBeVisible()
-      await expect(page.locator('select[name="exerciseId"]')).toBeVisible()
-      await expect(page.locator('input[name="scheduledDate"]')).toBeVisible()
+      await expect(page.getByText('Ребенок *')).toBeVisible()
+      await expect(page.getByText('Упражнение *')).toBeVisible()
+      await expect(page.getByText('Дата начала *')).toBeVisible()
       
       // Отмена для избежания создания реального назначения
       await page.click('button:has-text("Отмена")')
@@ -355,7 +355,7 @@ test.describe('CJM #3: Нейропсихолог - Полный цикл', () =
     await expect(page).toHaveURL(/\/dashboard\/exercises/)
 
     // Проверка отображения библиотеки упражнений
-    await expect(page.locator('text=Упражнения')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Упражнения')
     
     // Проверка наличия фильтров по категориям
     const categoryFilter = page.locator('select[name="category"]')
@@ -373,7 +373,7 @@ test.describe('CJM #3: Нейропсихолог - Полный цикл', () =
     await expect(page).toHaveURL(/\/dashboard\/templates/)
 
     // Проверка отображения библиотеки шаблонов
-    await expect(page.locator('text=Шаблоны')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Шаблоны/)
     
     // Если есть шаблоны, проверяем возможность просмотра деталей
     const templateCards = page.locator('[data-testid="template-card"]')
@@ -422,12 +422,12 @@ test.describe('CJM: Сквозные сценарии', () => {
     // Шаг 4: Переход в маршруты
     await page.click('text=Маршруты')
     await expect(page).toHaveURL(/\/dashboard\/routes/)
-    await expect(page.locator('text=Маршруты')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { level: 1, name: 'Маршруты' })).toBeVisible({ timeout: 5000 })
     
     // Шаг 5: Переход в назначения
     await page.click('text=Назначения')
     await expect(page).toHaveURL(/\/dashboard\/assignments/)
-    await expect(page.locator('text=Назначения')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Задания|Назначения/)
     
     // Проверка успешного прохождения всего цикла
     expect(true).toBeTruthy()

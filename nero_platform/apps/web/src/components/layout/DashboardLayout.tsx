@@ -66,7 +66,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         ...baseItems,
         { href: '/dashboard/children', label: 'Мои дети', icon: '👶' },
         { href: '/dashboard/routes', label: 'Мой маршрут', icon: '🗺️' },
-        { href: '/dashboard/assignments', label: 'Задания', icon: '📅' },
+        { href: '/dashboard/assignments', label: 'Назначения', icon: '📅' },
         { href: '/dashboard/progress', label: 'Прогресс', icon: '📈' },
         { href: '/dashboard/chat', label: 'Чат', icon: '💬' },
       ]

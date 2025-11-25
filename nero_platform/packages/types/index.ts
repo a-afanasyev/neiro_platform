@@ -41,3 +41,8 @@ export interface AuthUser extends User {
 export * from './api'
 export * from './auth'
 export * from './user'
+
+// API Validation Schemas (Zod) - соответствует API_CONTRACTS_MVP.md v0.9
+export * from './reports'
+export * from './notifications'
+export * from './analytics'

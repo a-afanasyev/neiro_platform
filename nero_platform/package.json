@@ -16,11 +16,14 @@
     "db:migrate": "cd packages/database && prisma migrate dev",
     "db:push": "cd packages/database && prisma db push",
     "db:seed": "cd packages/database && prisma db seed",
-    "db:studio": "cd packages/database && prisma studio"
+    "db:studio": "cd packages/database && prisma studio",
+    "api:validate": "tsx scripts/validate-api-examples.ts",
+    "api:validate:watch": "tsx watch scripts/validate-api-examples.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "prettier": "^3.1.0",
+    "tsx": "^4.7.0",
     "turbo": "^1.11.0",
     "typescript": "^5.3.3"
   },

@@ -32,8 +32,8 @@ interface Child {
   id: string
   firstName: string
   lastName: string
-  dateOfBirth: string
-  diagnosis?: string
+  birthDate: string
+  diagnosisSummary?: string
   age?: number
 }
 
@@ -135,8 +135,8 @@ export default function ChildrenPage() {
       const childData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        dateOfBirth: formData.dateOfBirth,
-        diagnosis: formData.diagnosis || undefined,
+        birthDate: formData.dateOfBirth,
+        diagnosisSummary: formData.diagnosis || undefined,
       }
 
       const childResponse = await childrenApi.createChild(childData)
@@ -404,13 +404,13 @@ export default function ChildrenPage() {
                             <CardDescription className="mt-2">
                               <div className="space-y-1">
                                 <p>
-                                  Возраст: {calculateAge(child.dateOfBirth)} {' '}
-                                  {calculateAge(child.dateOfBirth) === 1 ? 'год' 
-                                    : calculateAge(child.dateOfBirth) < 5 ? 'года' : 'лет'}
+                                  Возраст: {calculateAge(child.birthDate)} {' '}
+                                  {calculateAge(child.birthDate) === 1 ? 'год'
+                                    : calculateAge(child.birthDate) < 5 ? 'года' : 'лет'}
                                 </p>
-                                {child.diagnosis && (
+                                {child.diagnosisSummary && (
                                   <p className="text-xs">
-                                    Диагноз: {child.diagnosis}
+                                    Диагноз: {child.diagnosisSummary}
                                   </p>
                                 )}
                               </div>

@@ -180,7 +180,87 @@ async function main() {
     },
   });
 
-  console.log(`✅ Создано пользователей: 10`);
+  // Родитель 6 (password: parent123)
+  const parent6 = await prisma.user.upsert({
+    where: { email: 'parent6@example.com' },
+    update: {},
+    create: {
+      email: 'parent6@example.com',
+      password: await bcrypt.hash('parent123', 12),
+      firstName: 'Мария',
+      lastName: 'Волкова',
+      role: 'parent',
+      status: 'active',
+      phone: '+998906666666',
+      timezone: 'Europe/Moscow',
+    },
+  });
+
+  // Родитель 7 (password: parent123)
+  const parent7 = await prisma.user.upsert({
+    where: { email: 'parent7@example.com' },
+    update: {},
+    create: {
+      email: 'parent7@example.com',
+      password: await bcrypt.hash('parent123', 12),
+      firstName: 'Алексей',
+      lastName: 'Новиков',
+      role: 'parent',
+      status: 'active',
+      phone: '+998907777777',
+      timezone: 'Asia/Tashkent',
+    },
+  });
+
+  // Родитель 8 (password: parent123)
+  const parent8 = await prisma.user.upsert({
+    where: { email: 'parent8@example.com' },
+    update: {},
+    create: {
+      email: 'parent8@example.com',
+      password: await bcrypt.hash('parent123', 12),
+      firstName: 'Ирина',
+      lastName: 'Морозова',
+      role: 'parent',
+      status: 'active',
+      phone: '+998908888888',
+      timezone: 'Europe/Moscow',
+    },
+  });
+
+  // Родитель 9 (password: parent123)
+  const parent9 = await prisma.user.upsert({
+    where: { email: 'parent9@example.com' },
+    update: {},
+    create: {
+      email: 'parent9@example.com',
+      password: await bcrypt.hash('parent123', 12),
+      firstName: 'Виктор',
+      lastName: 'Соколов',
+      role: 'parent',
+      status: 'active',
+      phone: '+998909999999',
+      timezone: 'Asia/Tashkent',
+    },
+  });
+
+  // Родитель 10 (password: parent123)
+  const parent10 = await prisma.user.upsert({
+    where: { email: 'parent10@example.com' },
+    update: {},
+    create: {
+      email: 'parent10@example.com',
+      password: await bcrypt.hash('parent123', 12),
+      firstName: 'Татьяна',
+      lastName: 'Лебедева',
+      role: 'parent',
+      status: 'active',
+      phone: '+998901010101',
+      timezone: 'Europe/Moscow',
+    },
+  });
+
+  console.log(`✅ Создано пользователей: 15`);
 
   // ============================================================
   // 2. Создаём профили специалистов
@@ -334,7 +414,25 @@ async function main() {
     },
   });
 
-  console.log(`✅ Связей детей с родителями: 2`);
+  // Для CJM тестов: parent1 должен видеть обоих детей
+  await prisma.childParent.upsert({
+    where: {
+      childId_parentUserId: {
+        childId: child2.id,
+        parentUserId: parent1.id,
+      },
+    },
+    update: {},
+    create: {
+      childId: child2.id,
+      parentUserId: parent1.id,
+      legalGuardian: true,
+      relationship: 'mother',
+      linkedAt: new Date(),
+    },
+  });
+
+  console.log(`✅ Связей детей с родителями: 3`);
 
   // ============================================================
   // 5. Назначаем специалистов детям
@@ -1224,6 +1322,17 @@ async function main() {
 
   // Назначения для Алисы (разные статусы)
   // ВАЖНО: specialistId ссылается на userId (не на Specialist.id)
+  // Используем актуальные даты относительно текущего времени
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  const threeDaysAgo = new Date(today);
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
   await prisma.assignment.create({
     data: {
       childId: child1.id,
@@ -1233,8 +1342,8 @@ async function main() {
       routeId: route1.id,
       phaseId: phase1_2.id,
       targetGoalId: goal1_1.id,
-      plannedStartDate: new Date('2025-11-16'),
-      dueDate: new Date('2025-11-16'),
+      plannedStartDate: threeDaysAgo,
+      dueDate: threeDaysAgo,
       status: 'completed',
       deliveryChannel: 'in_person',
       frequencyPerWeek: 3,
@@ -1251,8 +1360,8 @@ async function main() {
       specialistId: specialist1.id, // userId нейропсихолога
       routeId: route1.id,
       phaseId: phase1_2.id,
-      plannedStartDate: new Date('2025-11-17'),
-      dueDate: new Date('2025-11-17'),
+      plannedStartDate: today,
+      dueDate: today,
       status: 'in_progress',
       deliveryChannel: 'in_person',
       frequencyPerWeek: 2,
@@ -1268,9 +1377,9 @@ async function main() {
       specialistId: specialist1.id, // userId нейропсихолога
       routeId: route1.id,
       phaseId: phase1_2.id,
-      plannedStartDate: new Date('2025-11-17'),
-      dueDate: new Date('2025-11-17'),
-      status: 'assigned',
+      plannedStartDate: tomorrow,
+      dueDate: tomorrow,
+      status: 'scheduled',
       deliveryChannel: 'home',
       frequencyPerWeek: 5,
       expectedDurationMinutes: 10,
@@ -1287,9 +1396,9 @@ async function main() {
       routeId: route1.id,
       phaseId: phase1_3.id,
       targetGoalId: goal1_3.id,
-      plannedStartDate: new Date('2025-11-18'),
-      dueDate: new Date('2025-11-18'),
-      status: 'assigned',
+      plannedStartDate: dayAfterTomorrow,
+      dueDate: dayAfterTomorrow,
+      status: 'scheduled',
       deliveryChannel: 'in_person',
       frequencyPerWeek: 2,
       expectedDurationMinutes: 30,
@@ -1305,8 +1414,8 @@ async function main() {
       routeId: route1.id,
       phaseId: phase1_2.id,
       targetGoalId: goal1_1.id,
-      plannedStartDate: new Date('2025-11-10'),
-      dueDate: new Date('2025-11-10'),
+      plannedStartDate: new Date('2025-10-10'),
+      dueDate: new Date('2025-10-10'),
       status: 'overdue',
       deliveryChannel: 'telepractice',
       frequencyPerWeek: 3,
@@ -1323,8 +1432,8 @@ async function main() {
       specialistId: specialist1.id, // userId нейропсихолога
       routeId: route1.id,
       phaseId: phase1_2.id,
-      plannedStartDate: new Date('2025-11-12'),
-      dueDate: new Date('2025-11-12'),
+      plannedStartDate: yesterday,
+      dueDate: yesterday,
       status: 'cancelled',
       deliveryChannel: 'in_person',
       frequencyPerWeek: 2,
@@ -1341,9 +1450,9 @@ async function main() {
       specialistId: specialist2.id, // userId логопеда
       routeId: route2.id,
       phaseId: phase1_2.id,
-      plannedStartDate: new Date('2025-11-18'),
-      dueDate: new Date('2025-11-18'),
-      status: 'assigned',
+      plannedStartDate: tomorrow,
+      dueDate: tomorrow,
+      status: 'scheduled',
       deliveryChannel: 'in_person',
       frequencyPerWeek: 3,
       expectedDurationMinutes: 15,
@@ -1358,9 +1467,9 @@ async function main() {
       specialistId: specialist1.id, // userId нейропсихолога
       routeId: route2.id,
       phaseId: phase1_2.id,
-      plannedStartDate: new Date('2025-11-19'),
-      dueDate: new Date('2025-11-19'),
-      status: 'assigned',
+      plannedStartDate: dayAfterTomorrow,
+      dueDate: dayAfterTomorrow,
+      status: 'scheduled',
       deliveryChannel: 'home',
       frequencyPerWeek: 2,
       expectedDurationMinutes: 20,
@@ -1370,7 +1479,213 @@ async function main() {
   console.log('✅ Создано назначений: 8');
 
   // ============================================================
-  // 12. Создаём диагностические сессии
+  // 12. Создаём уведомления (Notifications)
+  // ============================================================
+
+  console.log('📝 Создание уведомлений...');
+
+  // Notification 1: Email reminder для parent1
+  const notification1 = await prisma.notification.create({
+    data: {
+      recipientId: parent1.id,
+      channel: 'email',
+      template: 'assignment_reminder',
+      payload: {
+        subject: 'Напоминание о занятии',
+        body: 'Через 1 час начинается занятие "Развитие внимания"',
+        assignmentId: assignment1.id,
+      },
+      status: 'sent',
+      attempts: 1,
+      scheduledAt: new Date('2025-11-20T08:00:00Z'),
+      sentAt: new Date('2025-11-20T08:00:15Z'),
+    },
+  });
+
+  // Notification 2: Push notification для parent1
+  const notification2 = await prisma.notification.create({
+    data: {
+      recipientId: parent1.id,
+      channel: 'push',
+      template: 'report_reviewed',
+      payload: {
+        title: 'Отчет проверен',
+        body: 'Специалист оставил комментарий к отчету',
+        reportId: 'mock-report-id',
+      },
+      status: 'sent',
+      attempts: 1,
+      scheduledAt: new Date('2025-11-21T14:30:00Z'),
+      sentAt: new Date('2025-11-21T14:30:05Z'),
+    },
+  });
+
+  // Notification 3: Failed email для parent2
+  const notification3 = await prisma.notification.create({
+    data: {
+      recipientId: parent2.id,
+      channel: 'email',
+      template: 'goal_achieved',
+      payload: {
+        subject: 'Достижение цели',
+        body: 'Ваш ребенок достиг цели "Называть 5 цветов"',
+        goalId: goal1.id,
+      },
+      status: 'failed',
+      attempts: 3,
+      lastError: 'SMTP Error: Connection timeout',
+      scheduledAt: new Date('2025-11-22T10:00:00Z'),
+    },
+  });
+
+  // Notification 4: Pending notification для parent1
+  await prisma.notification.create({
+    data: {
+      recipientId: parent1.id,
+      channel: 'email',
+      template: 'route_updated',
+      payload: {
+        subject: 'Обновление маршрута',
+        body: 'Специалист обновил маршрут вашего ребенка',
+        routeId: route1.id,
+      },
+      status: 'pending',
+      attempts: 0,
+      scheduledAt: new Date(Date.now() + 3600000), // Через 1 час
+    },
+  });
+
+  console.log('✅ Создано уведомлений: 4');
+
+  // ============================================================
+  // 13. Создаём in-app уведомления (UserNotifications)
+  // ============================================================
+
+  console.log('📝 Создание in-app уведомлений...');
+
+  // UserNotification 1: Непрочитанное для parent1
+  await prisma.userNotification.create({
+    data: {
+      userId: parent1.id,
+      notificationId: notification1.id,
+      type: 'assignment_reminder',
+      title: 'Напоминание о занятии',
+      body: 'Через 1 час начинается занятие "Развитие внимания"',
+      link: `/dashboard/assignments/${assignment1.id}`,
+      status: 'unread',
+    },
+  });
+
+  // UserNotification 2: Прочитанное для parent1
+  await prisma.userNotification.create({
+    data: {
+      userId: parent1.id,
+      notificationId: notification2.id,
+      type: 'report_reviewed',
+      title: 'Отчет проверен',
+      body: 'Специалист Анна Смирнова оставила комментарий к отчету',
+      link: '/dashboard/reports/mock-report-id',
+      status: 'read',
+      readAt: new Date('2025-11-21T15:00:00Z'),
+    },
+  });
+
+  // UserNotification 3: System message для parent1 (без связи с Notification)
+  await prisma.userNotification.create({
+    data: {
+      userId: parent1.id,
+      type: 'system_message',
+      title: 'Добро пожаловать в Neiro Platform',
+      body: 'Ознакомьтесь с нашим руководством для родителей',
+      link: '/help/guide',
+      status: 'unread',
+    },
+  });
+
+  // UserNotification 4: Goal achieved для parent2
+  await prisma.userNotification.create({
+    data: {
+      userId: parent2.id,
+      type: 'goal_achieved',
+      title: 'Цель достигнута!',
+      body: 'Ваш ребенок успешно достиг цели "Называть 5 цветов"',
+      link: `/dashboard/goals/${goal1.id}`,
+      status: 'unread',
+    },
+  });
+
+  // UserNotification 5: Archived для parent1
+  await prisma.userNotification.create({
+    data: {
+      userId: parent1.id,
+      type: 'route_updated',
+      title: 'Маршрут обновлен',
+      body: 'Специалист внес изменения в маршрут',
+      link: `/dashboard/routes/${route1.id}`,
+      status: 'archived',
+      readAt: new Date('2025-11-19T12:00:00Z'),
+    },
+  });
+
+  console.log('✅ Создано in-app уведомлений: 5');
+
+  // ============================================================
+  // 14. Создаём настройки уведомлений (NotificationPreferences)
+  // ============================================================
+
+  console.log('📝 Создание настроек уведомлений...');
+
+  // Preferences для parent1: Все каналы включены
+  await prisma.notificationPreference.create({
+    data: {
+      userId: parent1.id,
+      preferences: {
+        assignment_reminder: { email: true, push: true, inApp: true },
+        report_reviewed: { email: true, push: true, inApp: true },
+        goal_achieved: { email: true, push: true, inApp: true },
+        route_updated: { email: true, push: false, inApp: true },
+        system_message: { email: false, push: false, inApp: true },
+      },
+      quietHours: {
+        enabled: true,
+        start: '22:00',
+        end: '08:00',
+        timezone: 'Asia/Tashkent',
+      },
+    },
+  });
+
+  // Preferences для parent2: Только email
+  await prisma.notificationPreference.create({
+    data: {
+      userId: parent2.id,
+      preferences: {
+        assignment_reminder: { email: true, push: false, inApp: true },
+        report_reviewed: { email: true, push: false, inApp: true },
+        goal_achieved: { email: true, push: false, inApp: false },
+        route_updated: { email: false, push: false, inApp: true },
+      },
+      quietHours: null,
+    },
+  });
+
+  // Preferences для specialist1: Push disabled
+  await prisma.notificationPreference.create({
+    data: {
+      userId: specialist1.id,
+      preferences: {
+        assignment_reminder: { email: true, push: false, inApp: true },
+        report_reviewed: { email: true, push: false, inApp: true },
+        goal_achieved: { email: false, push: false, inApp: true },
+        new_assignment: { email: true, push: false, inApp: true },
+      },
+    },
+  });
+
+  console.log('✅ Создано настроек уведомлений: 3');
+
+  // ============================================================
+  // 15. Создаём диагностические сессии
   // ============================================================
 
   console.log('📝 Создание диагностических сессий...');
@@ -1423,7 +1738,12 @@ async function main() {
   console.log('   Specialist 2:   specialist2@example.com / admin123 (Логопед)');
   console.log('   Specialist 3:   specialist3@example.com / admin123 (ABA-терапевт)');
   console.log('   Parent 1:       parent1@example.com / parent123');
-  console.log('   Parent 2-5:     parent2-5@example.com / parent123');
+  console.log('   Parent 2-10:    parent2-10@example.com / parent123');
+  console.log('');
+  console.log('📬 Уведомления (Month 3 features):');
+  console.log('   - 4 Notifications (sent, failed, pending)');
+  console.log('   - 5 UserNotifications (unread, read, archived)');
+  console.log('   - 3 NotificationPreferences (parent1, parent2, specialist1)');
 }
 
 main()

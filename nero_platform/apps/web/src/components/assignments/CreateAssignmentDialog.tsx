@@ -286,7 +286,7 @@ export function CreateAssignmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Создать назначение</DialogTitle>
+          <DialogTitle>Новое назначение</DialogTitle>
           <DialogDescription>
             Запланируйте занятие или домашнее задание для ребенка
           </DialogDescription>

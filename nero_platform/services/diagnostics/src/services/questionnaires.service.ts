@@ -114,8 +114,8 @@ const QUESTIONNAIRES: Record<string, Questionnaire> = {
     ageRange: '2-18 years',
     duration: '30-40 minutes'
   },
-  'M_CHAT_R': {
-    code: 'M_CHAT_R',
+  'MCHAT-R': {
+    code: 'MCHAT-R',
     name: 'Modified Checklist for Autism in Toddlers, Revised',
     nameRu: 'Модифицированный контрольный список аутизма для малышей (M-CHAT-R)',
     description: 'Early screening tool for autism in toddlers',

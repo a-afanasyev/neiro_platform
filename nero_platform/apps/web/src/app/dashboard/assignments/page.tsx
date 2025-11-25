@@ -185,10 +185,15 @@ export default function AssignmentsPage() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Календарь назначений</h1>
+              <h1 className="text-3xl font-bold text-neutral-900">Задания</h1>
               <p className="text-neutral-600 mt-1">
                 Расписание занятий и домашних заданий
               </p>
+              {!isLoading && assignments.length > 0 && (
+                <div className="mt-2 text-sm text-neutral-600" data-testid="progress-indicator">
+                  Выполнено: {assignments.filter(a => a.status === 'completed').length} из {assignments.length}
+                </div>
+              )}
             </div>
             <Button onClick={() => setShowCreateDialog(true)}>
               + Создать назначение
@@ -229,7 +234,7 @@ export default function AssignmentsPage() {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-6" data-testid="assignments-list">
                   {Object.entries(groupedAssignments)
                     .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
                     .map(([date, dayAssignments]) => (

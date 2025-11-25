@@ -1,0 +1,146 @@
+name: API Contract Validation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'Documents/API_CONTRACTS_MVP.md'
+      - 'packages/types/**'
+      - 'services/**/*.ts'
+      - '.github/workflows/api-validation.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'Documents/API_CONTRACTS_MVP.md'
+      - 'packages/types/**'
+      - 'services/**/*.ts'
+
+jobs:
+  validate-types:
+    name: Validate TypeScript Types
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check @neiro/types package
+        run: |
+          cd packages/types
+          pnpm exec tsc --noEmit
+
+      - name: Validate Zod schemas compile
+        run: |
+          cd packages/types
+          node -e "
+            const { CreateReportRequestSchema } = require('./reports.ts');
+            const { UserNotificationSchema } = require('./notifications.ts');
+            const { ChildProgressResponseSchema } = require('./analytics.ts');
+            console.log('✅ All Zod schemas compiled successfully');
+          "
+
+  validate-api-contracts:
+    name: Validate API Contract Examples
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run API contract validation tests
+        run: |
+          # TODO: Добавить тесты, которые парсят примеры из API_CONTRACTS_MVP.md
+          # и валидируют их против Zod schemas
+          echo "⏳ API contract tests will be implemented in Week 1"
+          echo "✅ Placeholder validation passed"
+
+  lint-api-docs:
+    name: Lint API Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check API_CONTRACTS_MVP.md format
+        run: |
+          # Проверка базовой структуры документа
+          if ! grep -q "^# Neiro Platform — API Contracts" Documents/API_CONTRACTS_MVP.md; then
+            echo "❌ API_CONTRACTS_MVP.md missing title"
+            exit 1
+          fi
+
+          if ! grep -q "^\*\*Версия:\*\* [0-9]" Documents/API_CONTRACTS_MVP.md; then
+            echo "❌ API_CONTRACTS_MVP.md missing version"
+            exit 1
+          fi
+
+          echo "✅ API_CONTRACTS_MVP.md structure valid"
+
+      - name: Check for API version consistency
+        run: |
+          API_VERSION=$(grep "^\*\*Версия:\*\*" Documents/API_CONTRACTS_MVP.md | sed 's/.*: //')
+          echo "API Contract Version: $API_VERSION"
+
+          # Проверка, что в MONTH_3_COMPLIANCE_REPORT.md указана актуальная версия
+          if grep -q "API_CONTRACTS_MVP.md v$API_VERSION" nero_platform/MONTH_3_COMPLIANCE_REPORT.md; then
+            echo "✅ Compliance report references correct API version"
+          else
+            echo "⚠️  Compliance report may need update to reference v$API_VERSION"
+          fi
+
+  security-check:
+    name: Security & Compliance Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for sensitive data in API contracts
+        run: |
+          # Проверка на случайно закоммиченные секреты в примерах API
+          if grep -iE "(password|secret|token|api[_-]?key).*[:=].*['\"]?[a-zA-Z0-9]{20,}" Documents/API_CONTRACTS_MVP.md; then
+            echo "⚠️  Warning: Possible sensitive data found in API contracts"
+            exit 1
+          fi
+          echo "✅ No sensitive data detected"
+
+      - name: Validate UUID formats in examples
+        run: |
+          # Проверка, что все UUID в примерах соответствуют формату
+          INVALID_UUIDS=$(grep -oE '"[a-f0-9-]{36}"' Documents/API_CONTRACTS_MVP.md | grep -v '[a-f0-9]\{8\}-[a-f0-9]\{4\}-[a-f0-9]\{4\}-[a-f0-9]\{4\}-[a-f0-9]\{12\}' || true)
+          if [ -n "$INVALID_UUIDS" ]; then
+            echo "⚠️  Warning: Invalid UUID format found"
+            echo "$INVALID_UUIDS"
+          else
+            echo "✅ All UUIDs valid"
+          fi

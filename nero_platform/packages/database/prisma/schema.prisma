@@ -35,12 +35,15 @@ model User {
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
-  specialist        Specialist?
-  childrenParents   ChildParent[]
-  assignedBy        Assignment[]        @relation("AssignedBy")
-  reports           Report[]            @relation("ParentReports")
-  diagnostics       DiagnosticSession[] @relation("PerformedBy")
-  assignmentHistory AssignmentHistory[]
+  specialist            Specialist?
+  childrenParents       ChildParent[]
+  assignedBy            Assignment[]             @relation("AssignedBy")
+  reports               Report[]                 @relation("ParentReports")
+  diagnostics           DiagnosticSession[]      @relation("PerformedBy")
+  assignmentHistory     AssignmentHistory[]
+  sentNotifications     Notification[]           @relation("NotificationRecipient")
+  userNotifications     UserNotification[]       @relation("UserNotifications")
+  notificationPrefs     NotificationPreference?  @relation("NotificationPreferences")
 
   @@index([email])
   @@index([role, status])
@@ -689,20 +692,72 @@ model MediaAsset {
 }
 
 // ============================================================
-// УВЕДОМЛЕНИЯ
+// УВЕДОМЛЕНИЯ (DUAL-LAYER ARCHITECTURE)
 // ============================================================
 
-/// Очередь уведомлений
+/// Delivery Layer: Очередь доставки email/SMS/push
+/// Управляется services/notifications для отправки через внешние каналы
 model Notification {
   id          String    @id @default(uuid()) @db.Uuid
-  channel     String    @db.VarChar(50)
-  payload     Json      @db.JsonB
+  recipientId String    @map("recipient_id") @db.Uuid
+  channel     String    @db.VarChar(50)  // email, sms, push, telegram
+  template    String?   @db.VarChar(100) // assignment_reminder, report_reviewed
+  payload     Json      @db.JsonB        // Channel-specific data (subject, body, etc.)
   /// Статус: pending, sent, failed
   status      String    @default("pending") @db.VarChar(20)
   attempts    Int       @default(0)
+  lastError   String?   @map("last_error") @db.Text
   scheduledAt DateTime  @map("scheduled_at") @db.Timestamptz(6)
   sentAt      DateTime? @map("sent_at") @db.Timestamptz(6)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
+  // Relations
+  recipient         User               @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  userNotifications UserNotification[]
+
+  @@index([recipientId, status])
+  @@index([status, scheduledAt])
   @@map("notifications")
+}
+
+/// UI Layer: In-app уведомления для пользовательского интерфейса
+/// Управляется services/users REST API, отображается во фронтенде
+model UserNotification {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  notificationId String?   @map("notification_id") @db.Uuid
+  /// Тип: assignment_reminder, report_reviewed, goal_achieved, route_updated, system_message
+  type           String    @db.VarChar(50)
+  title          String    @db.VarChar(150)
+  body           String    @db.Text
+  link           String?   @db.VarChar(255)
+  /// Статус: unread, read, archived
+  status         String    @default("unread") @db.VarChar(20)
+  readAt         DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user         User          @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  notification Notification? @relation(fields: [notificationId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status, createdAt])
+  @@index([userId, createdAt])
+  @@map("user_notifications")
+}
+
+/// Настройки уведомлений пользователя
+/// Управляет включением/выключением каналов и типов уведомлений
+model NotificationPreference {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @map("user_id") @db.Uuid
+  /// JSONB с настройками по типам уведомлений: { "assignment_reminder": { "email": true, "push": false }, ... }
+  preferences Json     @default("{}") @db.JsonB
+  /// JSONB с настройками тихих часов: { "enabled": true, "start": "22:00", "end": "08:00", "timezone": "UTC" }
+  quietHours  Json?    @map("quiet_hours") @db.JsonB
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user User @relation("NotificationPreferences", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
 }

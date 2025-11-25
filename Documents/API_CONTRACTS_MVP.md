@@ -1,8 +1,8 @@
 # Neiro Platform — API Contracts (MVP)
 
-**Версия:** 0.8
-**Дата обновления:** 30 октября 2025
-**Предыдущая версия:** 0.7 (29 октября 2025)
+**Версия:** 0.9
+**Дата обновления:** 22 ноября 2025
+**Предыдущая версия:** 0.8 (30 октября 2025)
 **Назначение:** описание REST/tRPC эндпоинтов MVP с версионированием, статусами ответов и правилами валидации. Документ служит основой для OpenAPI 3.1 спецификаций и реализации tRPC роутеров.
 
 > Документ является приложением к SoT `ТЕХНИЧЕСКОЕ_ЗАДАНИЕ_NEIRO_PLATFORM.md` и обновляется в соответствии с `DOCUMENTATION_UPDATE_GUIDELINE.md`.
@@ -791,24 +791,521 @@ X-Processing-Time: 180ms
 - **Роль:** владелец + `admin`.
 - **Ответ:** статус доставки, логи попыток.
 
+### 10.1 User Notifications API
+
+> **Примечание:** User Notifications API предоставляет UI-слой для работы с внутриплатформенными уведомлениями (in-app notifications). Эти endpoints отличаются от `/comms/v1/notifications`, которые управляют доставкой через внешние каналы (email, SMS, push, Telegram). User Notifications служат для отображения уведомлений в интерфейсе платформы.
+
+#### GET `/user-notifications/v1`
+- **Роль:** `parent`, `specialist`, `supervisor`, `admin`.
+- **Описание:** Получение списка внутриплатформенных уведомлений текущего пользователя.
+- **Query Parameters:**
+  - `status` (optional): `unread | read | archived`
+  - `type` (optional): `assignment_reminder | report_ready | goal_achieved | route_update | system_message`
+  - `limit` (optional, default: 20, max: 100)
+  - `cursor` (optional): пагинация
+- **Ответ 200:**
+  ```json
+  {
+    "data": {
+      "items": [
+        {
+          "id": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c6",
+          "userId": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c7",
+          "type": "assignment_reminder",
+          "title": "Напоминание о задании",
+          "body": "Сегодня в 15:00 - Пальчиковая гимнастика для Алисы",
+          "link": "/dashboard/assignments/01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c8",
+          "status": "unread",
+          "readAt": null,
+          "createdAt": "2025-11-22T10:00:00Z"
+        },
+        {
+          "id": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c9",
+          "userId": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c7",
+          "type": "report_ready",
+          "title": "Отчёт готов к просмотру",
+          "body": "Специалист завершил отчёт по маршруту «Коррекция речи»",
+          "link": "/dashboard/reports/01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5d0",
+          "status": "read",
+          "readAt": "2025-11-22T12:30:00Z",
+          "createdAt": "2025-11-22T09:00:00Z"
+        }
+      ],
+      "total": 15,
+      "unread": 3,
+      "cursor": "eyJpZCI6IjAxOTMwY2Q0LThmMmEtN2IzZS05YTVjLWQxZTJmM2E0YjVjOSJ9"
+    }
+  }
+  ```
+- **Ошибки:** 401 (не авторизован), 500.
+
+#### GET `/user-notifications/v1/:id`
+- **Роль:** `parent`, `specialist`, `supervisor`, `admin`.
+- **Описание:** Получение детальной информации о конкретном уведомлении.
+- **Ответ 200:**
+  ```json
+  {
+    "id": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c6",
+    "userId": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c7",
+    "type": "assignment_reminder",
+    "title": "Напоминание о задании",
+    "body": "Сегодня в 15:00 - Пальчиковая гимнастика для Алисы",
+    "link": "/dashboard/assignments/01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c8",
+    "metadata": {
+      "assignmentId": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c8",
+      "childName": "Алиса",
+      "scheduledTime": "2025-11-22T15:00:00Z"
+    },
+    "status": "unread",
+    "readAt": null,
+    "createdAt": "2025-11-22T10:00:00Z"
+  }
+  ```
+- **Ошибки:** 401, 403 (не владелец уведомления), 404, 500.
+
+#### PATCH `/user-notifications/v1/:id/read`
+- **Роль:** `parent`, `specialist`, `supervisor`, `admin`.
+- **Описание:** Отметить уведомление как прочитанное.
+- **Ответ 200:**
+  ```json
+  {
+    "id": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c6",
+    "status": "read",
+    "readAt": "2025-11-22T14:20:00Z"
+  }
+  ```
+- **Ошибки:** 401, 403, 404, 500.
+
+#### PATCH `/user-notifications/v1/read-all`
+- **Роль:** `parent`, `specialist`, `supervisor`, `admin`.
+- **Описание:** Отметить все непрочитанные уведомления пользователя как прочитанные.
+- **Ответ 200:**
+  ```json
+  {
+    "markedAsRead": 12,
+    "timestamp": "2025-11-22T14:25:00Z"
+  }
+  ```
+- **Ошибки:** 401, 500.
+
+#### DELETE `/user-notifications/v1/:id`
+- **Роль:** `parent`, `specialist`, `supervisor`, `admin`.
+- **Описание:** Мягкое удаление уведомления (статус → `archived`). Уведомление скрывается из интерфейса, но сохраняется в БД.
+- **Ответ 200:**
+  ```json
+  {
+    "id": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c6",
+    "status": "archived"
+  }
+  ```
+- **Ошибки:** 401, 403, 404, 500.
+
+### 10.2 Notification Preferences API
+
+#### GET `/notification-preferences/v1`
+- **Роль:** `parent`, `specialist`, `supervisor`, `admin`.
+- **Описание:** Получение настроек уведомлений текущего пользователя.
+- **Ответ 200:**
+  ```json
+  {
+    "userId": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c7",
+    "preferences": {
+      "assignment_reminder": {
+        "email": true,
+        "push": true,
+        "telegram": false,
+        "inApp": true
+      },
+      "report_ready": {
+        "email": true,
+        "push": true,
+        "telegram": true,
+        "inApp": true
+      },
+      "goal_achieved": {
+        "email": false,
+        "push": true,
+        "telegram": false,
+        "inApp": true
+      },
+      "route_update": {
+        "email": true,
+        "push": false,
+        "telegram": false,
+        "inApp": true
+      },
+      "system_message": {
+        "email": true,
+        "push": true,
+        "telegram": false,
+        "inApp": true
+      }
+    },
+    "quietHours": {
+      "enabled": true,
+      "start": "22:00",
+      "end": "08:00",
+      "timezone": "Europe/Moscow"
+    },
+    "updatedAt": "2025-11-15T10:00:00Z"
+  }
+  ```
+- **Ошибки:** 401, 500.
+
+#### PATCH `/notification-preferences/v1`
+- **Роль:** `parent`, `specialist`, `supervisor`, `admin`.
+- **Описание:** Обновление настроек уведомлений пользователя.
+- **Запрос:**
+  ```json
+  {
+    "preferences": {
+      "assignment_reminder": {
+        "email": false,
+        "push": true,
+        "telegram": false,
+        "inApp": true
+      }
+    },
+    "quietHours": {
+      "enabled": true,
+      "start": "23:00",
+      "end": "07:00",
+      "timezone": "Europe/Moscow"
+    }
+  }
+  ```
+- **Ответ 200:**
+  ```json
+  {
+    "userId": "01930cd4-8f2a-7b3e-9a5c-d1e2f3a4b5c7",
+    "preferences": {
+      "assignment_reminder": {
+        "email": false,
+        "push": true,
+        "telegram": false,
+        "inApp": true
+      },
+      "report_ready": {
+        "email": true,
+        "push": true,
+        "telegram": true,
+        "inApp": true
+      },
+      "goal_achieved": {
+        "email": false,
+        "push": true,
+        "telegram": false,
+        "inApp": true
+      },
+      "route_update": {
+        "email": true,
+        "push": false,
+        "telegram": false,
+        "inApp": true
+      },
+      "system_message": {
+        "email": true,
+        "push": true,
+        "telegram": false,
+        "inApp": true
+      }
+    },
+    "quietHours": {
+      "enabled": true,
+      "start": "23:00",
+      "end": "07:00",
+      "timezone": "Europe/Moscow"
+    },
+    "updatedAt": "2025-11-22T14:30:00Z"
+  }
+  ```
+- **Ошибки:** 400 (невалидные данные), 401, 500.
+
 ---
 
 ## 11. Analytics Service
 
+> **Примечание:** Высокоуровневые endpoints `/dashboard/parent` и `/dashboard/specialist` агрегируют данные из детализированных endpoints ниже. Детализированные endpoints используются для построения графиков и детальной аналитики.
+
 ### GET `/analytics/v1/dashboard/parent`
 - **Роль:** `parent`.
-- **Ответ:** свод по назначенным упражнениям, тренды, выполненные цели.
+- **Описание:** Агрегированный дашборд для родителей.
+- **Ответ 200:**
+  ```json
+  {
+    "summary": {
+      "activeAssignments": 5,
+      "completedThisWeek": 12,
+      "overdue": 1,
+      "averageCompletionRate": 85.5
+    },
+    "childProgress": {
+      "childId": "uuid",
+      "completionRate": 85.5,
+      "streakDays": 7,
+      "totalPoints": 450
+    },
+    "upcomingDeadlines": [
+      {
+        "assignmentId": "uuid",
+        "title": "Артикуляционная гимнастика",
+        "dueDate": "2025-11-25"
+      }
+    ]
+  }
+  ```
 
 ### GET `/analytics/v1/dashboard/specialist`
 - **Роль:** `specialist`.
 - **Фильтры:** `childId`, `dateFrom`, `dateTo`.
-- **Ответ:** метрики (графики), ожидаемые отчеты.
+- **Описание:** Агрегированный дашборд для специалистов.
+- **Ответ 200:**
+  ```json
+  {
+    "summary": {
+      "totalChildren": 15,
+      "activeRoutes": 12,
+      "pendingReviews": 8,
+      "overdueAssignments": 3
+    },
+    "recentActivity": [
+      {
+        "type": "report_submitted",
+        "childId": "uuid",
+        "timestamp": "2025-11-22T10:00:00Z"
+      }
+    ]
+  }
+  ```
 
 ### POST `/analytics/v1/snapshots`
 - **Роль:** `specialist | supervisor`.
 - **Запрос:** `{ "childId": "uuid", "periodStart": "YYYY-MM-DD", "periodEnd": "YYYY-MM-DD" }`
 - **Ответ 202:** `{ "snapshotId": "uuid" }`
 - **Событие:** `analytics.dashboard.snapshot_generated`.
+
+---
+
+### 11.1 Detailed Analytics Endpoints
+
+> **Назначение:** Эти endpoints предоставляют детализированные данные для построения графиков и углубленного анализа. Используются клиентскими приложениями для отображения прогресса детей, статистики маршрутов и производительности специалистов.
+
+### GET `/analytics/v1/children/:childId/progress`
+- **Роль:** `parent | specialist | supervisor`.
+- **Описание:** Общий прогресс ребенка по текущему активному маршруту.
+- **Ответ 200:**
+  ```json
+  {
+    "childId": "uuid",
+    "routeId": "uuid",
+    "overallProgress": 67.5,
+    "assignments": {
+      "total": 40,
+      "completed": 27,
+      "completionRate": 67.5,
+      "averageDuration": 22.5,
+      "overdueCount": 2
+    },
+    "goals": {
+      "total": 8,
+      "achieved": 3,
+      "inProgress": 4,
+      "notStarted": 1
+    },
+    "recentActivity": {
+      "lastReportDate": "2025-11-21",
+      "streakDays": 7,
+      "totalReports": 45
+    },
+    "performance": {
+      "avgChildMood": "good",
+      "avgCompletionQuality": 85.5,
+      "consistencyScore": 0.82
+    }
+  }
+  ```
+
+### GET `/analytics/v1/children/:childId/assignments-stats`
+- **Роль:** `parent | specialist | supervisor`.
+- **Описание:** Статистика выполнения назначений по ребенку.
+- **Фильтры:** `dateFrom`, `dateTo`, `exerciseCategory`.
+- **Ответ 200:**
+  ```json
+  {
+    "period": {
+      "start": "2025-10-01",
+      "end": "2025-11-22"
+    },
+    "byCategory": [
+      {
+        "category": "speech",
+        "assigned": 15,
+        "completed": 12,
+        "completionRate": 80.0,
+        "avgDuration": 25.5
+      },
+      {
+        "category": "motor",
+        "assigned": 10,
+        "completed": 8,
+        "completionRate": 80.0,
+        "avgDuration": 18.2
+      }
+    ],
+    "byWeek": [
+      {
+        "weekStart": "2025-11-18",
+        "assigned": 5,
+        "completed": 4,
+        "overdue": 0
+      }
+    ],
+    "trends": {
+      "completionRateTrend": "+5.2%",
+      "avgDurationTrend": "-2.3min"
+    }
+  }
+  ```
+
+### GET `/analytics/v1/children/:childId/goals-progress`
+- **Роль:** `specialist | supervisor`.
+- **Описание:** Прогресс по целям маршрута ребенка.
+- **Ответ 200:**
+  ```json
+  {
+    "routeId": "uuid",
+    "goals": [
+      {
+        "goalId": "uuid",
+        "category": "speech",
+        "description": "Улучшить артикуляцию звука 'Р'",
+        "status": "in_progress",
+        "progress": 60.0,
+        "baseline": "0/10 правильных произношений",
+        "current": "6/10 правильных произношений",
+        "target": "9/10 правильных произношений",
+        "relatedAssignments": 5,
+        "completedAssignments": 3,
+        "lastUpdated": "2025-11-21"
+      }
+    ],
+    "summary": {
+      "totalGoals": 8,
+      "achieved": 3,
+      "onTrack": 4,
+      "atRisk": 1
+    }
+  }
+  ```
+
+### GET `/analytics/v1/children/:childId/timeline`
+- **Роль:** `parent | specialist | supervisor`.
+- **Описание:** Временная шкала активности ребенка (отчеты, назначения, контрольные точки).
+- **Фильтры:** `dateFrom`, `dateTo`, `eventTypes`.
+- **Ответ 200:**
+  ```json
+  {
+    "events": [
+      {
+        "timestamp": "2025-11-21T15:30:00Z",
+        "type": "report_submitted",
+        "title": "Отчёт: Пальчиковая гимнастика",
+        "status": "completed",
+        "relatedId": "uuid",
+        "metadata": {
+          "childMood": "good",
+          "duration": 25
+        }
+      },
+      {
+        "timestamp": "2025-11-20T10:00:00Z",
+        "type": "assignment_created",
+        "title": "Назначение: Артикуляционные упражнения",
+        "relatedId": "uuid"
+      },
+      {
+        "timestamp": "2025-11-18T14:00:00Z",
+        "type": "milestone_completed",
+        "title": "Контрольная точка: Оценка речи",
+        "relatedId": "uuid"
+      }
+    ],
+    "pagination": {
+      "total": 156,
+      "hasMore": true,
+      "nextCursor": "eyJpZCI6IjE0MyJ9"
+    }
+  }
+  ```
+
+### GET `/analytics/v1/routes/:routeId/progress`
+- **Роль:** `specialist | supervisor`.
+- **Описание:** Прогресс по конкретному маршруту.
+- **Ответ 200:**
+  ```json
+  {
+    "routeId": "uuid",
+    "childId": "uuid",
+    "status": "active",
+    "overallProgress": 42.5,
+    "phases": [
+      {
+        "phaseId": "uuid",
+        "name": "Начальный этап",
+        "status": "completed",
+        "progress": 100.0,
+        "startDate": "2025-09-01",
+        "endDate": "2025-10-15",
+        "completedAssignments": 12,
+        "totalAssignments": 12
+      },
+      {
+        "phaseId": "uuid2",
+        "name": "Основной этап",
+        "status": "active",
+        "progress": 60.0,
+        "startDate": "2025-10-16",
+        "completedAssignments": 9,
+        "totalAssignments": 15
+      }
+    ],
+    "milestones": {
+      "total": 8,
+      "completed": 3,
+      "upcoming": 2,
+      "overdue": 1
+    }
+  }
+  ```
+
+### GET `/analytics/v1/specialists/:specialistId/performance`
+- **Роль:** `supervisor | admin`.
+- **Описание:** Производительность специалиста.
+- **Фильтры:** `period` (month | quarter | year).
+- **Ответ 200:**
+  ```json
+  {
+    "specialistId": "uuid",
+    "period": "2025-11",
+    "metrics": {
+      "activeChildren": 15,
+      "activeRoutes": 12,
+      "assignmentsCreated": 45,
+      "assignmentsCompleted": 38,
+      "reportReviewsCompleted": 67,
+      "avgReviewTime": 2.5,
+      "overdueReviews": 3
+    },
+    "clientFeedback": {
+      "averageRating": 4.8,
+      "totalResponses": 12
+    },
+    "trends": {
+      "assignmentsCompleted": "+12%",
+      "avgReviewTime": "-0.5h"
+    }
+  }
+  ```
 
 ---
 
@@ -2030,13 +2527,20 @@ interface SecurityIncident {
 
 ## 21. Changelog
 
-**Changelog v0.9 (17.11.2025):**
-- ✅ Добавлены API контракты для управления связями родитель-ребенок:
-  - `POST /children/v1/:id/parents` - привязка родителя к ребенку
-  - `DELETE /children/v1/:id/parents/:parentId` - удаление связи родителя
-  - `PATCH /children/v1/:id/parents/:parentId` - обновление типа отношений
-- ✅ Документированы валидационные правила и бизнес-ограничения (минимум один законный представитель)
-- ✅ Добавлены ссылки на события `children.parent.linked` и `children.parent.unlinked`
+**Changelog v0.9 (22.11.2025):**
+- ✅ **Analytics Service:** Добавлены детализированные endpoints для построения графиков и аналитики (§11.1):
+  - `GET /analytics/v1/children/:childId/progress` - прогресс ребёнка по маршруту
+  - `GET /analytics/v1/children/:childId/assignments-stats` - статистика выполнения заданий
+  - `GET /analytics/v1/children/:childId/goals-progress` - прогресс по целям
+  - `GET /analytics/v1/children/:childId/timeline` - временная шкала событий
+  - `GET /analytics/v1/routes/:routeId/progress` - прогресс по маршруту
+  - `GET /analytics/v1/specialists/:specialistId/performance` - производительность специалиста
+- ✅ **Communications Service:** Добавлены UI-слой для внутриплатформенных уведомлений (§10.1, §10.2):
+  - User Notifications API: `GET /user-notifications/v1`, `GET /:id`, `PATCH /:id/read`, `PATCH /read-all`, `DELETE /:id`
+  - Notification Preferences API: `GET /notification-preferences/v1`, `PATCH /notification-preferences/v1`
+- 🔗 Архитектура уведомлений синхронизирована с `MONTH_3_PLAN.md` v2.4 (двухслойная модель: delivery tracking + UI layer)
+- 📋 Разделение высокоуровневых dashboard endpoints и детализированных data endpoints для гибкой аналитики
+- 🎯 Устранены пробелы в API coverage согласно `MONTH_3_COMPLIANCE_REPORT.md` (Issues #5, #6, #13)
 
 **Changelog v0.8 (30.10.2025):**
 - ✅ Webhook System обновлён под Postgres outbox: добавлены фильтры `hasFailure`, поле `failureRecordId` и источник ретраев.
