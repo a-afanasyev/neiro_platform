@@ -270,6 +270,41 @@ services:
       start_period: 40s
 
   # ============================================
+  # МИКРОСЕРВИСЫ - МЕСЯЦ 3
+  # ============================================
+
+  reports:
+    <<: *service-template
+    container_name: neiro_reports
+    ports:
+      - "4009:4009"
+    working_dir: /app
+    command: sh -c "(pnpm install --filter @neiro/reports --recursive --no-frozen-lockfile || true) && cd packages/database && npx prisma generate && cd /app && pnpm --filter @neiro/reports dev"
+    environment:
+      <<: *common-variables
+      REPORTS_SERVICE_PORT: 4009
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_BUCKET_REPORTS: neiro-reports
+      MINIO_BUCKET_THUMBNAILS: neiro-reports-thumbnails
+      MINIO_USE_SSL: false
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4009/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
   # ФРОНТЕНД
   # ============================================
 
@@ -292,13 +327,14 @@ services:
       - assignments
       - exercises
       - templates
+      - reports
     networks:
       - neiro_network
 
   # ============================================
   # API GATEWAY (nginx)
   # ============================================
-  
+
   nginx:
     image: nginx:alpine
     container_name: neiro_gateway
@@ -316,6 +352,7 @@ services:
       - assignments
       - exercises
       - templates
+      - reports
     networks:
       - neiro_network
     healthcheck:

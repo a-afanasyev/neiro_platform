@@ -1,7 +1,7 @@
 /**
  * Экспорт PrismaClient для использования в сервисах
  */
-export { PrismaClient } from '@prisma/client'
+export { PrismaClient, Prisma } from '@prisma/client'
 
 // Создаем глобальный экземпляр Prisma для избежания множественных подключений
 import { PrismaClient } from '@prisma/client'

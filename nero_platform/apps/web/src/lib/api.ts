@@ -523,3 +523,104 @@ export const assignmentsApi = {
   },
 }
 
+/**
+ * API клиент для работы с отчетами родителей
+ */
+export const reportsApi = {
+  /**
+   * Получить список отчетов
+   */
+  getReports: async (params?: {
+    childId?: string
+    assignmentId?: string
+    status?: string
+    reviewStatus?: string
+    page?: number
+    limit?: number
+  }) => {
+    const response = await api.get('/reports/v1', { params })
+    return response.data
+  },
+
+  /**
+   * Получить конкретный отчет по ID
+   */
+  getReport: async (id: string) => {
+    const response = await api.get(`/reports/v1/${id}`)
+    return response.data
+  },
+
+  /**
+   * Создать новый отчет
+   */
+  createReport: async (data: {
+    assignmentId: string
+    status: 'completed' | 'partial' | 'failed'
+    durationMinutes: number
+    childMood: 'good' | 'neutral' | 'difficult'
+    feedbackText: string
+    media?: Array<{
+      mediaId: string
+      fileKey: string
+      fileName: string
+      fileType: string
+      fileSize: number
+    }>
+  }) => {
+    const response = await api.post('/reports/v1', data)
+    return response.data
+  },
+
+  /**
+   * Удалить отчет (только в течение 24ч после создания)
+   */
+  deleteReport: async (id: string) => {
+    const response = await api.delete(`/reports/v1/${id}`)
+    return response.data
+  },
+
+  /**
+   * Проверить отчет (только специалисты)
+   */
+  reviewReport: async (id: string, data: {
+    reviewStatus: 'approved' | 'needs_attention' | 'rejected'
+    reviewComments?: string
+    reviewScore?: number
+  }) => {
+    const response = await api.post(`/reports/v1/${id}/review`, data)
+    return response.data
+  },
+}
+
+/**
+ * API клиент для работы с медиа-файлами отчетов
+ */
+export const mediaApi = {
+  /**
+   * Получить presigned URL для загрузки файла
+   */
+  generateUploadUrl: async (data: {
+    fileName: string
+    fileType: string
+    fileSize: number
+  }) => {
+    const response = await api.post('/media/v1/upload', data)
+    return response.data
+  },
+
+  /**
+   * Подтвердить успешную загрузку файла
+   */
+  confirmUpload: async (mediaId: string) => {
+    const response = await api.post(`/media/v1/${mediaId}/confirm`)
+    return response.data
+  },
+
+  /**
+   * Получить URL для скачивания файла
+   */
+  getDownloadUrl: async (mediaId: string) => {
+    const response = await api.get(`/media/v1/${mediaId}/download`)
+    return response.data
+  },
+}

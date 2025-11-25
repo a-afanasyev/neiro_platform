@@ -2,8 +2,8 @@
 # Используется для контейнера app в docker-compose.yml
 # ВСЁ ИСПОЛНЕНИЕ КОДА ПРОИСХОДИТ ЗДЕСЬ, НЕ НА ХОСТЕ!
 
-# Используем Alpine 3.17 для совместимости с Prisma Engine (OpenSSL 1.1)
-FROM node:20-alpine3.17
+# Используем Alpine latest для совместимости с Prisma 7.x (требует Node 20.19+)
+FROM node:20-alpine
 
 # Устанавливаем необходимые системные зависимости
 RUN apk add --no-cache \
