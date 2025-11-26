@@ -154,12 +154,23 @@ export function AddParentDialog({
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : availableParents.length === 0 ? (
-          <Alert>
-            <AlertDescription>
-              Нет доступных пользователей с ролью &quot;Родитель&quot;. Сначала создайте
-              пользователя с этой ролью.
-            </AlertDescription>
-          </Alert>
+          <>
+            <Alert>
+              <AlertDescription>
+                Нет доступных пользователей с ролью &quot;Родитель&quot;. Сначала создайте
+                пользователя с этой ролью.
+              </AlertDescription>
+            </Alert>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Отмена
+              </Button>
+            </DialogFooter>
+          </>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Выбор родителя */}

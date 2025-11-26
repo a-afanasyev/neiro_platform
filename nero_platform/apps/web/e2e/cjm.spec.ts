@@ -368,8 +368,11 @@ test.describe('CJM #3: Нейропсихолог - Полный цикл', () =
     // Вход под специалистом
     await loginAs(page, 'specialist1@example.com', 'admin123')
 
-    // Переход в раздел "Шаблоны"
-    await page.click('text=Шаблоны')
+    // Переход в раздел "Шаблоны" - используем более точный селектор и ждем навигации
+    await Promise.all([
+      page.waitForURL(/\/dashboard\/templates/, { timeout: 10000 }),
+      page.click('a[href="/dashboard/templates"]')
+    ])
     await expect(page).toHaveURL(/\/dashboard\/templates/)
 
     // Проверка отображения библиотеки шаблонов

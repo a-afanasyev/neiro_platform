@@ -624,3 +624,105 @@ export const mediaApi = {
     return response.data
   },
 }
+
+/**
+ * Analytics API
+ * Week 2: Analytics Service endpoints
+ */
+export const analyticsApi = {
+  /**
+   * Получить статистику ребенка
+   */
+  getChildStats: async (childId: string, days: number = 30) => {
+    const response = await api.get(`/analytics/v1/child/${childId}`, {
+      params: { days },
+    })
+    return response.data
+  },
+
+  /**
+   * Получить статистику специалиста
+   */
+  getSpecialistStats: async (specialistId: string, days: number = 30) => {
+    const response = await api.get(`/analytics/v1/specialist/${specialistId}`, {
+      params: { days },
+    })
+    return response.data
+  },
+
+  /**
+   * Сгенерировать PDF отчет для ребенка
+   */
+  generateChildReportPDF: async (childId: string, days: number = 30) => {
+    const response = await api.get(`/analytics/v1/pdf/child/${childId}`, {
+      params: { days },
+      responseType: 'blob',
+    })
+    return response.data
+  },
+
+  /**
+   * Сгенерировать PDF отчет для специалиста
+   */
+  generateSpecialistReportPDF: async (specialistId: string, days: number = 30) => {
+    const response = await api.get(`/analytics/v1/pdf/specialist/${specialistId}`, {
+      params: { days },
+      responseType: 'blob',
+    })
+    return response.data
+  },
+
+  /**
+   * Инвалидировать кэш (admin only)
+   */
+  invalidateCache: async (type: 'child' | 'specialist', id: string) => {
+    const response = await api.post('/analytics/v1/cache/invalidate', { type, id })
+    return response.data
+  },
+}
+
+/**
+ * Notifications API
+ * Week 3: User notifications for in-app UI
+ */
+export const notificationsApi = {
+  /**
+   * Получить уведомления пользователя
+   */
+  getUserNotifications: async (params?: { limit?: number; offset?: number; unreadOnly?: boolean }) => {
+    const response = await api.get('/notifications/v1/user', { params })
+    return response.data
+  },
+
+  /**
+   * Получить количество непрочитанных уведомлений
+   */
+  getUnreadCount: async () => {
+    const response = await api.get('/notifications/v1/user/unread-count')
+    return response.data
+  },
+
+  /**
+   * Отметить уведомление как прочитанное
+   */
+  markAsRead: async (notificationId: string) => {
+    const response = await api.post(`/notifications/v1/user/${notificationId}/read`)
+    return response.data
+  },
+
+  /**
+   * Отметить все уведомления как прочитанные
+   */
+  markAllAsRead: async () => {
+    const response = await api.post('/notifications/v1/user/read-all')
+    return response.data
+  },
+
+  /**
+   * Удалить уведомление
+   */
+  deleteNotification: async (notificationId: string) => {
+    const response = await api.delete(`/notifications/v1/user/${notificationId}`)
+    return response.data
+  },
+}

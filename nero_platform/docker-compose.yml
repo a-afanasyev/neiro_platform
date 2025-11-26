@@ -304,6 +304,57 @@ services:
       retries: 3
       start_period: 40s
 
+  analytics:
+    <<: *service-template
+    container_name: neiro_analytics
+    ports:
+      - "4010:4010"
+    working_dir: /app
+    command: sh -c "(pnpm install --filter @neiro/analytics --recursive --no-frozen-lockfile || true) && cd packages/database && npx prisma generate && cd /app && pnpm --filter @neiro/analytics dev"
+    environment:
+      <<: *common-variables
+      ANALYTICS_SERVICE_PORT: 4010
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Notifications Service (4011) - Week 3
+  notifications:
+    <<: *service-template
+    container_name: neiro_notifications
+    ports:
+      - "4011:4011"
+    command: sh -c "(pnpm install --filter @neiro/notifications --recursive --no-frozen-lockfile || true) && cd packages/database && npx prisma generate && cd /app && pnpm --filter @neiro/notifications dev"
+    environment:
+      <<: *common-variables
+      NOTIFICATIONS_SERVICE_PORT: 4011
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+      SMTP_SECURE: ${SMTP_SECURE}
+      PLATFORM_URL: http://localhost:3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4011/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # ============================================
   # ФРОНТЕНД
   # ============================================
@@ -328,6 +379,8 @@ services:
       - exercises
       - templates
       - reports
+      - analytics
+      - notifications
     networks:
       - neiro_network
 
@@ -353,6 +406,8 @@ services:
       - exercises
       - templates
       - reports
+      - analytics
+      - notifications
     networks:
       - neiro_network
     healthcheck:

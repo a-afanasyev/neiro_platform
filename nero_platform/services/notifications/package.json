@@ -1,0 +1,42 @@
+{
+  "name": "@neiro/notifications",
+  "version": "1.0.0",
+  "description": "Neiro Platform Notifications Service - Email/SMS/Push delivery + In-app notifications",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "helmet": "^7.2.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "winston": "^3.17.0",
+    "dotenv": "^16.4.7",
+    "nodemailer": "^6.9.7",
+    "handlebars": "^4.7.8",
+    "node-cron": "^3.0.3",
+    "ioredis": "^5.4.2",
+    "date-fns": "^2.30.0",
+    "@neiro/database": "workspace:*",
+    "@neiro/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.12",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.8",
+    "@types/nodemailer": "^6.4.16",
+    "@types/node-cron": "^3.0.11",
+    "typescript": "^5.9.3",
+    "tsx": "^4.20.6",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.14",
+    "ts-jest": "^29.2.6"
+  }
+}
