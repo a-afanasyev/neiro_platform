@@ -54,5 +54,19 @@ router.delete('/:id', requireRole(['admin']), usersController.deactivateUser);
  */
 router.get('/:id/children', usersController.getUserChildren);
 
+/**
+ * GET /users/v1/:id/gdpr/export
+ * GDPR: Экспорт всех данных пользователя (право на портируемость данных)
+ * Пользователь может запросить только свои данные
+ */
+router.get('/:id/gdpr/export', usersController.exportUserData);
+
+/**
+ * POST /users/v1/:id/gdpr/delete
+ * GDPR: Запрос на удаление всех данных пользователя (право на забвение)
+ * Пользователь может запросить удаление только своих данных
+ */
+router.post('/:id/gdpr/delete', usersController.requestDataDeletion);
+
 export default router;
 

@@ -123,7 +123,7 @@ services:
     ports:
       - "4001:4000"
     working_dir: /app
-    command: sh -c "pnpm install --filter @neiro/auth --recursive && pnpm --filter @neiro/auth dev"
+    command: sh -c "pnpm --filter @neiro/auth dev"
     environment:
       <<: *common-variables
       AUTH_SERVICE_PORT: 4000
@@ -140,7 +140,7 @@ services:
     ports:
       - "4002:4002"
     working_dir: /app
-    command: sh -c "pnpm install --filter @neiro/users-service --recursive && pnpm --filter @neiro/users-service dev"
+    command: sh -c "pnpm --filter @neiro/users-service dev"
     environment:
       <<: *common-variables
       USERS_SERVICE_PORT: 4002
@@ -157,7 +157,7 @@ services:
     ports:
       - "4003:4003"
     working_dir: /app
-    command: sh -c "pnpm install --filter @neiro/children-service --recursive && pnpm --filter @neiro/children-service dev"
+    command: sh -c "pnpm --filter @neiro/children-service dev"
     environment:
       <<: *common-variables
       CHILDREN_SERVICE_PORT: 4003
@@ -174,7 +174,7 @@ services:
     ports:
       - "4004:4004"
     working_dir: /app
-    command: sh -c "pnpm install --filter @neiro/diagnostics --recursive && pnpm --filter @neiro/diagnostics dev"
+    command: sh -c "pnpm --filter @neiro/diagnostics dev"
     environment:
       <<: *common-variables
       PORT: 4004
@@ -195,7 +195,7 @@ services:
     ports:
       - "4005:4005"
     working_dir: /app
-    command: sh -c "pnpm install --filter @neiro/routes --recursive && pnpm --filter @neiro/routes dev"
+    command: sh -c "pnpm --filter @neiro/routes dev"
     environment:
       <<: *common-variables
       ROUTES_SERVICE_PORT: 4005
@@ -212,7 +212,7 @@ services:
     ports:
       - "4006:4006"
     working_dir: /app
-    command: sh -c "pnpm install --filter @neiro/assignments --recursive && pnpm --filter @neiro/assignments dev"
+    command: sh -c "pnpm --filter @neiro/assignments dev"
     environment:
       <<: *common-variables
       ASSIGNMENTS_SERVICE_PORT: 4006
@@ -229,7 +229,7 @@ services:
     ports:
       - "4007:4007"
     working_dir: /app
-    command: sh -c "pnpm install --filter @neiro/exercises --recursive && pnpm --filter @neiro/exercises dev"
+    command: sh -c "pnpm --filter @neiro/exercises dev"
     environment:
       <<: *common-variables
       EXERCISES_SERVICE_PORT: 4007
@@ -258,7 +258,7 @@ services:
     ports:
       - "4008:4008"
     working_dir: /app
-    command: sh -c "pnpm install --filter @neiro/templates --recursive && pnpm --filter @neiro/templates dev"
+    command: sh -c "pnpm --filter @neiro/templates dev"
     environment:
       <<: *common-variables
       TEMPLATES_SERVICE_PORT: 4008
@@ -279,7 +279,7 @@ services:
     ports:
       - "4009:4009"
     working_dir: /app
-    command: sh -c "(pnpm install --filter @neiro/reports --recursive --no-frozen-lockfile || true) && cd packages/database && npx prisma generate && cd /app && pnpm --filter @neiro/reports dev"
+    command: sh -c "cd packages/database && npx prisma generate && cd /app && pnpm --filter @neiro/reports dev"
     environment:
       <<: *common-variables
       REPORTS_SERVICE_PORT: 4009
@@ -310,7 +310,7 @@ services:
     ports:
       - "4010:4010"
     working_dir: /app
-    command: sh -c "(pnpm install --filter @neiro/analytics --recursive --no-frozen-lockfile || true) && cd packages/database && npx prisma generate && cd /app && pnpm --filter @neiro/analytics dev"
+    command: sh -c "cd packages/database && npx prisma generate && cd /app && pnpm --filter @neiro/analytics dev"
     environment:
       <<: *common-variables
       ANALYTICS_SERVICE_PORT: 4010
@@ -332,7 +332,7 @@ services:
     container_name: neiro_notifications
     ports:
       - "4011:4011"
-    command: sh -c "(pnpm install --filter @neiro/notifications --recursive --no-frozen-lockfile || true) && cd packages/database && npx prisma generate && cd /app && pnpm --filter @neiro/notifications dev"
+    command: sh -c "cd packages/database && npx prisma generate && cd /app && pnpm --filter @neiro/notifications dev"
     environment:
       <<: *common-variables
       NOTIFICATIONS_SERVICE_PORT: 4011
@@ -364,11 +364,22 @@ services:
     container_name: neiro_web
     ports:
       - "3001:3001"
-    working_dir: /app
-    command: sh -c "pnpm install --filter @neiro/web --recursive && pnpm --filter @neiro/web dev"
+    working_dir: /app/apps/web
+    command: sh -c "pnpm dev"
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: http://localhost:8080
+    volumes:
+      - ./packages:/app/packages
+      - ./services:/app/services
+      - ./apps:/app/apps
+      - ./.pnpm-store:/root/.pnpm-store
+      - ./node_modules:/app/node_modules
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./turbo.json:/app/turbo.json:ro
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
+      - ./package.json:/app/package.json:ro
+      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml:ro
     depends_on:
       - auth
       - users
