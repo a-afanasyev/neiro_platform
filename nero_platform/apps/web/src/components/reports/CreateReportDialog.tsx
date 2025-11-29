@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { reportsApi } from '@/lib/api'
+import { MediaUploader, UploadedMediaMeta } from './MediaUploader'
 
 /**
  * Пропсы компонента CreateReportDialog
@@ -50,6 +51,7 @@ export function CreateReportDialog({
 }: CreateReportDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [mediaAttachments, setMediaAttachments] = useState<UploadedMediaMeta[]>([])
 
   // Форма
   const [formData, setFormData] = useState({
@@ -88,6 +90,7 @@ export function CreateReportDialog({
         durationMinutes: formData.durationMinutes,
         childMood: formData.childMood,
         feedbackText: formData.feedbackText.trim(),
+        ...(mediaAttachments.length > 0 ? { media: mediaAttachments } : {}),
       })
 
       if (response.success) {
@@ -98,6 +101,7 @@ export function CreateReportDialog({
           childMood: 'good',
           feedbackText: '',
         })
+        setMediaAttachments([])
 
         // Закрытие диалога
         onOpenChange(false)
@@ -210,6 +214,15 @@ export function CreateReportDialog({
                   </SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Медиа вложения */}
+            <div className="grid gap-2">
+              <Label>Фото и видео</Label>
+              <MediaUploader onChange={setMediaAttachments} />
+              <p className="text-sm text-muted-foreground">
+                Можно добавить до 5 файлов, чтобы специалист увидел прогресс ребенка
+              </p>
             </div>
 
             {/* Отзыв */}

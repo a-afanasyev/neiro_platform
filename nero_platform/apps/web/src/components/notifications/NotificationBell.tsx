@@ -160,23 +160,24 @@ export function NotificationBell() {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative" data-testid="notification-bell">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              data-testid="notification-badge"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-80" data-testid="notification-dropdown">
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Уведомления</span>
           {unreadCount > 0 && (
-            <Button variant="link" size="sm" className="h-auto p-0" onClick={handleMarkAllAsRead}>
+            <Button variant="link" size="sm" className="h-auto p-0" onClick={handleMarkAllAsRead} data-testid="mark-all-read">
               Отметить все как прочитанные
             </Button>
           )}
@@ -191,13 +192,15 @@ export function NotificationBell() {
           </div>
         ) : (
           <div className="max-h-96 overflow-y-auto">
-            {notifications.map((notification) => (
+            {notifications.map((notification, index) => (
               <DropdownMenuItem
                 key={notification.id}
                 className={`flex flex-col items-start p-3 cursor-pointer ${
-                  !notification.isRead ? 'bg-blue-50 hover:bg-blue-100' : ''
+                  !notification.isRead ? 'bg-blue-50 hover:bg-blue-100 unread' : 'read'
                 }`}
                 onClick={() => handleNotificationClick(notification)}
+                data-testid="notification-item"
+                data-testid-index={`notification-item-${index}`}
               >
                 <div className="flex items-start gap-2 w-full">
                   <div className={`mt-1 ${getTypeColor(notification.type)}`}>

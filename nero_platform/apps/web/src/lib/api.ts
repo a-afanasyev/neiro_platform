@@ -611,8 +611,8 @@ export const mediaApi = {
   /**
    * Подтвердить успешную загрузку файла
    */
-  confirmUpload: async (mediaId: string) => {
-    const response = await api.post(`/media/v1/${mediaId}/confirm`)
+  confirmUpload: async (mediaId: string, data: { fileKey: string; checksum?: string }) => {
+    const response = await api.post(`/media/v1/${mediaId}/confirm`, data)
     return response.data
   },
 
@@ -634,7 +634,7 @@ export const analyticsApi = {
    * Получить статистику ребенка
    */
   getChildStats: async (childId: string, days: number = 30) => {
-    const response = await api.get(`/analytics/v1/child/${childId}`, {
+    const response = await api.get(`/analytics/v1/children/${childId}`, {
       params: { days },
     })
     return response.data
@@ -669,6 +669,38 @@ export const analyticsApi = {
       params: { days },
       responseType: 'blob',
     })
+    return response.data
+  },
+
+  /**
+   * Получить детальную статистику назначений
+   */
+  getAssignmentsStats: async (childId: string, params?: { startDate?: string; endDate?: string; exerciseCategory?: string }) => {
+    const response = await api.get(`/analytics/v1/children/${childId}/assignments-stats`, { params })
+    return response.data
+  },
+
+  /**
+   * Получить прогресс по целям
+   */
+  getGoalsProgress: async (childId: string) => {
+    const response = await api.get(`/analytics/v1/children/${childId}/goals-progress`)
+    return response.data
+  },
+
+  /**
+   * Получить временную шкалу событий
+   */
+  getTimeline: async (childId: string, params?: { dateFrom?: string; dateTo?: string; eventTypes?: string[] }) => {
+    const response = await api.get(`/analytics/v1/children/${childId}/timeline`, { params })
+    return response.data
+  },
+
+  /**
+   * Получить прогресс по маршруту
+   */
+  getRouteProgress: async (routeId: string) => {
+    const response = await api.get(`/analytics/v1/routes/${routeId}/progress`)
     return response.data
   },
 
@@ -723,6 +755,35 @@ export const notificationsApi = {
    */
   deleteNotification: async (notificationId: string) => {
     const response = await api.delete(`/notifications/v1/user/${notificationId}`)
+    return response.data
+  },
+
+  /**
+   * Получить настройки уведомлений пользователя
+   */
+  getPreferences: async () => {
+    const response = await api.get('/notifications/v1/preferences')
+    return response.data
+  },
+
+  /**
+   * Обновить настройки уведомлений пользователя
+   */
+  updatePreferences: async (data: {
+    preferences?: {
+      emailEnabled?: boolean
+      inAppEnabled?: boolean
+      assignmentReminders?: boolean
+      reportUpdates?: boolean
+      routeChanges?: boolean
+    }
+    quietHours?: {
+      enabled?: boolean
+      startTime?: string
+      endTime?: string
+    }
+  }) => {
+    const response = await api.patch('/notifications/v1/preferences', data)
     return response.data
   },
 }

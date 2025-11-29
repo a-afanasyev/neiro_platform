@@ -109,6 +109,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
+                  data-testid="email"
                 />
               </div>
 
@@ -123,6 +124,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                   required
+                  data-testid="password"
                 />
               </div>
 
@@ -134,10 +136,11 @@ export default function LoginPage() {
             </CardContent>
 
             <CardFooter className="flex flex-col space-y-4">
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full"
                 disabled={isLoading}
+                data-testid="login-button"
               >
                 {isLoading ? 'Вход...' : 'Войти'}
               </Button>
