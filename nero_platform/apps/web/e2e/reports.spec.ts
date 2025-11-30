@@ -13,9 +13,9 @@ test.describe('Reports Management', () => {
   test.beforeEach(async ({ page }) => {
     // Авторизация как родитель
     await page.goto('/login')
-    await page.fill('[data-testid=email]', 'parent1@example.com')
-    await page.fill('[data-testid=password]', 'parent123')
-    await page.click('[data-testid=login-button]')
+    await page.fill('input[type="email"]', 'parent1@example.com')
+    await page.fill('input[type="password"]', 'parent123')
+    await page.click('button[type="submit"]')
     await page.waitForURL('/dashboard')
   })
 
@@ -63,9 +63,9 @@ test.describe('Reports Management', () => {
   test('R-3: Специалист может просмотреть отчет', async ({ page }) => {
     // Авторизация как специалист
     await page.goto('/login')
-    await page.fill('[data-testid=email]', 'specialist@neiro.dev')
-    await page.fill('[data-testid=password]', 'password123')
-    await page.click('[data-testid=login-button]')
+    await page.fill('input[type="email"]', 'specialist1@example.com')
+    await page.fill('input[type="password"]', 'admin123')
+    await page.click('button[type="submit"]')
     await page.waitForURL('/dashboard')
     
     // Переход к отчетам
@@ -87,9 +87,9 @@ test.describe('Reports Management', () => {
   test('R-4: Специалист может оставить отзыв', async ({ page }) => {
     // Авторизация как специалист и переход к отчету
     await page.goto('/login')
-    await page.fill('[data-testid=email]', 'specialist@neiro.dev')
-    await page.fill('[data-testid=password]', 'password123')
-    await page.click('[data-testid=login-button]')
+    await page.fill('input[type="email"]', 'specialist1@example.com')
+    await page.fill('input[type="password"]', 'admin123')
+    await page.click('button[type="submit"]')
     
     await page.goto('/dashboard/reports')
     await page.click('[data-testid=view-report-0]')

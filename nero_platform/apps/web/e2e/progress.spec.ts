@@ -12,9 +12,9 @@ test.describe('Progress Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     // Авторизация как родитель
     await page.goto('/login')
-    await page.fill('[data-testid=email]', 'parent1@example.com')
-    await page.fill('[data-testid=password]', 'parent123')
-    await page.click('[data-testid=login-button]')
+    await page.fill('input[type="email"]', 'parent1@example.com')
+    await page.fill('input[type="password"]', 'parent123')
+    await page.click('button[type="submit"]')
     await page.waitForURL('/dashboard')
   })
 
@@ -56,9 +56,9 @@ test.describe('Progress Dashboard', () => {
   test('PR-3: Специалист видит обзор детей', async ({ page }) => {
     // Авторизация как специалист
     await page.goto('/login')
-    await page.fill('[data-testid=email]', 'specialist@neiro.dev')
-    await page.fill('[data-testid=password]', 'password123')
-    await page.click('[data-testid=login-button]')
+    await page.fill('input[type="email"]', 'specialist1@example.com')
+    await page.fill('input[type="password"]', 'admin123')
+    await page.click('button[type="submit"]')
     
     await page.click('[data-testid=analytics-menu]')
     await page.click('[data-testid=analytics-link]')

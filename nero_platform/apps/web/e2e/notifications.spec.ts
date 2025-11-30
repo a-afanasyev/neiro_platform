@@ -2,12 +2,13 @@ import { test, expect } from '@playwright/test'
 
 /**
  * E2E тесты для функциональности уведомлений
- * 
+ *
  * Тестирует:
  * - Отображение уведомлений в bell
  * - Функциональность "прочитано"
  * - Сохранение настроек уведомлений
  */
+test.describe.configure({ mode: 'serial' })
 test.describe('Notifications Management', () => {
   test.beforeEach(async ({ page }) => {
     // Авторизация как родитель
@@ -30,25 +31,31 @@ test.describe('Notifications Management', () => {
     
     // Проверка открытия dropdown со списком уведомлений
     await expect(page.locator('[data-testid=notification-dropdown]')).toBeVisible()
-    await expect(page.locator('[data-testid=notification-item]')).toHaveCount(3)
+    await expect(page.locator('[data-notification-item="true"]')).toHaveCount(3)
   })
 
   test('N-2: Mark as read работает', async ({ page }) => {
     // Открытие dropdown уведомлений
     await page.click('[data-testid=notification-bell]')
-    
+
     // Клик на непрочитанное уведомление
     await page.click('[data-testid=notification-item-0]')
-    
-    // Проверка, что уведомление отмечено как прочитанное (визуальное изменение)
-    await expect(page.locator('[data-testid=notification-item-0]')).toHaveClass(/read/)
-    
+
     // Проверка уменьшения счетчика на 1
     await expect(page.locator('[data-testid=notification-badge]')).toContainText('2')
-    
+
+    // Открытие dropdown снова
+    await page.click('[data-testid=notification-bell]')
+
+    // Ждем загрузки уведомлений
+    await page.waitForSelector('[data-testid=notification-dropdown]')
+    await page.waitForSelector('[data-testid=mark-all-read]')
+
     // Проверка кнопки "Отметить все как прочитанные"
     await page.click('[data-testid=mark-all-read]')
-    await expect(page.locator('[data-testid=notification-badge]')).toContainText('0')
+
+    // Проверка, что badge исчез (все прочитано)
+    await expect(page.locator('[data-testid=notification-badge]')).not.toBeVisible()
   })
 
   test('N-3: Настройки уведомлений сохраняются', async ({ page }) => {

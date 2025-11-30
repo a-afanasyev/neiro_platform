@@ -121,7 +121,7 @@ services:
     <<: *service-template
     container_name: neiro_auth
     ports:
-      - "4001:4000"
+      - "4000:4000"
     working_dir: /app
     command: sh -c "pnpm --filter @neiro/auth dev"
     environment:
@@ -422,7 +422,7 @@ services:
     networks:
       - neiro_network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 3

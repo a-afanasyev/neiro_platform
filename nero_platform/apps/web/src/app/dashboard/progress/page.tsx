@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { ProgressHeader } from '@/components/analytics/ProgressHeader'
 import { KPICard } from '@/components/analytics/KPICard'
 import { LineChart } from '@/components/analytics/LineChart'
@@ -99,104 +101,112 @@ export default function ProgressPage() {
   // Если ребенок не выбран, показываем заголовок
   if (!selectedChildId) {
     return (
-      <div className="container mx-auto py-6">
-        <ProgressHeader
-          selectedChildId={selectedChildId}
-          onChildChange={setSelectedChildId}
-          days={days}
-          onDaysChange={setDays}
-          loading={loading}
-        />
-        <div className="text-center py-12 text-muted-foreground">
-          <p>Выберите ребенка для просмотра статистики</p>
-        </div>
-      </div>
+      <ProtectedRoute>
+        <DashboardLayout>
+          <div className="container mx-auto py-6">
+            <ProgressHeader
+              selectedChildId={selectedChildId}
+              onChildChange={setSelectedChildId}
+              days={days}
+              onDaysChange={setDays}
+              loading={loading}
+            />
+            <div className="text-center py-12 text-muted-foreground">
+              <p>Выберите ребенка для просмотра статистики</p>
+            </div>
+          </div>
+        </DashboardLayout>
+      </ProtectedRoute>
     )
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <ProgressHeader
-        selectedChildId={selectedChildId}
-        onChildChange={setSelectedChildId}
-        days={days}
-        onDaysChange={setDays}
-        loading={loading}
-      />
+    <ProtectedRoute>
+      <DashboardLayout>
+        <div className="container mx-auto py-6">
+          <ProgressHeader
+            selectedChildId={selectedChildId}
+            onChildChange={setSelectedChildId}
+            days={days}
+            onDaysChange={setDays}
+            loading={loading}
+          />
 
-      {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertDescription>{error}</AlertDescription>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadStats}
-            className="mt-2"
-          >
-            Повторить попытку
-          </Button>
-        </Alert>
-      )}
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{error}</AlertDescription>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadStats}
+                className="mt-2"
+              >
+                Повторить попытку
+              </Button>
+            </Alert>
+          )}
 
-      {loading && !stats ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : stats ? (
-        <div className="space-y-6">
-          {/* KPI карточки */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <KPICard
-              title="Выполнено заданий"
-              value={stats.completedAssignments || 0}
-              total={stats.totalAssignments || 0}
-              icon="check-circle"
-            />
-            <KPICard
-              title="Общий прогресс"
-              value={`${stats.completionRate || 0}%`}
-              icon="trending-up"
-            />
-            <KPICard
-              title="Среднее настроение"
-              value={
-                stats.moodDistribution?.good > stats.moodDistribution?.difficult
-                  ? 'Хорошее'
-                  : stats.moodDistribution?.difficult > stats.moodDistribution?.good
-                  ? 'Сложное'
-                  : 'Нейтральное'
-              }
-              icon="smile"
-            />
-            <KPICard
-              title="Активных дней"
-              value={
-                stats.recentActivity?.filter((a: any) => a.assignmentsCompleted > 0).length || 0
-              }
-              icon="calendar"
-            />
-          </div>
-
-          {/* Графики */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <LineChart
-                data={prepareTimelineData()}
-                title="Прогресс выполнения"
-                color="#3b82f6"
-                unit="заданий"
-              />
+          {loading && !stats ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <PieChart
-                data={prepareMoodData()}
-                title="Распределение настроения"
-              />
+          ) : stats ? (
+            <div className="space-y-6">
+              {/* KPI карточки */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <KPICard
+                  title="Выполнено заданий"
+                  value={stats.completedAssignments || 0}
+                  total={stats.totalAssignments || 0}
+                  icon="check-circle"
+                />
+                <KPICard
+                  title="Общий прогресс"
+                  value={`${stats.completionRate || 0}%`}
+                  icon="trending-up"
+                />
+                <KPICard
+                  title="Среднее настроение"
+                  value={
+                    stats.moodDistribution?.good > stats.moodDistribution?.difficult
+                      ? 'Хорошее'
+                      : stats.moodDistribution?.difficult > stats.moodDistribution?.good
+                      ? 'Сложное'
+                      : 'Нейтральное'
+                  }
+                  icon="smile"
+                />
+                <KPICard
+                  title="Активных дней"
+                  value={
+                    stats.recentActivity?.filter((a: any) => a.assignmentsCompleted > 0).length || 0
+                  }
+                  icon="calendar"
+                />
+              </div>
+
+              {/* Графики */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <LineChart
+                    data={prepareTimelineData()}
+                    title="Прогресс выполнения"
+                    color="#3b82f6"
+                    unit="заданий"
+                  />
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <PieChart
+                    data={prepareMoodData()}
+                    title="Распределение настроения"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
-      ) : null}
-    </div>
+      </DashboardLayout>
+    </ProtectedRoute>
   )
 }
 

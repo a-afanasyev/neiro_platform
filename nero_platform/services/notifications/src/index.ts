@@ -8,6 +8,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { emailService } from './services/email.service';
 import deliveryRoutes from './routes/delivery.routes';
 import userNotificationRoutes from './routes/user-notification.routes';
+import preferencesRoutes from './routes/preferences.routes';
 import { notificationProcessor } from './jobs/notification-processor';
 
 // Load environment variables
@@ -49,6 +50,7 @@ app.get('/health', async (req, res) => {
 // API routes
 app.use('/notifications/v1/delivery', deliveryRoutes);
 app.use('/notifications/v1/user', userNotificationRoutes);
+app.use('/notifications/v1/preferences', preferencesRoutes);
 
 // 404 handler
 app.use((req, res) => {

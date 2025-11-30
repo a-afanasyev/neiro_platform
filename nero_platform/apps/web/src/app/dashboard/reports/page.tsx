@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { ReportCard } from '@/components/reports/ReportCard'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -177,121 +179,125 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Отчеты</h1>
-      </div>
-
-      {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertDescription>{error}</AlertDescription>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => loadReports(true)}
-            className="mt-2"
-          >
-            Повторить попытку
-          </Button>
-        </Alert>
-      )}
-
-      {/* Фильтры */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Select
-          value={filters.childId}
-          onValueChange={(value) => handleFilterChange('childId', value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Все дети" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">Все дети</SelectItem>
-            {children.map((child) => (
-              <SelectItem key={child.id} value={child.id}>
-                {child.firstName} {child.lastName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.status}
-          onValueChange={(value) => handleFilterChange('status', value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Все статусы" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">Все статусы</SelectItem>
-            <SelectItem value="completed">Завершены</SelectItem>
-            <SelectItem value="partial">Частично выполнены</SelectItem>
-            <SelectItem value="failed">Не выполнены</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.reviewStatus}
-          onValueChange={(value) => handleFilterChange('reviewStatus', value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Все отзывы" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">Все отзывы</SelectItem>
-            <SelectItem value="unreviewed">Без отзыва</SelectItem>
-            <SelectItem value="approved">Одобрено</SelectItem>
-            <SelectItem value="needs_attention">Требует внимания</SelectItem>
-            <SelectItem value="rejected">Отклонено</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Список отчетов */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : reports.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <p>Нет отчетов для отображения</p>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {reports.map((report) => (
-              <ReportCard
-                key={report.id}
-                report={report}
-                showActions={true}
-                onReview={() => handleReviewReport(report.id)}
-                onDelete={() => handleDeleteReport(report.id)}
-              />
-            ))}
+    <ProtectedRoute>
+      <DashboardLayout>
+        <div className="container mx-auto py-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Отчеты</h1>
           </div>
 
-          {/* Кнопка "Загрузить еще" */}
-          {hasMore && (
-            <div className="text-center mt-6">
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{error}</AlertDescription>
               <Button
-                onClick={loadMore}
                 variant="outline"
-                disabled={loadingMore}
+                size="sm"
+                onClick={() => loadReports(true)}
+                className="mt-2"
               >
-                {loadingMore ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Загрузка...
-                  </>
-                ) : (
-                  'Загрузить еще'
-                )}
+                Повторить попытку
               </Button>
-            </div>
+            </Alert>
           )}
-        </>
-      )}
-    </div>
+
+          {/* Фильтры */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Select
+              value={filters.childId}
+              onValueChange={(value) => handleFilterChange('childId', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Все дети" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Все дети</SelectItem>
+                {children.map((child) => (
+                  <SelectItem key={child.id} value={child.id}>
+                    {child.firstName} {child.lastName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={filters.status}
+              onValueChange={(value) => handleFilterChange('status', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Все статусы" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Все статусы</SelectItem>
+                <SelectItem value="completed">Завершены</SelectItem>
+                <SelectItem value="partial">Частично выполнены</SelectItem>
+                <SelectItem value="failed">Не выполнены</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={filters.reviewStatus}
+              onValueChange={(value) => handleFilterChange('reviewStatus', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Все отзывы" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Все отзывы</SelectItem>
+                <SelectItem value="unreviewed">Без отзыва</SelectItem>
+                <SelectItem value="approved">Одобрено</SelectItem>
+                <SelectItem value="needs_attention">Требует внимания</SelectItem>
+                <SelectItem value="rejected">Отклонено</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Список отчетов */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : reports.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>Нет отчетов для отображения</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {reports.map((report) => (
+                  <ReportCard
+                    key={report.id}
+                    report={report}
+                    showActions={true}
+                    onReview={() => handleReviewReport(report.id)}
+                    onDelete={() => handleDeleteReport(report.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Кнопка "Загрузить еще" */}
+              {hasMore && (
+                <div className="text-center mt-6">
+                  <Button
+                    onClick={loadMore}
+                    variant="outline"
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Загрузка...
+                      </>
+                    ) : (
+                      'Загрузить еще'
+                    )}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
   )
 }
 

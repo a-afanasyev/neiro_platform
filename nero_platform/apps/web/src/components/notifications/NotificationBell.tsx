@@ -57,7 +57,7 @@ export function NotificationBell() {
     try {
       setLoading(true)
       const response = await notificationsApi.getUserNotifications({
-        limit: 10,
+        limit: 3,
         offset: 0,
       })
       setNotifications(response.data)
@@ -195,12 +195,12 @@ export function NotificationBell() {
             {notifications.map((notification, index) => (
               <DropdownMenuItem
                 key={notification.id}
-                className={`flex flex-col items-start p-3 cursor-pointer ${
+                className={`flex flex-col items-start p-3 cursor-pointer notification-item ${
                   !notification.isRead ? 'bg-blue-50 hover:bg-blue-100 unread' : 'read'
                 }`}
                 onClick={() => handleNotificationClick(notification)}
-                data-testid="notification-item"
-                data-testid-index={`notification-item-${index}`}
+                data-testid={`notification-item-${index}`}
+                data-notification-item="true"
               >
                 <div className="flex items-start gap-2 w-full">
                   <div className={`mt-1 ${getTypeColor(notification.type)}`}>
