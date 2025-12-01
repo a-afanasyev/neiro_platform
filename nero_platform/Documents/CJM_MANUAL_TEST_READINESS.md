@@ -375,3 +375,4 @@ pnpm exec playwright test cjm.spec.ts -g "CJM #1"
 Все тесты используют тестовые данные из `packages/database/prisma/seed.ts` и не требуют дополнительной настройки окружения.
 
 
+
