@@ -187,7 +187,7 @@ test.describe('CJM #5: Супервизор', () => {
 
   test('CJM #5.1: Запрос доступа - Просмотреть работу команды', async ({ page }) => {
     // Вход под супервизором
-    await loginAs(page, 'supervisor1@example.com', 'admin123')
+    await loginAs(page, 'supervisor@neiro.dev', 'admin123')
     
     // Проверка фильтров по отклонениям
     await expect(page.locator('select[name="filter"]')).toBeVisible({ timeout: 5000 })
@@ -199,7 +199,7 @@ test.describe('CJM #5: Супервизор', () => {
 
   test('CJM #5.2: Анализ кейсов - Оценить качество', async ({ page }) => {
     // Вход под супервизором
-    await loginAs(page, 'supervisor1@example.com', 'admin123')
+    await loginAs(page, 'supervisor@neiro.dev', 'admin123')
     
     // Переход к аналитике
     await page.click('text=Аналитика')
@@ -214,7 +214,7 @@ test.describe('CJM #5: Супервизор', () => {
 
   test('CJM #5.3: Обратная связь - Дать рекомендации', async ({ page }) => {
     // Вход под супервизором
-    await loginAs(page, 'supervisor1@example.com', 'admin123')
+    await loginAs(page, 'supervisor@neiro.dev', 'admin123')
     
     // Переход к кейсу
     await page.locator('[data-testid="case-card"]').first().click()
@@ -230,7 +230,7 @@ test.describe('CJM #5: Супервизор', () => {
 
   test('CJM #5.4: Контроль вех - Проверить закрытие контрольных точек', async ({ page }) => {
     // Вход под супервизором
-    await loginAs(page, 'supervisor1@example.com', 'admin123')
+    await loginAs(page, 'supervisor@neiro.dev', 'admin123')
     
     // Переход к дашборду вех
     await page.click('text=Вехи')
@@ -247,7 +247,7 @@ test.describe('CJM #5: Супервизор', () => {
 
   test('CJM #5.5: Контроль качества - Следить за улучшениями', async ({ page }) => {
     // Вход под супервизором
-    await loginAs(page, 'supervisor1@example.com', 'admin123')
+    await loginAs(page, 'supervisor@neiro.dev', 'admin123')
     
     // Переход к отчетам
     await page.click('text=Отчеты')

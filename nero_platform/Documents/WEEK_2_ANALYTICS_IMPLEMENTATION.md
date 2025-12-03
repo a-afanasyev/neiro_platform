@@ -304,13 +304,7 @@ location /analytics/ {
 
 ## ⚠️ Known Issues
 
-1. **Canvas dependency warning**:
-   - Module `canvas@2.11.2` fails to build (missing distutils in Python)
-   - Does NOT block service functionality
-   - Used by chart.js which is not yet utilized
-   - Can be resolved by adding `python3-dev` to Dockerfile or removing chart.js dependency
-
-2. **Deprecated warnings**:
+1. **Deprecated warnings**:
    - `puppeteer@21.11.0` deprecated (should upgrade to latest)
    - Various deprecated subdependencies from puppeteer
 
