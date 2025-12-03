@@ -241,10 +241,10 @@ export default function AssignmentsPage() {
                       <div key={date}>
                         <h3 className="text-lg font-semibold mb-3">{date}</h3>
                         <div className="space-y-3">
-                          {dayAssignments.map((assignment) => {
+                          {dayAssignments.map((assignment, index) => {
                             const { time } = formatDateTime(assignment.plannedStartDate)
                             return (
-                              <Card key={assignment.id}>
+                              <Card key={assignment.id} data-testid="assignment-card">
                                 <CardContent className="pt-6">
                                   <div className="flex items-start justify-between">
                                     <div className="flex-1">
@@ -253,7 +253,7 @@ export default function AssignmentsPage() {
                                           {time}
                                         </span>
                                         <h4 className="font-semibold">{assignment.title || assignment.exercise?.title || 'Назначение'}</h4>
-                                        <Badge variant={statusColors[assignment.status]}>
+                                        <Badge variant={statusColors[assignment.status]} data-testid={`assignment-status-${index}`}>
                                           {statusLabels[assignment.status]}
                                         </Badge>
                                         {assignment.deliveryChannel === 'home' && (
@@ -306,10 +306,11 @@ export default function AssignmentsPage() {
                                         </>
                                       )}
                                       {assignment.status === 'in_progress' && (
-                                        <Button 
+                                        <Button
                                           size="sm"
                                           onClick={() => handleComplete(assignment.id)}
                                           disabled={isActionLoading && actionAssignmentId === assignment.id}
+                                          data-testid={`complete-assignment-${index}`}
                                         >
                                           {isActionLoading && actionAssignmentId === assignment.id ? 'Завершаем...' : 'Завершить'}
                                         </Button>

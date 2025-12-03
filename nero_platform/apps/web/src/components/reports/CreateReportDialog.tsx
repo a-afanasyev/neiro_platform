@@ -138,7 +138,7 @@ export function CreateReportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px]" data-testid="create-report-dialog">
         <DialogHeader>
           <DialogTitle>Отчет о выполнении</DialogTitle>
           <DialogDescription>
@@ -268,7 +268,7 @@ export function CreateReportDialog({
             >
               Отмена
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} data-testid="submit-report">
               {isSubmitting ? 'Отправка...' : 'Отправить отчет'}
             </Button>
           </DialogFooter>

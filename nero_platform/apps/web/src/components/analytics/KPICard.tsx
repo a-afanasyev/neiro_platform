@@ -20,6 +20,8 @@ interface KPICardProps {
     value: number
     label: string
   }
+  /** Test ID for e2e testing */
+  testId?: string
 }
 
 /**
@@ -33,6 +35,7 @@ export function KPICard({
   total,
   icon = 'check-circle',
   trend,
+  testId,
 }: KPICardProps) {
   /**
    * Получить иконку по типу
@@ -64,7 +67,7 @@ export function KPICard({
   }
 
   return (
-    <Card>
+    <Card data-testid={testId}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         {getIcon()}

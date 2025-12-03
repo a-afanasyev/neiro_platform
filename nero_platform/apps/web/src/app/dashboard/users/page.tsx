@@ -145,7 +145,7 @@ export default function UsersPage() {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['admin']}>
       <DashboardLayout>
         {loading ? (
           <div className="flex items-center justify-center py-8">

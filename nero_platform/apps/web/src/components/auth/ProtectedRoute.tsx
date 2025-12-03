@@ -27,8 +27,8 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
     // Если указаны разрешенные роли и роль пользователя не входит в список
     if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-      // Редирект на dashboard по умолчанию
-      router.push('/dashboard')
+      // Редирект на login для повторной аутентификации
+      router.push('/login')
     }
   }, [isAuthenticated, user, allowedRoles, router, hasHydrated])
 

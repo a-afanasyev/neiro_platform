@@ -182,7 +182,7 @@ export default function ChildrenPage() {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['admin', 'specialist', 'supervisor', 'parent']}>
       <DashboardLayout>
         <div className="space-y-6">
           {/* Header */}

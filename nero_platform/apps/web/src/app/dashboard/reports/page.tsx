@@ -263,10 +263,11 @@ export default function ReportsPage() {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {reports.map((report) => (
+                {reports.map((report, index) => (
                   <ReportCard
                     key={report.id}
                     report={report}
+                    index={index}
                     showActions={true}
                     onReview={() => handleReviewReport(report.id)}
                     onDelete={() => handleDeleteReport(report.id)}

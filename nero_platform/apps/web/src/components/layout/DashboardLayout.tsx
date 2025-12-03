@@ -45,6 +45,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         { href: '/dashboard/exercises', label: 'Упражнения', icon: '🎯', testId: 'exercises-menu' },
         { href: '/dashboard/templates', label: 'Шаблоны', icon: '📝', testId: 'templates-menu' },
         { href: '/dashboard/assignments', label: 'Назначения', icon: '📅', testId: 'assignments-menu' },
+        { href: '/dashboard/analytics', label: 'Аналитика', icon: '📊', testId: 'analytics-menu' },
+        { href: '/dashboard/notifications', label: 'Уведомления', icon: '🔔', testId: 'notifications-menu' },
         { href: '/dashboard/settings', label: 'Настройки', icon: '⚙️', testId: 'settings-menu' },
       ]
     }
@@ -59,6 +61,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         { href: '/dashboard/templates', label: 'Шаблоны', icon: '📝', testId: 'templates-link' },
         { href: '/dashboard/assignments', label: 'Назначения', icon: '📅', testId: 'assignments-link' },
         { href: '/dashboard/reports', label: 'Отчеты', icon: '📊', testId: 'reports-link' },
+        { href: '/dashboard/analytics', label: 'Аналитика', icon: '📈', testId: 'analytics-link' },
+        { href: '/dashboard/notifications', label: 'Уведомления', icon: '🔔', testId: 'notifications-link' },
       ]
     }
 
@@ -69,8 +73,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         { href: '/dashboard/routes', label: 'Мой маршрут', icon: '🗺️', testId: 'routes-link' },
         { href: '/dashboard/assignments', label: 'Назначения', icon: '📅', testId: 'assignments-link' },
         { href: '/dashboard/progress', label: 'Прогресс', icon: '📈', testId: 'progress-link' },
+        { href: '/dashboard/notifications', label: 'Уведомления', icon: '🔔', testId: 'notifications-link' },
         { href: '/dashboard/chat', label: 'Чат', icon: '💬', testId: 'chat-link' },
-        { href: '/dashboard/settings', label: 'Настройки', icon: '⚙️', testId: 'settings-link' },
       ]
     }
 

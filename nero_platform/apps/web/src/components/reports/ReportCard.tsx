@@ -30,6 +30,8 @@ interface ReportCardProps {
       email: string
     }
   }
+  /** Index of the report in the list (for data-testid) */
+  index?: number
   /** Показать действия (для родителя - удаление, для специалиста - проверка) */
   showActions?: boolean
   /** Callback при клике на проверку */
@@ -116,12 +118,13 @@ const getReviewStatusLabel = (status: string) => {
  */
 export function ReportCard({
   report,
+  index,
   showActions = false,
   onReview,
   onDelete,
 }: ReportCardProps) {
   return (
-    <Card>
+    <Card data-testid="report-card">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
@@ -139,7 +142,7 @@ export function ReportCard({
               </CardDescription>
             )}
           </div>
-          <Badge variant={getReviewStatusVariant(report.reviewStatus)}>
+          <Badge variant={getReviewStatusVariant(report.reviewStatus)} data-testid={index !== undefined ? `report-status-${index}` : undefined}>
             {getReviewStatusLabel(report.reviewStatus)}
           </Badge>
         </div>
@@ -183,7 +186,7 @@ export function ReportCard({
       {showActions && (
         <CardFooter className="flex justify-end gap-2">
           {onReview && report.reviewStatus === 'not_reviewed' && (
-            <Button size="sm" onClick={onReview}>
+            <Button size="sm" onClick={onReview} data-testid={index !== undefined ? `view-report-${index}` : undefined}>
               Проверить
             </Button>
           )}

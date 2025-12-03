@@ -20,7 +20,7 @@ export default function ProfilePage() {
   const { user } = useAuth()
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['admin', 'specialist', 'supervisor', 'parent']}>
       <DashboardLayout>
         <div className="space-y-6">
           <div className="mb-8">

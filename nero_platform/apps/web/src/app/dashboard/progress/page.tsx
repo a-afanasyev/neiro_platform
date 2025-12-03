@@ -159,11 +159,13 @@ export default function ProgressPage() {
                   value={stats.completedAssignments || 0}
                   total={stats.totalAssignments || 0}
                   icon="check-circle"
+                  testId="kpi-card-completed"
                 />
                 <KPICard
                   title="Общий прогресс"
                   value={`${stats.completionRate || 0}%`}
                   icon="trending-up"
+                  testId="kpi-card-progress"
                 />
                 <KPICard
                   title="Среднее настроение"
@@ -175,6 +177,7 @@ export default function ProgressPage() {
                       : 'Нейтральное'
                   }
                   icon="smile"
+                  testId="kpi-card-mood"
                 />
                 <KPICard
                   title="Активных дней"
@@ -182,6 +185,7 @@ export default function ProgressPage() {
                     stats.recentActivity?.filter((a: any) => a.assignmentsCompleted > 0).length || 0
                   }
                   icon="calendar"
+                  testId="kpi-card-days"
                 />
               </div>
 

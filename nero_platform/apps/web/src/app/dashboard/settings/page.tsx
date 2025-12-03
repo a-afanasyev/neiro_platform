@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label'
 
 export default function SettingsPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['admin']}>
       <DashboardLayout>
         <div className="space-y-6">
           <div className="mb-8">
