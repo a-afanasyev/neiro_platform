@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "turbo run dev --parallel",
-    "build": "turbo run build",
+    "build": "TURBO_API= TURBO_TEAM= TURBO_TOKEN= turbo run build --no-daemon --remote-only=false || pnpm run build:local",
+    "build:local": "pnpm -r --workspace-concurrency=1 run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -33,4 +34,3 @@
   },
   "packageManager": "pnpm@8.15.0"
 }
-

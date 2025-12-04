@@ -18,12 +18,25 @@ RUN apk add --no-cache \
 # Создаём рабочую директорию
 WORKDIR /app
 
-# Копируем package.json и package-lock.json для установки зависимостей
-# (будет перезаписано через volume mount, но нужно для первичной сборки)
+# Копируем все package.json файлы для установки зависимостей
 COPY package*.json ./
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY packages/ ./packages/
+COPY services/ ./services/
+COPY apps/ ./apps/
 
 # Устанавливаем глобальные инструменты
 RUN npm install -g pnpm turbo prisma@6.19.0
+
+# Устанавливаем зависимости проекта
+RUN pnpm install
+
+# Устанавливаем tsx глобально и добавляем в PATH
+RUN npm install -g tsx
+
+# Обновляем PATH для включения глобальных модулей npm
+ENV PATH="/usr/local/bin:${PATH}"
 
 # Expose порты
 EXPOSE 3000 4000

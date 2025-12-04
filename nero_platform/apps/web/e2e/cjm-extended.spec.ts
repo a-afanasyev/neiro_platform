@@ -947,3 +947,4 @@ test.describe('CJM #9-12: Расширенные профессиональны�
     await expect(page.locator('text=Геймификация')).toBeVisible({ timeout: 5000 })
   })
 })
+

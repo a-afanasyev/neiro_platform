@@ -2,11 +2,14 @@
   "name": "@neiro/database",
   "version": "1.0.0",
   "private": true,
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
+    "prebuild": "prisma generate",
+    "build": "tsc -p tsconfig.json",
     "seed": "tsx prisma/seed.ts",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@prisma/client": "^6.19.0",

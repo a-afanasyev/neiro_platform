@@ -22,3 +22,4 @@ node node_modules/.pnpm/@playwright+test@1.56.1/node_modules/playwright test aut
 
 echo ""
 echo "✅ E2E тесты запущены"
+

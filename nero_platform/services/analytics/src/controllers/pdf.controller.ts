@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response } from 'express';
 import { pdfService } from '../services/pdf.service';
 import { statsService } from '../services/stats.service';

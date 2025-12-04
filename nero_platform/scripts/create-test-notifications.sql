@@ -91,3 +91,4 @@ BEGIN
   RAISE NOTICE 'Создано 5 тестовых уведомлений для пользователя parent1@example.com';
 END;
 $$;
+

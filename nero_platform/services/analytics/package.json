@@ -5,7 +5,7 @@
   "description": "Analytics Service - Statistics aggregation and report generation",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "/app/node_modules/.bin/tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest",

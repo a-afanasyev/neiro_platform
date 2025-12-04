@@ -380,10 +380,14 @@ export default function ChildDetailPage() {
                     >
                       <div>
                         <p className="font-medium">
-                          {specialist.lastName} {specialist.firstName}
+                          {specialist.user
+                            ? `${specialist.user.lastName} ${specialist.user.firstName}`
+                            : 'Неизвестный специалист'}
                         </p>
-                        {specialist.specialization && (
-                          <p className="text-sm text-muted-foreground">{specialist.specialization}</p>
+                        {(specialist.specialization || specialist.specialty) && (
+                          <p className="text-sm text-muted-foreground">
+                            {specialist.specialization || specialist.specialty}
+                          </p>
                         )}
                       </div>
                       <Button variant="ghost" size="sm">
@@ -420,4 +424,3 @@ export default function ChildDetailPage() {
     </ProtectedRoute>
   )
 }
-

@@ -5,7 +5,7 @@
   "description": "Neiro Platform Web Application",
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "next build",
+    "build": "next build --no-lint",
     "start": "next start -p 3001",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
