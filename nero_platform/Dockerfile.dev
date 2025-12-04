@@ -23,7 +23,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем глобальные инструменты
-RUN npm install -g pnpm turbo prisma
+RUN npm install -g pnpm turbo prisma@6.19.0
 
 # Expose порты
 EXPOSE 3000 4000

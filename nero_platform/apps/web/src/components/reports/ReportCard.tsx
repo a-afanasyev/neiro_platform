@@ -34,6 +34,8 @@ interface ReportCardProps {
   index?: number
   /** Показать действия (для родителя - удаление, для специалиста - проверка) */
   showActions?: boolean
+  /** Callback при клике на просмотр */
+  onView?: () => void
   /** Callback при клике на проверку */
   onReview?: () => void
   /** Callback при клике на удаление */
@@ -120,6 +122,7 @@ export function ReportCard({
   report,
   index,
   showActions = false,
+  onView,
   onReview,
   onDelete,
 }: ReportCardProps) {
@@ -185,13 +188,18 @@ export function ReportCard({
 
       {showActions && (
         <CardFooter className="flex justify-end gap-2">
+          {onView && (
+            <Button size="sm" variant="outline" onClick={onView} data-testid={index !== undefined ? `view-report-${index}` : undefined}>
+              Просмотреть
+            </Button>
+          )}
           {onReview && report.reviewStatus === 'not_reviewed' && (
-            <Button size="sm" onClick={onReview} data-testid={index !== undefined ? `view-report-${index}` : undefined}>
+            <Button size="sm" onClick={onReview} data-testid={index !== undefined ? `review-button` : undefined}>
               Проверить
             </Button>
           )}
           {onDelete && !report.reviewedAt && (
-            <Button size="sm" variant="outline" onClick={onDelete}>
+            <Button size="sm" variant="ghost" onClick={onDelete}>
               Удалить
             </Button>
           )}

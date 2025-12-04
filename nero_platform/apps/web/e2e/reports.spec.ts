@@ -21,7 +21,6 @@ test.describe('Reports Management', () => {
 
   test('R-1: Родитель может создать отчет', async ({ page }) => {
     // Переход к заданиям
-    await page.click('[data-testid=assignments-menu]')
     await page.click('[data-testid=assignments-link]')
     await page.waitForURL('/dashboard/assignments')
     
@@ -67,9 +66,8 @@ test.describe('Reports Management', () => {
     await page.fill('input[type="password"]', 'admin123')
     await page.click('button[type="submit"]')
     await page.waitForURL('/dashboard')
-    
+
     // Переход к отчетам
-    await page.click('[data-testid=reports-menu]')
     await page.click('[data-testid=reports-link]')
     await page.waitForURL('/dashboard/reports')
     

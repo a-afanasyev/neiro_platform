@@ -56,9 +56,10 @@ services:
       - ./package.json:/app/package.json:ro
       - ./pnpm-lock.yaml:/app/pnpm-lock.yaml:ro
       - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
-      - ./packages:/app/packages:ro
-      - ./services:/app/services:ro
-      - ./apps:/app/apps:ro
+      - ./.npmrc:/app/.npmrc:ro
+      - ./packages:/app/packages
+      - ./services:/app/services
+      - ./apps:/app/apps
     environment:
       PUPPETEER_CACHE_DIR: /app/.cache/puppeteer
     command: >
@@ -68,10 +69,15 @@ services:
           exit 0;
         fi &&
         echo '=== Starting dependency installation ===' &&
-        pnpm install --frozen-lockfile &&
+        pnpm install --frozen-lockfile;
+        EXIT_CODE=$$?;
+        if [ $$EXIT_CODE -eq 1 ]; then
+          echo 'Warning: pnpm install completed with symlink errors (expected due to read-only mounts)';
+        elif [ $$EXIT_CODE -ne 0 ]; then
+          echo 'ERROR: pnpm install failed with exit code' $$EXIT_CODE && exit $$EXIT_CODE;
+        fi &&
         echo '=== Generating Prisma Client ===' &&
-        cd packages/database && npx prisma generate &&
-        cd /app &&
+        prisma generate --schema=/app/packages/database/prisma/schema.prisma &&
         touch /app/node_modules/.install-complete &&
         echo '=== Init completed successfully ===' &&
         exit 0

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { ReportCard } from '@/components/reports/ReportCard'
+import { ReportDetailsDialog } from '@/components/reports/ReportDetailsDialog'
+import { ReviewDialog } from '@/components/reports/ReviewDialog'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { reportsApi } from '@/lib/api'
@@ -34,6 +36,9 @@ export default function ReportsPage() {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false)
+  const [selectedReport, setSelectedReport] = useState<any | null>(null)
+  const [showReviewDialog, setShowReviewDialog] = useState(false)
 
   /**
    * Загрузить список детей для фильтра
@@ -143,17 +148,33 @@ export default function ReportsPage() {
   /**
    * Обработчик просмотра отчета
    */
-  const handleViewReport = (reportId: string) => {
-    setSelectedReportId(reportId)
-    // TODO: Открыть модальное окно или перейти на страницу детального просмотра
+  const handleViewReport = (report: any) => {
+    setSelectedReport(report)
+    setShowDetailsDialog(true)
   }
 
   /**
-   * Обработчик проверки отчета
+   * Обработчик начала проверки отчета (открывает диалог проверки)
    */
-  const handleReviewReport = (reportId: string) => {
-    // TODO: Открыть диалог проверки отчета
-    console.log('Review report:', reportId)
+  const handleStartReview = () => {
+    setShowReviewDialog(true)
+  }
+
+  /**
+   * Обработчик проверки отчета напрямую из карточки
+   */
+  const handleReviewReport = (report: any) => {
+    setSelectedReport(report)
+    setShowReviewDialog(true)
+  }
+
+  /**
+   * После успешной проверки отчета
+   */
+  const handleReviewSuccess = async () => {
+    setShowReviewDialog(false)
+    setShowDetailsDialog(false)
+    await loadReports(true)
   }
 
   /**
@@ -269,7 +290,8 @@ export default function ReportsPage() {
                     report={report}
                     index={index}
                     showActions={true}
-                    onReview={() => handleReviewReport(report.id)}
+                    onView={() => handleViewReport(report)}
+                    onReview={() => handleReviewReport(report)}
                     onDelete={() => handleDeleteReport(report.id)}
                   />
                 ))}
@@ -297,6 +319,26 @@ export default function ReportsPage() {
             </>
           )}
         </div>
+
+        {/* Report Details Dialog */}
+        {selectedReport && (
+          <ReportDetailsDialog
+            open={showDetailsDialog}
+            onOpenChange={setShowDetailsDialog}
+            report={selectedReport}
+            onReview={handleStartReview}
+          />
+        )}
+
+        {/* Review Dialog */}
+        {selectedReport && (
+          <ReviewDialog
+            open={showReviewDialog}
+            onOpenChange={setShowReviewDialog}
+            reportId={selectedReport.id}
+            onSuccess={handleReviewSuccess}
+          />
+        )}
       </DashboardLayout>
     </ProtectedRoute>
   )
