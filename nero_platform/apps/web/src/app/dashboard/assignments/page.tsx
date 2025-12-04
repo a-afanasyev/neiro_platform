@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CreateAssignmentDialog } from '@/components/assignments/CreateAssignmentDialog'
+import { CreateReportDialog } from '@/components/reports/CreateReportDialog'
 import { assignmentsApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -65,6 +66,8 @@ export default function AssignmentsPage() {
   const [isActionLoading, setIsActionLoading] = useState(false)
   const [actionAssignmentId, setActionAssignmentId] = useState<string | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [showReportDialog, setShowReportDialog] = useState(false)
+  const [selectedAssignmentForReport, setSelectedAssignmentForReport] = useState<string | null>(null)
 
   useEffect(() => {
     loadAssignments()
@@ -117,22 +120,20 @@ export default function AssignmentsPage() {
   }
 
   /**
-   * Завершить назначение
+   * Завершить назначение (открывает диалог для создания отчёта)
    */
-  const handleComplete = async (assignmentId: string) => {
-    const notes = prompt('Добавить комментарий о выполнении (необязательно):')
-    
-    setIsActionLoading(true)
-    setActionAssignmentId(assignmentId)
-    try {
-      await assignmentsApi.completeAssignment(assignmentId, { notes: notes || undefined })
-      await loadAssignments()
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Не удалось завершить назначение')
-    } finally {
-      setIsActionLoading(false)
-      setActionAssignmentId(null)
-    }
+  const handleComplete = (assignmentId: string) => {
+    setSelectedAssignmentForReport(assignmentId)
+    setShowReportDialog(true)
+  }
+
+  /**
+   * После успешного создания отчёта
+   */
+  const handleReportSuccess = async () => {
+    setShowReportDialog(false)
+    setSelectedAssignmentForReport(null)
+    await loadAssignments()
   }
 
   /**
@@ -336,6 +337,16 @@ export default function AssignmentsPage() {
           onOpenChange={setShowCreateDialog}
           onSuccess={loadAssignments}
         />
+
+        {/* Create Report Dialog */}
+        {selectedAssignmentForReport && (
+          <CreateReportDialog
+            open={showReportDialog}
+            onOpenChange={setShowReportDialog}
+            assignmentId={selectedAssignmentForReport}
+            onSuccess={handleReportSuccess}
+          />
+        )}
       </DashboardLayout>
     </ProtectedRoute>
   )
