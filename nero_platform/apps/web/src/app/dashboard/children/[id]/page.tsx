@@ -239,25 +239,25 @@ export default function ChildDetailPage() {
           {/* Заголовок с кнопками действий */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">
+              <h1 className="text-3xl font-bold" data-testid="child-detail-name">
                 {child.lastName} {child.firstName} {child.middleName || ''}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground" data-testid="child-detail-age">
                 {calculateAge(child.birthDate)} • {getGenderText(child.gender)}
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => router.back()}>
+              <Button variant="outline" onClick={() => router.back()} data-testid="back-button">
                 Назад
               </Button>
-              <Button onClick={() => router.push(`/dashboard/children/${childId}/edit`)}>
+              <Button onClick={() => router.push(`/dashboard/children/${childId}/edit`)} data-testid="edit-child-button">
                 Редактировать
               </Button>
             </div>
           </div>
 
           {/* Основная информация */}
-          <Card>
+          <Card data-testid="child-detail-card">
             <CardHeader>
               <CardTitle>Основная информация</CardTitle>
               <CardDescription>Личные данные ребенка</CardDescription>

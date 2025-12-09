@@ -36,36 +36,6 @@ async function main() {
     },
   });
 
-  // Admin для E2E тестов (password: admin123)
-  const adminTest = await prisma.user.upsert({
-    where: { email: 'admin1@example.com' },
-    update: {},
-    create: {
-      email: 'admin1@example.com',
-      password: await bcrypt.hash('admin123', 12),
-      firstName: 'Test',
-      lastName: 'Administrator',
-      role: 'admin',
-      status: 'active',
-      timezone: 'Asia/Tashkent',
-    },
-  });
-
-  // Methodist для E2E тестов (password: admin123)
-  const methodist = await prisma.user.upsert({
-    where: { email: 'methodist1@example.com' },
-    update: {},
-    create: {
-      email: 'methodist1@example.com',
-      password: await bcrypt.hash('admin123', 12),
-      firstName: 'Test',
-      lastName: 'Methodist',
-      role: 'admin', // Methodist пока используем admin роль, так как отдельной роли methodist может не быть
-      status: 'active',
-      timezone: 'Asia/Tashkent',
-    },
-  });
-
   // Супервизор (password: supervisor123)
   const supervisor = await prisma.user.upsert({
     where: { email: 'supervisor@neiro.dev' },
@@ -78,21 +48,6 @@ async function main() {
       role: 'supervisor',
       status: 'active',
       timezone: 'Europe/Moscow',
-    },
-  });
-
-  // Супервизор для E2E тестов (password: admin123)
-  const supervisor1 = await prisma.user.upsert({
-    where: { email: 'supervisor1@example.com' },
-    update: {},
-    create: {
-      email: 'supervisor1@example.com',
-      password: await bcrypt.hash('admin123', 12),
-      firstName: 'Ирина',
-      lastName: 'Супервизорова',
-      role: 'supervisor',
-      status: 'active',
-      timezone: 'Asia/Tashkent',
     },
   });
 
@@ -305,7 +260,7 @@ async function main() {
     },
   });
 
-  console.log(`✅ Создано пользователей: 16`);
+  console.log(`✅ Создано пользователей: 15`);
 
   // ============================================================
   // 2. Создаём профили специалистов
@@ -365,20 +320,7 @@ async function main() {
     },
   });
 
-  const supervisorSpecialist1 = await prisma.specialist.upsert({
-    where: { userId: supervisor1.id },
-    update: {},
-    create: {
-      userId: supervisor1.id,
-      specialty: 'supervisor',
-      licenseNumber: 'SUP-2024-005',
-      licenseValidUntil: new Date('2027-12-31'),
-      experienceYears: 12,
-      bio: 'Супервизор для тестовых сценариев',
-    },
-  });
-
-  console.log(`✅ Создано специалистов: 5`);
+  console.log(`✅ Создано специалистов: 4`);
 
   // ============================================================
   // 3. Создаём детей
@@ -430,117 +372,7 @@ async function main() {
     });
   }
 
-  // Ребенок 3: Виктор Козлов
-  let child3 = await prisma.child.findFirst({
-    where: {
-      firstName: 'Виктор',
-      lastName: 'Козлов',
-      birthDate: new Date('2017-03-10'),
-    },
-  });
-
-  if (!child3) {
-    child3 = await prisma.child.create({
-      data: {
-        firstName: 'Виктор',
-        lastName: 'Козлов',
-        birthDate: new Date('2017-03-10'), // ~7-8 лет
-        gender: 'male',
-        diagnosisSummary: 'СДВГ, задержка речевого развития',
-        notes: 'Активный, любит спорт',
-      },
-    });
-  }
-
-  // Ребенок 4: Софья Морозова
-  let child4 = await prisma.child.findFirst({
-    where: {
-      firstName: 'Софья',
-      lastName: 'Морозова',
-      birthDate: new Date('2020-07-22'),
-    },
-  });
-
-  if (!child4) {
-    child4 = await prisma.child.create({
-      data: {
-        firstName: 'Софья',
-        lastName: 'Морозова',
-        birthDate: new Date('2020-07-22'), // ~4-5 лет
-        gender: 'female',
-        diagnosisSummary: 'РАС легкой степени',
-        notes: 'Любит музыку, хорошо идет на контакт',
-      },
-    });
-  }
-
-  // Ребенок 5: Максим Новиков
-  let child5 = await prisma.child.findFirst({
-    where: {
-      firstName: 'Максим',
-      lastName: 'Новиков',
-      birthDate: new Date('2016-12-05'),
-    },
-  });
-
-  if (!child5) {
-    child5 = await prisma.child.create({
-      data: {
-        firstName: 'Максим',
-        lastName: 'Новиков',
-        birthDate: new Date('2016-12-05'), // ~8 лет
-        gender: 'male',
-        diagnosisSummary: 'ДЦП, нарушения координации',
-        notes: 'Требуется адаптированная среда',
-      },
-    });
-  }
-
-  // Ребенок 6: Анна Сидорова
-  let child6 = await prisma.child.findFirst({
-    where: {
-      firstName: 'Анна',
-      lastName: 'Сидорова',
-      birthDate: new Date('2019-09-18'),
-    },
-  });
-
-  if (!child6) {
-    child6 = await prisma.child.create({
-      data: {
-        firstName: 'Анна',
-        lastName: 'Сидорова',
-        birthDate: new Date('2019-09-18'), // ~5-6 лет
-        gender: 'female',
-        diagnosisSummary: 'Задержка психического развития',
-        notes: 'Хорошо реагирует на визуальные подсказки',
-      },
-    });
-  }
-
-  // Ребенок 7: Даниил Волков
-  let child7 = await prisma.child.findFirst({
-    where: {
-      firstName: 'Даниил',
-      lastName: 'Волков',
-      birthDate: new Date('2018-01-30'),
-    },
-  });
-
-  if (!child7) {
-    child7 = await prisma.child.create({
-      data: {
-        firstName: 'Даниил',
-        lastName: 'Волков',
-        birthDate: new Date('2018-01-30'), // ~6-7 лет
-        gender: 'male',
-        diagnosisSummary: 'РАС средней степени, сенсорные нарушения',
-        notes: 'Чувствителен к громким звукам',
-      },
-    });
-  }
-
-  console.log(`✅ Проверено/создано детей: 7`);
+  console.log(`✅ Проверено/создано детей: 2`);
 
   // ============================================================
   // 4. Связываем детей с родителями
@@ -600,115 +432,7 @@ async function main() {
     },
   });
 
-  // Ребенок 3 (Виктор) -> parent3 (Дмитрий Сидоров)
-  await prisma.childParent.upsert({
-    where: {
-      childId_parentUserId: {
-        childId: child3.id,
-        parentUserId: parent3.id,
-      },
-    },
-    update: {},
-    create: {
-      childId: child3.id,
-      parentUserId: parent3.id,
-      legalGuardian: true,
-      relationship: 'father',
-      linkedAt: new Date(),
-    },
-  });
-
-  // Ребенок 4 (Софья) -> parent4 (Елена Михайлова)
-  await prisma.childParent.upsert({
-    where: {
-      childId_parentUserId: {
-        childId: child4.id,
-        parentUserId: parent4.id,
-      },
-    },
-    update: {},
-    create: {
-      childId: child4.id,
-      parentUserId: parent4.id,
-      legalGuardian: true,
-      relationship: 'mother',
-      linkedAt: new Date(),
-    },
-  });
-
-  // Ребенок 5 (Максим) -> parent5 (Сергей Козлов)
-  await prisma.childParent.upsert({
-    where: {
-      childId_parentUserId: {
-        childId: child5.id,
-        parentUserId: parent5.id,
-      },
-    },
-    update: {},
-    create: {
-      childId: child5.id,
-      parentUserId: parent5.id,
-      legalGuardian: true,
-      relationship: 'father',
-      linkedAt: new Date(),
-    },
-  });
-
-  // Ребенок 6 (Анна) -> parent6 (Мария Волкова)
-  await prisma.childParent.upsert({
-    where: {
-      childId_parentUserId: {
-        childId: child6.id,
-        parentUserId: parent6.id,
-      },
-    },
-    update: {},
-    create: {
-      childId: child6.id,
-      parentUserId: parent6.id,
-      legalGuardian: true,
-      relationship: 'mother',
-      linkedAt: new Date(),
-    },
-  });
-
-  // Ребенок 7 (Даниил) -> parent7 (Алексей Новиков)
-  await prisma.childParent.upsert({
-    where: {
-      childId_parentUserId: {
-        childId: child7.id,
-        parentUserId: parent7.id,
-      },
-    },
-    update: {},
-    create: {
-      childId: child7.id,
-      parentUserId: parent7.id,
-      legalGuardian: true,
-      relationship: 'father',
-      linkedAt: new Date(),
-    },
-  });
-
-  // Добавляем второго родителя для child4 (Софья): parent5 как второй опекун
-  await prisma.childParent.upsert({
-    where: {
-      childId_parentUserId: {
-        childId: child4.id,
-        parentUserId: parent5.id,
-      },
-    },
-    update: {},
-    create: {
-      childId: child4.id,
-      parentUserId: parent5.id,
-      legalGuardian: false,
-      relationship: 'guardian',
-      linkedAt: new Date(),
-    },
-  });
-
-  console.log(`✅ Связей детей с родителями: 9`);
+  console.log(`✅ Связей детей с родителями: 3`);
 
   // ============================================================
   // 5. Назначаем специалистов детям
@@ -1755,243 +1479,10 @@ async function main() {
   console.log('✅ Создано назначений: 8');
 
   // ============================================================
-  // 12. Создаём отчеты (Reports)
+  // 12. Создаём уведомления (Notifications)
   // ============================================================
 
-  console.log('📝 Создание отчетов...');
-
-  // Report 1: Завершенное занятие от parent1 для assignment1 - проверено и одобрено
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent1.id,
-      submittedAt: new Date('2025-11-20T12:00:00Z'),
-      status: 'completed',
-      durationMinutes: 20,
-      childMood: 'good',
-      feedbackText: 'Ребенок выполнил все упражнения с удовольствием. Артикуляция улучшается.',
-      media: {
-        photos: ['photo1.jpg', 'photo2.jpg'],
-        videos: [],
-      },
-      autoScore: 85.5,
-      reviewedBy: specialist2.id,
-      reviewedAt: new Date('2025-11-20T14:00:00Z'),
-      reviewStatus: 'approved',
-    },
-  });
-
-  // Report 2: Частично выполненное занятие от parent2 - требует внимания
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent2.id,
-      submittedAt: new Date('2025-11-21T10:00:00Z'),
-      status: 'partial',
-      durationMinutes: 10,
-      childMood: 'neutral',
-      feedbackText: 'Смогли выполнить только половину упражнений, ребенок устал.',
-      media: null,
-      autoScore: 50.0,
-      reviewedBy: specialist1.id,
-      reviewedAt: new Date('2025-11-21T15:00:00Z'),
-      reviewStatus: 'needs_attention',
-    },
-  });
-
-  // Report 3: Неудачное занятие от parent1 - не проверено
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent1.id,
-      submittedAt: new Date('2025-11-22T09:00:00Z'),
-      status: 'failed',
-      durationMinutes: 5,
-      childMood: 'difficult',
-      feedbackText: 'Ребенок отказался выполнять упражнения, был в плохом настроении.',
-      media: null,
-      autoScore: 0.0,
-      reviewStatus: 'not_reviewed',
-    },
-  });
-
-  // Report 4: Отличное занятие от parent3 - одобрено
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent3.id,
-      submittedAt: new Date('2025-11-19T16:00:00Z'),
-      status: 'completed',
-      durationMinutes: 25,
-      childMood: 'good',
-      feedbackText: 'Все прошло отлично! Виктор с интересом выполнял задания и просил еще.',
-      media: {
-        photos: ['workout1.jpg'],
-        videos: ['session1.mp4'],
-      },
-      autoScore: 92.0,
-      reviewedBy: specialist1.id,
-      reviewedAt: new Date('2025-11-19T18:00:00Z'),
-      reviewStatus: 'approved',
-    },
-  });
-
-  // Report 5: Занятие от parent4 - не проверено
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent4.id,
-      submittedAt: new Date('2025-11-23T11:00:00Z'),
-      status: 'completed',
-      durationMinutes: 18,
-      childMood: 'good',
-      feedbackText: 'Софья хорошо справилась с упражнениями. Было немного отвлечений, но в целом занятие прошло успешно.',
-      media: {
-        photos: ['sophia_work.jpg'],
-      },
-      autoScore: 78.5,
-      reviewStatus: 'not_reviewed',
-    },
-  });
-
-  // Report 6: Занятие от parent5 - отклонено
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent5.id,
-      submittedAt: new Date('2025-11-18T14:00:00Z'),
-      status: 'completed',
-      durationMinutes: 30,
-      childMood: 'neutral',
-      feedbackText: 'Выполнили упражнения, но не уверен, что делали правильно.',
-      media: null,
-      autoScore: 60.0,
-      reviewedBy: specialist2.id,
-      reviewedAt: new Date('2025-11-18T16:00:00Z'),
-      reviewStatus: 'rejected',
-    },
-  });
-
-  // Report 7: Занятие от parent6 - одобрено с комментариями
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent6.id,
-      submittedAt: new Date('2025-11-17T13:00:00Z'),
-      status: 'completed',
-      durationMinutes: 22,
-      childMood: 'good',
-      feedbackText: 'Анна очень старалась. Визуальные подсказки помогли ей сосредоточиться.',
-      media: {
-        photos: ['anna_progress1.jpg', 'anna_progress2.jpg'],
-      },
-      autoScore: 88.0,
-      reviewedBy: specialist3.id,
-      reviewedAt: new Date('2025-11-17T17:00:00Z'),
-      reviewStatus: 'approved',
-    },
-  });
-
-  // Report 8: Занятие от parent7 - требует внимания
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent7.id,
-      submittedAt: new Date('2025-11-16T10:00:00Z'),
-      status: 'partial',
-      durationMinutes: 12,
-      childMood: 'difficult',
-      feedbackText: 'Даниил был чувствителен к шуму, не смогли закончить все упражнения.',
-      media: null,
-      autoScore: 45.0,
-      reviewedBy: specialist1.id,
-      reviewedAt: new Date('2025-11-16T14:00:00Z'),
-      reviewStatus: 'needs_attention',
-    },
-  });
-
-  // Report 9: Свежий отчет от parent1 - не проверен
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent1.id,
-      submittedAt: new Date(),
-      status: 'completed',
-      durationMinutes: 20,
-      childMood: 'good',
-      feedbackText: 'Сегодняшнее занятие прошло хорошо, Алиса активно участвовала.',
-      media: {
-        photos: ['today_session.jpg'],
-      },
-      autoScore: 82.0,
-      reviewStatus: 'not_reviewed',
-    },
-  });
-
-  // Report 10: Отчет от parent2 - не проверен
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent2.id,
-      submittedAt: new Date(),
-      status: 'completed',
-      durationMinutes: 15,
-      childMood: 'neutral',
-      feedbackText: 'Борис справился с заданиями, но был немного рассеян.',
-      media: null,
-      autoScore: 70.0,
-      reviewStatus: 'not_reviewed',
-    },
-  });
-
-  // Report 11: Отчет от parent3 - одобрен
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent3.id,
-      submittedAt: new Date('2025-11-15T12:00:00Z'),
-      status: 'completed',
-      durationMinutes: 28,
-      childMood: 'good',
-      feedbackText: 'Виктор показывает отличный прогресс! Занятие было очень продуктивным.',
-      media: {
-        photos: ['viktor_achievement.jpg'],
-        videos: ['viktor_speaking.mp4'],
-      },
-      autoScore: 95.0,
-      reviewedBy: specialist2.id,
-      reviewedAt: new Date('2025-11-15T15:00:00Z'),
-      reviewStatus: 'approved',
-    },
-  });
-
-  // Report 12: Отчет от parent4 - требует внимания
-  await prisma.report.create({
-    data: {
-      assignmentId: assignment1.id,
-      parentId: parent4.id,
-      submittedAt: new Date('2025-11-14T11:00:00Z'),
-      status: 'partial',
-      durationMinutes: 14,
-      childMood: 'neutral',
-      feedbackText: 'Софья начала хорошо, но к середине занятия потеряла интерес.',
-      media: {
-        photos: ['sophia_mid_session.jpg'],
-      },
-      autoScore: 65.0,
-      reviewedBy: specialist1.id,
-      reviewedAt: new Date('2025-11-14T16:00:00Z'),
-      reviewStatus: 'needs_attention',
-    },
-  });
-
-  console.log('✅ Создано отчетов: 12');
-
-  // ============================================================
-  // 13. Создаём уведомления (Notifications)
-  // ============================================================
-
-  console.log('📝 Создание уведомлений (Notifications)...');
+  console.log('📝 Создание уведомлений...');
 
   // Notification 1: Email reminder для parent1
   const notification1 = await prisma.notification.create({
@@ -2064,13 +1555,13 @@ async function main() {
     },
   });
 
-  console.log('✅ Создано уведомлений (Notifications): 4');
+  console.log('✅ Создано уведомлений: 4');
 
   // ============================================================
-  // 14. Создаём in-app уведомления (UserNotifications)
+  // 13. Создаём in-app уведомления (UserNotifications)
   // ============================================================
 
-  console.log('📝 Создание in-app уведомлений (UserNotifications)...');
+  console.log('📝 Создание in-app уведомлений...');
 
   // UserNotification 1: Непрочитанное для parent1
   await prisma.userNotification.create({
@@ -2136,13 +1627,13 @@ async function main() {
     },
   });
 
-  console.log('✅ Создано in-app уведомлений (UserNotifications): 5');
+  console.log('✅ Создано in-app уведомлений: 5');
 
   // ============================================================
-  // 15. Создаём настройки уведомлений (NotificationPreferences)
+  // 14. Создаём настройки уведомлений (NotificationPreferences)
   // ============================================================
 
-  console.log('📝 Создание настроек уведомлений (NotificationPreferences)...');
+  console.log('📝 Создание настроек уведомлений...');
 
   // Preferences для parent1: Все каналы включены
   await prisma.notificationPreference.create({
@@ -2191,13 +1682,13 @@ async function main() {
     },
   });
 
-  console.log('✅ Создано настроек уведомлений (NotificationPreferences): 3');
+  console.log('✅ Создано настроек уведомлений: 3');
 
   // ============================================================
-  // 16. Создаём диагностические сессии
+  // 15. Создаём диагностические сессии
   // ============================================================
 
-  console.log('📝 Создание диагностических сессий (DiagnosticSessions)...');
+  console.log('📝 Создание диагностических сессий...');
 
   await prisma.diagnosticSession.create({
     data: {
@@ -2235,178 +1726,24 @@ async function main() {
     },
   });
 
-  // ATEC для child3 (Виктор) - завершен
-  await prisma.diagnosticSession.create({
-    data: {
-      childId: child3.id,
-      performedBy: specialist2.id,
-      questionnaireCode: 'ATEC',
-      status: 'completed',
-      startedAt: new Date('2025-10-10T09:00:00Z'),
-      completedAt: new Date('2025-10-10T10:00:00Z'),
-      scoreTotal: 45,
-      scoreRaw: {
-        items: [
-          { category: 'speech', score: 12 },
-          { category: 'sociability', score: 15 },
-          { category: 'sensory', score: 10 },
-          { category: 'health', score: 8 },
-        ],
-      },
-      interpretationLevel: 'moderate',
-      notes: 'Основные трудности в коммуникации',
-    },
-  });
-
-  // Vineland-3 для child4 (Софья) - завершен
-  await prisma.diagnosticSession.create({
-    data: {
-      childId: child4.id,
-      performedBy: specialist1.id,
-      questionnaireCode: 'VINELAND-3',
-      status: 'completed',
-      startedAt: new Date('2025-10-05T11:00:00Z'),
-      completedAt: new Date('2025-10-05T12:30:00Z'),
-      scoreTotal: 88,
-      scoreRaw: {
-        domains: [
-          { domain: 'communication', score: 85 },
-          { domain: 'daily_living', score: 90 },
-          { domain: 'socialization', score: 82 },
-          { domain: 'motor_skills', score: 95 },
-        ],
-      },
-      interpretationLevel: 'low_average',
-      notes: 'Хорошие моторные навыки, нужна работа над социализацией',
-    },
-  });
-
-  // ABC для child5 (Максим) - в процессе
-  await prisma.diagnosticSession.create({
-    data: {
-      childId: child5.id,
-      performedBy: specialist1.id,
-      questionnaireCode: 'ABC',
-      status: 'in_progress',
-      startedAt: new Date('2025-11-20T10:00:00Z'),
-      scoreRaw: {
-        items: [
-          { questionId: 1, answer: 2 },
-          { questionId: 2, answer: 3 },
-        ],
-      },
-      notes: 'Диагностика в процессе',
-    },
-  });
-
-  // SPM-2 для child6 (Анна) - завершен
-  await prisma.diagnosticSession.create({
-    data: {
-      childId: child6.id,
-      performedBy: specialist3.id,
-      questionnaireCode: 'SPM-2',
-      status: 'completed',
-      startedAt: new Date('2025-09-15T14:00:00Z'),
-      completedAt: new Date('2025-09-15T15:30:00Z'),
-      scoreTotal: 72,
-      scoreRaw: {
-        systems: [
-          { system: 'visual', score: 68 },
-          { system: 'auditory', score: 75 },
-          { system: 'tactile', score: 70 },
-          { system: 'vestibular', score: 74 },
-        ],
-      },
-      interpretationLevel: 'typical',
-      notes: 'Сенсорная обработка в пределах нормы',
-    },
-  });
-
-  // M-CHAT для child7 (Даниил) - завершен
-  await prisma.diagnosticSession.create({
-    data: {
-      childId: child7.id,
-      performedBy: specialist1.id,
-      questionnaireCode: 'M-CHAT-R',
-      status: 'completed',
-      startedAt: new Date('2025-08-20T10:00:00Z'),
-      completedAt: new Date('2025-08-20T10:30:00Z'),
-      scoreTotal: 8,
-      scoreRaw: {
-        items: [
-          { questionId: 1, answer: 'no' },
-          { questionId: 2, answer: 'no' },
-          { questionId: 3, answer: 'yes' },
-          { questionId: 7, answer: 'no' },
-          { questionId: 9, answer: 'no' },
-        ],
-      },
-      interpretationLevel: 'high_risk',
-      notes: 'Рекомендована углубленная диагностика',
-    },
-  });
-
-  // CARS повторная для child1 (Алиса) - завершен
-  await prisma.diagnosticSession.create({
-    data: {
-      childId: child1.id,
-      performedBy: specialist1.id,
-      questionnaireCode: 'CARS',
-      status: 'completed',
-      startedAt: new Date('2025-11-01T10:00:00Z'),
-      completedAt: new Date('2025-11-01T11:30:00Z'),
-      scoreTotal: 28,
-      scoreRaw: {
-        items: [
-          { questionId: 1, answer: 2, notes: 'Улучшение по сравнению с первой оценкой' },
-          { questionId: 2, answer: 2, notes: 'Прогресс заметен' },
-        ],
-      },
-      interpretationLevel: 'mild_to_moderate',
-      notes: 'Положительная динамика после начала терапии',
-    },
-  });
-
-  console.log('✅ Создано диагностических сессий (DiagnosticSessions): 8');
+  console.log('✅ Создано диагностических сессий: 2');
 
   console.log('');
   console.log('🎉 Seed завершен успешно!');
   console.log('');
-  console.log('📊 Сводка созданных данных:');
-  console.log('   👥 Пользователи: 16');
-  console.log('      - Admin: 2 (admin@neiro.dev, admin1@example.com)');
-  console.log('      - Supervisor: 2 (supervisor@neiro.dev, supervisor1@example.com)');
-  console.log('      - Specialist: 3 (specialist1-3@example.com)');
-  console.log('      - Parent: 10 (parent1-10@example.com)');
-  console.log('');
-  console.log('   👶 Дети: 7');
-  console.log('      - Алиса Иванова, Борис Петров, Виктор Козлов');
-  console.log('      - Софья Морозова, Максим Новиков, Анна Сидорова, Даниил Волков');
-  console.log('');
-  console.log('   🎯 Упражнения: 16 (cognitive, speech, motor, social, sensory)');
-  console.log('   📋 Шаблоны маршрутов: 3 с фазами и целями');
-  console.log('   🛤️  Маршруты: 2 (active, draft)');
-  console.log('   📝 Назначения: 8 (различные статусы)');
-  console.log('   📄 Отчеты: 12 (все reviewStatus: approved, needs_attention, rejected, not_reviewed)');
-  console.log('   📬 Уведомления: 4 Notifications + 5 UserNotifications + 3 Preferences');
-  console.log('   🔬 Диагностические сессии: 8 (CARS, M-CHAT, ATEC, Vineland-3, ABC, SPM-2)');
-  console.log('');
-  console.log('📋 Тестовые учетные данные для E2E:');
+  console.log('📋 Тестовые учетные данные:');
   console.log('   Admin:          admin@neiro.dev / admin123');
-  console.log('   Admin (E2E):    admin1@example.com / admin123');
   console.log('   Supervisor:     supervisor@neiro.dev / supervisor123');
-  console.log('   Supervisor E2E: supervisor1@example.com / admin123 ⭐ NEW');
   console.log('   Specialist 1:   specialist1@example.com / admin123 (Нейропсихолог)');
   console.log('   Specialist 2:   specialist2@example.com / admin123 (Логопед)');
   console.log('   Specialist 3:   specialist3@example.com / admin123 (ABA-терапевт)');
   console.log('   Parent 1:       parent1@example.com / parent123');
   console.log('   Parent 2-10:    parent2-10@example.com / parent123');
   console.log('');
-  console.log('✅ Готово для E2E тестов!');
-  console.log('   - Month 1: Users CRUD, Children CRUD, Profile Management');
-  console.log('   - Month 2: Routes, Assignments');
-  console.log('   - Month 3: Reports List, Analytics, Notifications');
-  console.log('   - Bonus: Diagnostics (all 6 questionnaires)');
+  console.log('📬 Уведомления (Month 3 features):');
+  console.log('   - 4 Notifications (sent, failed, pending)');
+  console.log('   - 5 UserNotifications (unread, read, archived)');
+  console.log('   - 3 NotificationPreferences (parent1, parent2, specialist1)');
 }
 
 main()

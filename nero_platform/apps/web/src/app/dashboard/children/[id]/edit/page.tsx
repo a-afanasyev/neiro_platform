@@ -171,7 +171,7 @@ export default function EditChildPage() {
           </div>
 
           {/* Форма редактирования */}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-testid="edit-child-form">
             <div className="space-y-6">
               {/* Основная информация */}
               <Card>
@@ -181,7 +181,7 @@ export default function EditChildPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {error && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg" data-testid="error-message">
                       <p className="text-sm text-red-600">{error}</p>
                     </div>
                   )}
@@ -194,6 +194,7 @@ export default function EditChildPage() {
                       </Label>
                       <Input
                         id="firstName"
+                        data-testid="firstName-input"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         placeholder="Введите имя"
@@ -208,6 +209,7 @@ export default function EditChildPage() {
                       </Label>
                       <Input
                         id="lastName"
+                        data-testid="lastName-input"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         placeholder="Введите фамилию"
@@ -220,6 +222,7 @@ export default function EditChildPage() {
                       <Label htmlFor="middleName">Отчество</Label>
                       <Input
                         id="middleName"
+                        data-testid="middleName-input"
                         value={middleName}
                         onChange={(e) => setMiddleName(e.target.value)}
                         placeholder="Введите отчество"
@@ -233,6 +236,7 @@ export default function EditChildPage() {
                       </Label>
                       <Input
                         id="dateOfBirth"
+                        data-testid="dateOfBirth-input"
                         type="date"
                         value={dateOfBirth}
                         onChange={(e) => setDateOfBirth(e.target.value)}
@@ -247,6 +251,7 @@ export default function EditChildPage() {
                       </Label>
                       <select
                         id="gender"
+                        data-testid="gender-select"
                         value={gender}
                         onChange={(e) => setGender(e.target.value)}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -272,6 +277,7 @@ export default function EditChildPage() {
                     <Label htmlFor="diagnosis">Диагноз</Label>
                     <Input
                       id="diagnosis"
+                      data-testid="diagnosis-input"
                       value={diagnosis}
                       onChange={(e) => setDiagnosis(e.target.value)}
                       placeholder="Например: РАС, СДВГ и т.д."
@@ -299,10 +305,11 @@ export default function EditChildPage() {
                   variant="outline"
                   onClick={() => router.back()}
                   disabled={saving}
+                  data-testid="cancel-button"
                 >
                   Отмена
                 </Button>
-                <Button type="submit" disabled={saving}>
+                <Button type="submit" disabled={saving} data-testid="save-button">
                   {saving ? 'Сохранение...' : 'Сохранить изменения'}
                 </Button>
               </div>

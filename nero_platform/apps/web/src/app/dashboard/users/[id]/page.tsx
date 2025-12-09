@@ -217,23 +217,23 @@ export default function UserDetailPage() {
           {/* Заголовок с кнопками действий */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">
+              <h1 className="text-3xl font-bold" data-testid="user-detail-name">
                 {user.lastName} {user.firstName} {user.middleName || ''}
               </h1>
-              <p className="text-muted-foreground">{user.email}</p>
+              <p className="text-muted-foreground" data-testid="user-detail-email">{user.email}</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => router.back()}>
+              <Button variant="outline" onClick={() => router.back()} data-testid="back-button">
                 Назад
               </Button>
-              <Button onClick={() => router.push(`/dashboard/users/${userId}/edit`)}>
+              <Button onClick={() => router.push(`/dashboard/users/${userId}/edit`)} data-testid="edit-user-button">
                 Редактировать
               </Button>
             </div>
           </div>
 
           {/* Основная информация */}
-          <Card>
+          <Card data-testid="user-detail-card">
             <CardHeader>
               <CardTitle>Основная информация</CardTitle>
               <CardDescription>Личные данные и контактная информация</CardDescription>

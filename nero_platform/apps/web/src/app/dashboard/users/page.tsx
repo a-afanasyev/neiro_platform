@@ -166,20 +166,21 @@ export default function UsersPage() {
             <h1 className="text-3xl font-bold">Пользователи</h1>
             <p className="text-muted-foreground">Управление пользователями системы</p>
           </div>
-          <Button>+ Пригласить пользователя</Button>
+          <Button data-testid="add-user-button">+ Пригласить пользователя</Button>
         </div>
       </div>
 
       {/* Фильтры и поиск */}
       <div className="mb-6 flex gap-4">
         <Input
+          data-testid="search-input"
           placeholder="Поиск по имени или email..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-sm"
         />
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-[200px]" data-testid="role-filter">
             <SelectValue placeholder="Все роли" />
           </SelectTrigger>
           <SelectContent>
@@ -249,7 +250,7 @@ export default function UsersPage() {
           </Card>
         ) : (
           filteredUsers.map((user) => (
-            <Card key={user.id}>
+            <Card key={user.id} data-testid="user-card">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -268,6 +269,7 @@ export default function UsersPage() {
                   </div>
                   <div className="flex gap-2">
                     <span
+                      data-testid="role-badge"
                       className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getRoleBadgeColor(
                         user.role
                       )}`}
@@ -275,6 +277,7 @@ export default function UsersPage() {
                       {getRoleLabel(user.role)}
                     </span>
                     <span
+                      data-testid="status-badge"
                       className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeColor(
                         user.status
                       )}`}
@@ -298,15 +301,17 @@ export default function UsersPage() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      data-testid="view-user-button"
+                      variant="outline"
                       size="sm"
                       onClick={() => router.push(`/dashboard/users/${user.id}`)}
                     >
                       Подробнее
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      data-testid="edit-user-button"
+                      variant="outline"
                       size="sm"
                       onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}
                     >

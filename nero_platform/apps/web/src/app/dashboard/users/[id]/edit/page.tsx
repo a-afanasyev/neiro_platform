@@ -180,7 +180,7 @@ export default function EditUserPage() {
           </div>
 
           {/* Форма редактирования */}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-testid="edit-user-form">
             <Card>
               <CardHeader>
                 <CardTitle>Основная информация</CardTitle>
@@ -188,7 +188,7 @@ export default function EditUserPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg" data-testid="error-message">
                     <p className="text-sm text-red-600">{error}</p>
                   </div>
                 )}
@@ -201,6 +201,7 @@ export default function EditUserPage() {
                     </Label>
                     <Input
                       id="firstName"
+                      data-testid="firstName-input"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="Введите имя"
@@ -215,6 +216,7 @@ export default function EditUserPage() {
                     </Label>
                     <Input
                       id="lastName"
+                      data-testid="lastName-input"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Введите фамилию"
@@ -227,6 +229,7 @@ export default function EditUserPage() {
                     <Label htmlFor="middleName">Отчество</Label>
                     <Input
                       id="middleName"
+                      data-testid="middleName-input"
                       value={middleName}
                       onChange={(e) => setMiddleName(e.target.value)}
                       placeholder="Введите отчество"
@@ -240,6 +243,7 @@ export default function EditUserPage() {
                     </Label>
                     <Input
                       id="email"
+                      data-testid="email-input"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -253,6 +257,7 @@ export default function EditUserPage() {
                     <Label htmlFor="phone">Телефон</Label>
                     <Input
                       id="phone"
+                      data-testid="phone-input"
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
@@ -302,10 +307,11 @@ export default function EditUserPage() {
                     variant="outline"
                     onClick={() => router.back()}
                     disabled={saving}
+                    data-testid="cancel-button"
                   >
                     Отмена
                   </Button>
-                  <Button type="submit" disabled={saving}>
+                  <Button type="submit" disabled={saving} data-testid="save-button">
                     {saving ? 'Сохранение...' : 'Сохранить изменения'}
                   </Button>
                 </div>

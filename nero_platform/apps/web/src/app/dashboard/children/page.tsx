@@ -202,9 +202,9 @@ export default function ChildrenPage() {
             {(user?.role === 'admin' || user?.role === 'specialist') && (
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>+ Добавить ребенка</Button>
+                  <Button data-testid="add-child-button">+ Добавить ребенка</Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent data-testid="create-child-dialog">
                   <DialogHeader>
                     <DialogTitle>Добавить ребенка</DialogTitle>
                     <DialogDescription>
@@ -394,7 +394,7 @@ export default function ChildrenPage() {
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {children.map((child) => (
-                    <Card key={child.id} className="hover:shadow-md transition-shadow">
+                    <Card key={child.id} data-testid="child-card" className="hover:shadow-md transition-shadow">
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div>
@@ -421,17 +421,19 @@ export default function ChildrenPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="flex space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            data-testid="view-child-button"
+                            variant="outline"
+                            size="sm"
                             className="flex-1"
                             onClick={() => router.push(`/dashboard/children/${child.id}`)}
                           >
                             Подробнее
                           </Button>
                           {(user?.role === 'admin' || user?.role === 'specialist') && (
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              data-testid="edit-child-button"
+                              variant="outline"
                               size="sm"
                               onClick={() => router.push(`/dashboard/children/${child.id}/edit`)}
                             >
