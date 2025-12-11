@@ -177,7 +177,7 @@ export default function AnalyticsPage() {
 
           {/* Analytics Content */}
           {!isLoading && !error && stats && (
-            <div className="space-y-6">
+            <div className="space-y-6" data-testid="children-overview">
               {/* KPI Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <KPICard
@@ -249,7 +249,7 @@ export default function AnalyticsPage() {
                 </Card>
 
                 {/* Recent Activity */}
-                <Card>
+                <Card data-testid="top-performers">
                   <CardHeader>
                     <CardTitle>Недавняя активность</CardTitle>
                     <CardDescription>Последние дни</CardDescription>

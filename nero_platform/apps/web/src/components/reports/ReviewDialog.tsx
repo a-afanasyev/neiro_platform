@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { reportsApi } from '@/lib/api'
 
@@ -104,22 +104,26 @@ export function ReviewDialog({
           {/* Статус проверки */}
           <div className="space-y-3">
             <Label>Статус проверки *</Label>
-            <Select value={reviewStatus} onValueChange={setReviewStatus}>
-              <SelectTrigger data-testid="review-status-select">
-                <SelectValue placeholder="Выберите статус" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="approved" data-testid="approved-option">
+            <RadioGroup value={reviewStatus} onValueChange={setReviewStatus} className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="approved" id="approved" data-testid="approved-radio" />
+                <Label htmlFor="approved" className="font-normal cursor-pointer">
                   ✅ Одобрено - отличная работа
-                </SelectItem>
-                <SelectItem value="needs_attention" data-testid="needs-attention-option">
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="needs_attention" id="needs_attention" data-testid="needs-attention-radio" />
+                <Label htmlFor="needs_attention" className="font-normal cursor-pointer">
                   ⚠️ Требует внимания - есть замечания
-                </SelectItem>
-                <SelectItem value="rejected" data-testid="rejected-option">
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="rejected" id="rejected" data-testid="rejected-radio" />
+                <Label htmlFor="rejected" className="font-normal cursor-pointer">
                   ❌ Отклонено - нужно переделать
-                </SelectItem>
-              </SelectContent>
-            </Select>
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
           {/* Комментарий */}
