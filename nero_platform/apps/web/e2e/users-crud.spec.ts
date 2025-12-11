@@ -235,10 +235,10 @@ test.describe('Users Management - CRUD Operations', () => {
     await expect(page.locator('[data-testid="lastName-input"]')).toHaveValue(/.+/)
     await expect(page.locator('[data-testid="email-input"]')).toHaveValue(/.+/)
 
-    // Act: Edit phone number
+    // Act: Edit phone number (E.164 format)
     const phoneInput = page.locator('[data-testid="phone-input"]')
     await phoneInput.clear()
-    await phoneInput.fill('+7 (999) 888-77-66')
+    await phoneInput.fill('+79998887766')
 
     // Act: Submit form
     await page.locator('[data-testid="save-button"]').click()

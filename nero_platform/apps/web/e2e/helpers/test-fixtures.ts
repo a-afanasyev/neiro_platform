@@ -25,12 +25,12 @@ export const testUsers = {
   },
   parent: {
     email: 'parent1@example.com',
-    password: 'parent123',
+    password: 'admin123',
     role: 'parent' as const,
   },
   parent2: {
     email: 'parent2@example.com',
-    password: 'parent123',
+    password: 'admin123',
     role: 'parent' as const,
   },
   supervisor: {

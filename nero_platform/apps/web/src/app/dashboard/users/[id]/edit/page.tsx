@@ -104,8 +104,6 @@ export default function EditUserPage() {
       const updateData: any = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        middleName: middleName.trim() || undefined,
-        email: email.trim(),
         phone: phone.trim() || undefined,
       }
 
@@ -119,6 +117,7 @@ export default function EditUserPage() {
 
       // Перенаправляем на страницу просмотра
       router.push(`/dashboard/users/${userId}`)
+      router.refresh()
     } catch (err: any) {
       console.error('Ошибка сохранения пользователя:', err)
       setError(err.response?.data?.message || 'Не удалось сохранить изменения')

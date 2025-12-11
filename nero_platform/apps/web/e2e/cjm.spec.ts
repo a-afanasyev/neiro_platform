@@ -65,7 +65,7 @@ test.describe('CJM #1: Родитель - Онбординг', () => {
     // Шаг 2: Вход под учетной записью родителя (используем тестового родителя из seed данных)
     // В seed.ts создан parent1@example.com с паролем parent123
     await page.fill('input[type="email"]', 'parent1@example.com')
-    await page.fill('input[type="password"]', 'parent123')
+    await page.fill('input[type="password"]', 'admin123')
     await page.click('button[type="submit"]')
 
     // Шаг 3: Проверка успешного входа и редиректа на dashboard
@@ -78,7 +78,7 @@ test.describe('CJM #1: Родитель - Онбординг', () => {
 
   test('CJM #1.2: Родитель видит своих детей после входа', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
 
     // Переход в раздел "Мои дети"
     await page.click('text=Мои дети')
@@ -91,7 +91,7 @@ test.describe('CJM #1: Родитель - Онбординг', () => {
 
   test('CJM #1.3: Родитель может просмотреть профиль своего ребенка', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
 
     // Переход в раздел "Мои дети"
     await page.click('text=Мои дети')
@@ -120,7 +120,7 @@ test.describe('CJM #2: Родитель - Выполнение программ�
 
   test('CJM #2.1: Родитель может просмотреть назначенные упражнения', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
 
     // Переход в раздел "Задания"
     await page.click('text=Задания')
@@ -133,7 +133,7 @@ test.describe('CJM #2: Родитель - Выполнение программ�
 
   test('CJM #2.2: Родитель может просмотреть календарь занятий', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
 
     // Переход в раздел "Задания"
     await page.click('text=Задания')
@@ -149,7 +149,7 @@ test.describe('CJM #2: Родитель - Выполнение программ�
 
   test('CJM #2.3: Родитель может просмотреть детали упражнения через задания', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
 
     // Переход в раздел "Задания"
     await page.click('text=Задания')
@@ -170,7 +170,7 @@ test.describe('CJM #2: Родитель - Выполнение программ�
 
   test('CJM #2.4: Родитель может отметить выполнение назначения', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
 
     // Переход в раздел "Задания"
     await page.click('text=Задания')
@@ -245,7 +245,7 @@ test.describe('CJM #3: Нейропсихолог - Полный цикл', () =
       await createButton.click()
       
       // Проверка открытия формы создания сессии
-      await expect(page.locator('text=Новая диагностическая сессия')).toBeVisible({ timeout: 5000 })
+      await expect(page.locator('text=Создать диагностическую сессию')).toBeVisible({ timeout: 5000 })
       
       // Заполнение формы (базовая проверка)
       await page.selectOption('select[name="childId"]', { index: 1 })
@@ -438,7 +438,7 @@ test.describe('CJM: Сквозные сценарии', () => {
 
   test('CJM: Родитель может просмотреть прогресс выполнения программы', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к ребенку
     await page.click('text=Дети')

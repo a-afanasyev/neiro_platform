@@ -107,7 +107,7 @@ export const usersApi = {
   },
 
   updateUser: async (id: string, data: any) => {
-    const response = await api.put(`/users/v1/${id}`, data)
+    const response = await api.patch(`/users/v1/${id}`, data)
     return response.data
   },
 
@@ -159,7 +159,7 @@ export const childrenApi = {
   },
 
   updateChild: async (id: string, data: any) => {
-    const response = await api.put(`/children/v1/${id}`, data)
+    const response = await api.patch(`/children/v1/${id}`, data)
     return response.data
   },
 

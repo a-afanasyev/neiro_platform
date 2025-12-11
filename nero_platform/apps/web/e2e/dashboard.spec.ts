@@ -181,7 +181,7 @@ test.describe('Role-based Access Control', () => {
     // Логинимся как родитель
     await page.goto('/login')
     await page.locator('input[type="email"]').fill('parent1@example.com')
-    await page.locator('input[type="password"]').fill('parent123')
+    await page.locator('input[type="password"]').fill('admin123')
     await page.locator('button[type="submit"]').click()
     
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })

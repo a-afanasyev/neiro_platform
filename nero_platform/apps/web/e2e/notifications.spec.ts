@@ -14,7 +14,7 @@ test.describe('Notifications Management', () => {
     // Авторизация как родитель
     await page.goto('/login')
     await page.fill('[data-testid=email]', 'parent1@example.com')
-    await page.fill('[data-testid=password]', 'parent123')
+    await page.fill('[data-testid=password]', 'admin123')
     await page.click('[data-testid=login-button]')
     await page.waitForURL('/dashboard')
   })

@@ -216,6 +216,7 @@ export default function DiagnosticsPage() {
                   <div className="space-y-2">
                     <Label>Ребенок</Label>
                     <select
+                      name="childId"
                       className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={selectedChild}
                       onChange={(e) => setSelectedChild(e.target.value)}
@@ -232,6 +233,7 @@ export default function DiagnosticsPage() {
                   <div className="space-y-2">
                     <Label>Опросник</Label>
                     <select
+                      name="questionnaireCode"
                       className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={selectedQuestionnaire}
                       onChange={(e) => setSelectedQuestionnaire(e.target.value)}

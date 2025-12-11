@@ -310,7 +310,6 @@ export default function UsersPage() {
                       Подробнее
                     </Button>
                     <Button
-                      data-testid="edit-user-button"
                       variant="outline"
                       size="sm"
                       onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}

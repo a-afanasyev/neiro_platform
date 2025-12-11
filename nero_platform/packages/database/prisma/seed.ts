@@ -145,13 +145,13 @@ async function main() {
   });
 
   // Родители
-  // Родитель 1 (password: parent123)
+  // Родитель 1 (password: admin123)
   const parent1 = await prisma.user.upsert({
     where: { email: 'parent1@example.com' },
     update: {},
     create: {
       email: 'parent1@example.com',
-      password: await bcrypt.hash('parent123', 12),
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Анвар',
       lastName: 'Иванов',
       role: 'parent',
@@ -161,13 +161,13 @@ async function main() {
     },
   });
 
-  // Родитель 2 (password: parent123)
+  // Родитель 2 (password: admin123)
   const parent2 = await prisma.user.upsert({
     where: { email: 'parent2@example.com' },
     update: {},
     create: {
       email: 'parent2@example.com',
-      password: await bcrypt.hash('parent123', 12),
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Наталья',
       lastName: 'Петрова',
       role: 'parent',
@@ -177,13 +177,13 @@ async function main() {
     },
   });
 
-  // Родитель 3 (password: parent123)
+  // Родитель 3 (password: admin123)
   const parent3 = await prisma.user.upsert({
     where: { email: 'parent3@example.com' },
     update: {},
     create: {
       email: 'parent3@example.com',
-      password: await bcrypt.hash('parent123', 12),
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Дмитрий',
       lastName: 'Сидоров',
       role: 'parent',
@@ -193,13 +193,13 @@ async function main() {
     },
   });
 
-  // Родитель 4 (password: parent123)
+  // Родитель 4 (password: admin123)
   const parent4 = await prisma.user.upsert({
     where: { email: 'parent4@example.com' },
     update: {},
     create: {
       email: 'parent4@example.com',
-      password: await bcrypt.hash('parent123', 12),
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Елена',
       lastName: 'Михайлова',
       role: 'parent',
@@ -209,13 +209,13 @@ async function main() {
     },
   });
 
-  // Родитель 5 (password: parent123)
+  // Родитель 5 (password: admin123)
   const parent5 = await prisma.user.upsert({
     where: { email: 'parent5@example.com' },
     update: {},
     create: {
       email: 'parent5@example.com',
-      password: await bcrypt.hash('parent123', 12),
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Сергей',
       lastName: 'Козлов',
       role: 'parent',
@@ -225,13 +225,13 @@ async function main() {
     },
   });
 
-  // Родитель 6 (password: parent123)
+  // Родитель 6 (password: admin123)
   const parent6 = await prisma.user.upsert({
     where: { email: 'parent6@example.com' },
     update: {},
     create: {
       email: 'parent6@example.com',
-      password: await bcrypt.hash('parent123', 12),
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Мария',
       lastName: 'Волкова',
       role: 'parent',
@@ -241,13 +241,13 @@ async function main() {
     },
   });
 
-  // Родитель 7 (password: parent123)
+  // Родитель 7 (password: admin123)
   const parent7 = await prisma.user.upsert({
     where: { email: 'parent7@example.com' },
     update: {},
     create: {
       email: 'parent7@example.com',
-      password: await bcrypt.hash('parent123', 12),
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Алексей',
       lastName: 'Новиков',
       role: 'parent',
@@ -257,13 +257,13 @@ async function main() {
     },
   });
 
-  // Родитель 8 (password: parent123)
+  // Родитель 8 (password: admin123)
   const parent8 = await prisma.user.upsert({
     where: { email: 'parent8@example.com' },
     update: {},
     create: {
       email: 'parent8@example.com',
-      password: await bcrypt.hash('parent123', 12),
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Ирина',
       lastName: 'Морозова',
       role: 'parent',
@@ -273,13 +273,13 @@ async function main() {
     },
   });
 
-  // Родитель 9 (password: parent123)
+  // Родитель 9 (password: admin123)
   const parent9 = await prisma.user.upsert({
     where: { email: 'parent9@example.com' },
     update: {},
     create: {
       email: 'parent9@example.com',
-      password: await bcrypt.hash('parent123', 12),
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Виктор',
       lastName: 'Соколов',
       role: 'parent',
@@ -289,13 +289,13 @@ async function main() {
     },
   });
 
-  // Родитель 10 (password: parent123)
+  // Родитель 10 (password: admin123)
   const parent10 = await prisma.user.upsert({
     where: { email: 'parent10@example.com' },
     update: {},
     create: {
       email: 'parent10@example.com',
-      password: await bcrypt.hash('parent123', 12),
+      password: await bcrypt.hash('admin123', 12),
       firstName: 'Татьяна',
       lastName: 'Лебедева',
       role: 'parent',

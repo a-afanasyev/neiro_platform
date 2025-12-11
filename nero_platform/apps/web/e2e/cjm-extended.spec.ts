@@ -461,7 +461,7 @@ test.describe('CJM #7: Ребенок - Игровой опыт', () => {
 
   test('CJM #7.1: Знакомство - Принять задание', async ({ page }) => {
     // Вход под родителем для доступа к детскому интерфейсу
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к детскому режиму
     await page.click('text=Детский режим')
@@ -478,7 +478,7 @@ test.describe('CJM #7: Ребенок - Игровой опыт', () => {
 
   test('CJM #7.2: Выполнение - Делать упражнение', async ({ page }) => {
     // Вход под родителем для доступа к детскому интерфейсу
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к детскому режиму
     await page.click('text=Детский режим')
@@ -498,7 +498,7 @@ test.describe('CJM #7: Ребенок - Игровой опыт', () => {
 
   test('CJM #7.3: Поддержка - Сохранять внимание', async ({ page }) => {
     // Вход под родителем для доступа к детскому интерфейсу
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к детскому режиму
     await page.click('text=Детский режим')
@@ -518,7 +518,7 @@ test.describe('CJM #7: Ребенок - Игровой опыт', () => {
 
   test('CJM #7.4: Завершение - Почувствовать успех', async ({ page }) => {
     // Вход под родителем для доступа к детскому интерфейсу
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к детскому режиму
     await page.click('text=Детский режим')
@@ -535,7 +535,7 @@ test.describe('CJM #7: Ребенок - Игровой опыт', () => {
 
   test('CJM #7.5: Вознаграждение - Закрепить мотивацию', async ({ page }) => {
     // Вход под родителем для доступа к детскому интерфейсу
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к детскому режиму
     await page.click('text=Детский режим')
@@ -565,7 +565,7 @@ test.describe('CJM #8: Telegram/PWA взаимодействия', () => {
 
   test('CJM #8.1: Уведомление - Не пропустить задание', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к настройкам уведомлений
     await page.click('text=Настройки')
@@ -580,7 +580,7 @@ test.describe('CJM #8: Telegram/PWA взаимодействия', () => {
 
   test('CJM #8.2: Быстрый отчет - Сдать задание "на бегу"', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к PWA режиму
     await page.click('text=PWA режим')
@@ -606,7 +606,7 @@ test.describe('CJM #8: Telegram/PWA взаимодействия', () => {
 
   test('CJM #8.3: Напоминание - Помнить о встрече', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к календарю
     await page.click('text=Календарь')
@@ -626,7 +626,7 @@ test.describe('CJM #8: Telegram/PWA взаимодействия', () => {
 
   test('CJM #8.4: Служба поддержки - Быстро получить ответ', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к поддержке
     await page.click('text=Поддержка')
@@ -649,7 +649,7 @@ test.describe('CJM #8: Telegram/PWA взаимодействия', () => {
 
   test('CJM #8.5: Автоматические ответы - Чувствовать заботу', async ({ page }) => {
     // Вход под родителем
-    await loginAs(page, 'parent1@example.com', 'parent123')
+    await loginAs(page, 'parent1@example.com', 'admin123')
     
     // Переход к настройкам автоответов
     await page.click('text=Настройки')
@@ -947,6 +947,7 @@ test.describe('CJM #9-12: Расширенные профессиональны�
     await expect(page.locator('text=Геймификация')).toBeVisible({ timeout: 5000 })
   })
 })
+
 
 
 

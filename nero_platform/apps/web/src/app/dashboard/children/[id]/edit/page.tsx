@@ -69,9 +69,9 @@ export default function EditChildPage() {
       setFirstName(childData.firstName || '')
       setLastName(childData.lastName || '')
       setMiddleName(childData.middleName || '')
-      setDateOfBirth(childData.dateOfBirth?.split('T')[0] || '')
+      setDateOfBirth(childData.birthDate?.split('T')[0] || '')
       setGender(childData.gender || 'male')
-      setDiagnosis(childData.diagnosis || '')
+      setDiagnosis(childData.diagnosisSummary || childData.diagnosis || '')
       setNotes(childData.notes || '')
     } catch (err: any) {
       console.error('Ошибка загрузки ребенка:', err)
@@ -99,10 +99,9 @@ export default function EditChildPage() {
       const updateData = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        middleName: middleName.trim() || undefined,
-        dateOfBirth,
+        birthDate: dateOfBirth ? new Date(dateOfBirth).toISOString() : undefined,
         gender,
-        diagnosis: diagnosis.trim() || undefined,
+        diagnosisSummary: diagnosis.trim() || undefined,
         notes: notes.trim() || undefined,
       }
 
@@ -110,6 +109,7 @@ export default function EditChildPage() {
 
       // Перенаправляем на страницу просмотра
       router.push(`/dashboard/children/${childId}`)
+      router.refresh()
     } catch (err: any) {
       console.error('Ошибка сохранения ребенка:', err)
       setError(err.response?.data?.message || 'Не удалось сохранить изменения')

@@ -131,25 +131,21 @@ export default function ChildrenPage() {
         throw new Error('Необходимо выбрать родителя/опекуна')
       }
 
-      // Создаем ребенка
+      // Создаем ребенка с родителем
       const childData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        birthDate: formData.dateOfBirth,
+        birthDate: new Date(formData.dateOfBirth).toISOString(),
         diagnosisSummary: formData.diagnosis || undefined,
+        parentUserId: formData.parentUserId,
+        relationship: formData.relationship,
+        legalGuardian: formData.legalGuardian,
       }
 
       const childResponse = await childrenApi.createChild(childData)
 
       if (childResponse.success) {
-        const childId = childResponse.data.id
-
-        // Привязываем родителя к ребенку
-        await childrenApi.addParent(childId, {
-          parentUserId: formData.parentUserId,
-          relationship: formData.relationship,
-          legalGuardian: formData.legalGuardian,
-        })
+        // Родитель уже привязан при создании
 
         await loadChildren()
         setIsDialogOpen(false)
@@ -343,7 +339,7 @@ export default function ChildrenPage() {
                           Отмена
                         </Button>
                         <Button type="submit" disabled={isSubmitting || !formData.parentUserId}>
-                          {isSubmitting ? 'Создание...' : 'Создать'}
+                          {isSubmitting ? 'Добавление...' : 'Добавить'}
                         </Button>
                       </DialogFooter>
                     </form>
@@ -432,7 +428,6 @@ export default function ChildrenPage() {
                           </Button>
                           {(user?.role === 'admin' || user?.role === 'specialist') && (
                             <Button
-                              data-testid="edit-child-button"
                               variant="outline"
                               size="sm"
                               onClick={() => router.push(`/dashboard/children/${child.id}/edit`)}
