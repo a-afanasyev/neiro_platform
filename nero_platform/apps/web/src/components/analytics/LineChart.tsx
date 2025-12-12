@@ -53,7 +53,7 @@ export function LineChart({
   // Если данных нет, показываем пустое состояние
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
+      <div className="flex items-center justify-center h-64 text-muted-foreground" data-testid="line-chart">
         <p>Недостаточно данных для отображения</p>
       </div>
     )

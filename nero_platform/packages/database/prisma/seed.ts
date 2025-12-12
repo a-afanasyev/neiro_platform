@@ -1985,7 +1985,185 @@ async function main() {
     },
   });
 
-  console.log('✅ Создано отчетов: 12');
+  // ============================================================
+  // ДОПОЛНИТЕЛЬНЫЕ ДАННЫЕ ДЛЯ E2E ТЕСТОВ PR-1, PR-2, PR-3
+  // ============================================================
+
+  // Создаем дополнительные completed assignments для child1 (связанного с parent1)
+  // Это нужно для отображения графиков прогресса в тестах
+
+  const assignmentForProgress1 = await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: cognitiveExercise.id,
+      assignedById: specialist1.id,
+      specialistId: specialist1.id,
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      plannedStartDate: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 дней назад
+      dueDate: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      deliveryChannel: 'home',
+      frequencyPerWeek: 3,
+      expectedDurationMinutes: 25,
+    },
+  });
+
+  const assignmentForProgress2 = await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: motorExercise.id,
+      assignedById: specialist1.id,
+      specialistId: specialist1.id,
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      plannedStartDate: new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 дней назад
+      dueDate: new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      deliveryChannel: 'home',
+      frequencyPerWeek: 3,
+      expectedDurationMinutes: 20,
+    },
+  });
+
+  const assignmentForProgress3 = await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: socialExercise.id,
+      assignedById: specialist1.id,
+      specialistId: specialist1.id,
+      routeId: route1.id,
+      phaseId: phase1_3.id,
+      plannedStartDate: new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 дня назад
+      dueDate: new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      deliveryChannel: 'in_person',
+      frequencyPerWeek: 2,
+      expectedDurationMinutes: 30,
+    },
+  });
+
+  const assignmentForProgress4 = await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: speechExercise.id,
+      assignedById: specialist1.id,
+      specialistId: specialist2.id,
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      plannedStartDate: new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000), // вчера
+      dueDate: new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      deliveryChannel: 'home',
+      frequencyPerWeek: 4,
+      expectedDurationMinutes: 15,
+    },
+  });
+
+  // Создаем отчеты для этих заданий от parent1 с разным настроением
+  // Это нужно для круговой диаграммы распределения настроения
+
+  await prisma.report.create({
+    data: {
+      assignmentId: assignmentForProgress1.id,
+      parentId: parent1.id,
+      submittedAt: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      durationMinutes: 28,
+      childMood: 'good',
+      feedbackText: 'Алиса с удовольствием выполняла когнитивные упражнения. Показывает хороший прогресс в концентрации.',
+      autoScore: 88.0,
+      reviewStatus: 'approved',
+      reviewedBy: specialist1.id,
+      reviewedAt: new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.report.create({
+    data: {
+      assignmentId: assignmentForProgress2.id,
+      parentId: parent1.id,
+      submittedAt: new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      durationMinutes: 22,
+      childMood: 'neutral',
+      feedbackText: 'Занятие прошло нормально, но Алиса была немного уставшей.',
+      autoScore: 75.0,
+      reviewStatus: 'approved',
+      reviewedBy: specialist1.id,
+      reviewedAt: new Date(today.getTime() - 4 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.report.create({
+    data: {
+      assignmentId: assignmentForProgress3.id,
+      parentId: parent1.id,
+      submittedAt: new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      durationMinutes: 32,
+      childMood: 'good',
+      feedbackText: 'Отличное социальное занятие! Алиса активно взаимодействовала и была в хорошем настроении.',
+      autoScore: 92.0,
+      reviewStatus: 'approved',
+      reviewedBy: specialist1.id,
+      reviewedAt: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.report.create({
+    data: {
+      assignmentId: assignmentForProgress4.id,
+      parentId: parent1.id,
+      submittedAt: new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      durationMinutes: 18,
+      childMood: 'difficult',
+      feedbackText: 'Алиса была капризной, отказывалась выполнять некоторые упражнения. Возможно, плохо спала.',
+      autoScore: 60.0,
+      reviewStatus: 'needs_attention',
+      reviewedBy: specialist2.id,
+      reviewedAt: new Date(today.getTime() - 12 * 60 * 60 * 1000),
+    },
+  });
+
+  // Добавляем еще несколько completed assignments для разнообразия данных
+  const assignmentForProgress5 = await prisma.assignment.create({
+    data: {
+      childId: child1.id,
+      exerciseId: cognitiveExercise.id,
+      assignedById: specialist1.id,
+      specialistId: specialist1.id,
+      routeId: route1.id,
+      phaseId: phase1_2.id,
+      plannedStartDate: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      deliveryChannel: 'in_person',
+      frequencyPerWeek: 3,
+      expectedDurationMinutes: 25,
+    },
+  });
+
+  await prisma.report.create({
+    data: {
+      assignmentId: assignmentForProgress5.id,
+      parentId: parent1.id,
+      submittedAt: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      durationMinutes: 26,
+      childMood: 'good',
+      feedbackText: 'Хорошее занятие, Алиса справилась со всеми заданиями.',
+      autoScore: 85.0,
+      reviewStatus: 'approved',
+      reviewedBy: specialist1.id,
+      reviewedAt: new Date(today.getTime() - 9 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  console.log('✅ Создано дополнительных заданий для прогресс-тестов: 5');
+  console.log('✅ Создано дополнительных отчетов для прогресс-тестов: 5');
+  console.log('✅ Создано отчетов: 17 (12 + 5 дополнительных)');
 
   // ============================================================
   // 13. Создаём уведомления (Notifications)
