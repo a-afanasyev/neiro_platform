@@ -84,6 +84,23 @@ export function LineChart({
           <Tooltip
             formatter={(value: number) => formatTooltip(value)}
             labelFormatter={(label) => `Дата: ${formatDate(label)}`}
+            wrapperStyle={{ zIndex: 1000 }}
+            content={({ active, payload, label }) => {
+              if (!active || !payload || !payload.length) return null
+              return (
+                <div
+                  data-testid="chart-tooltip"
+                  className="bg-white p-3 border border-gray-200 rounded shadow-lg"
+                >
+                  <p className="text-sm font-semibold mb-1">
+                    Дата: {formatDate(label)}
+                  </p>
+                  <p className="text-sm text-blue-600">
+                    {formatTooltip(payload[0].value as number)}
+                  </p>
+                </div>
+              )
+            }}
           />
           <Legend />
           <Line
@@ -91,7 +108,18 @@ export function LineChart({
             dataKey="value"
             stroke={color}
             strokeWidth={2}
-            dot={{ r: 4 }}
+            dot={(props: any) => {
+              const { cx, cy, index } = props
+              return (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={4}
+                  fill={color}
+                  data-testid={`line-chart-point-${index}`}
+                />
+              )
+            }}
             activeDot={{ r: 6 }}
             name={title || 'Значение'}
           />

@@ -2166,6 +2166,35 @@ async function main() {
   console.log('✅ Создано отчетов: 17 (12 + 5 дополнительных)');
 
   // ============================================================
+  // 12a. Создаём связи ChildSpecialist для E2E тестов
+  // ============================================================
+
+  console.log('📝 Создание связей ChildSpecialist для E2E тестов...');
+
+  // PR-3: Связываем child1 (Алису Иванову) со specialist1 (Нейропсихолог)
+  // Это необходимо для теста PR-3 в progress.spec.ts
+  const childSpecialist1 = await prisma.childSpecialist.upsert({
+    where: {
+      childId_specialistId_specialization: {
+        childId: child1.id,
+        specialistId: spec1.id,
+        specialization: 'neuropsychologist',
+      },
+    },
+    update: {},
+    create: {
+      childId: child1.id,
+      specialistId: spec1.id,
+      specialization: 'neuropsychologist',
+      isPrimary: true,
+      assignedAt: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 дней назад
+      roleDescription: 'Ведущий нейропсихолог, отвечающий за основную программу коррекции',
+    },
+  });
+
+  console.log('✅ Создано связей ChildSpecialist: 1');
+
+  // ============================================================
   // 13. Создаём уведомления (Notifications)
   // ============================================================
 

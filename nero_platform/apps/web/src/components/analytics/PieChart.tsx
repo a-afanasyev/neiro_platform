@@ -78,11 +78,29 @@ export function PieChart({
               <Cell
                 key={`cell-${index}`}
                 fill={getColor(index, entry.color)}
+                data-testid={`pie-chart-segment-${index}`}
               />
             ))}
           </Pie>
           <Tooltip
             formatter={(value: number) => formatTooltip(value, total)}
+            wrapperStyle={{ zIndex: 1000 }}
+            content={({ active, payload }) => {
+              if (!active || !payload || !payload.length) return null
+              return (
+                <div
+                  data-testid="chart-tooltip"
+                  className="bg-white p-3 border border-gray-200 rounded shadow-lg"
+                >
+                  <p className="text-sm font-semibold mb-1">
+                    {payload[0].name}
+                  </p>
+                  <p className="text-sm text-blue-600">
+                    {formatTooltip(payload[0].value as number, total)}
+                  </p>
+                </div>
+              )
+            }}
           />
           <Legend />
         </RechartsPieChart>
